@@ -1,0 +1,8 @@
+DROP TABLE IF EXISTS t;
+CREATE TABLE t (c1 int, c2 int, c3 int, c4 int, primary key(c1));
+CREATE INDEX idx_c2_c3 ON t (c2, c3);
+INSERT INTO t (c1, c2, c3) VALUES(11, 22, 33);
+INSERT INTO t (c1, c2, c3) VALUES(12, 22, 34);
+select * from t where c2 = 22 && c3 = 33;
+c1	c2	c3	c4
+11	22	33	NULL

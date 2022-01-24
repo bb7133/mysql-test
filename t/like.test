@@ -1,0 +1,7 @@
+drop table if exists t;
+create table t (A text);
+insert t values ('abc'), ('bbc'), ('abb'), ('bba'), ('_a_'), ('%%%');
+select * from t where a like 'a%';
+select * from t where a like '%c';
+select * from t where a like '\%\%\%';
+select * from t where a not like '%a%';

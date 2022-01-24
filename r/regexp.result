@@ -1,0 +1,19 @@
+drop table if exists t;
+create table t (A text);
+insert t values ('abc'), ('bbc'), ('abb'), ('bba');
+select * from t where a regexp '^a';
+A
+abc
+abb
+select * from t where a rlike 'c$';
+A
+abc
+bbc
+select * from t where a regexp 'a';
+A
+abc
+abb
+bba
+select * from t where a not rlike 'a';
+A
+bbc

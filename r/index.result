@@ -1,0 +1,82 @@
+drop table if exists t;
+create table t (c1 int, index (c1));
+insert into t values (-1), (0), (null), (1024), (65535), (-65535);
+select * from t where c1 > 0;
+c1
+1024
+65535
+select * from t where c1 > 1024;
+c1
+65535
+select * from t where c1 is null;
+c1
+NULL
+drop table t;
+create table t (c1 varchar(256), index(c1));
+insert into t values (""), (null), ("123");
+select c1 + "123" from t where c1 > "12";
+c1 + "123"
+246
+select c1 + "123" from t where c1 >= "";
+c1 + "123"
+123
+246
+select c1 + "123" from t where c1 is not null;
+c1 + "123"
+123
+246
+select c1 from t where c1 is null;
+c1
+NULL
+drop table t;
+create table t (c1 datetime, index(c1));
+insert into t values ("2000-01-01 00:00:00"), ("2015-01-01 00:00:00");
+select c1 from t where c1 > "2000-01-01 00:00:00";
+c1
+2015-01-01 00:00:00
+select c1 from t where c1 < cast("2015-01-01 00:00:00" as datetime);
+c1
+2000-01-01 00:00:00
+select c1 from t where c1 >= cast("2000-01-01 00:00:00.000001" as datetime(6));
+c1
+2015-01-01 00:00:00
+select c1 from t where c1 > "0000-00-00 00:00:00";
+c1
+drop table t;
+create table t (c1 time, index(c1));
+insert into t values ("00:00:00"), ("10:00:00");
+select c1 from t where c1 >= "00:00:00";
+c1
+00:00:00
+10:00:00
+select c1 from t where c1 >= "10:00:00";
+c1
+10:00:00
+select c1 from t where c1 >= "00:00:00" and c1 < "10:00:00";
+c1
+00:00:00
+drop table t;
+create table t (c1 decimal(10,5), index(c1));
+insert into t values (0.12), (1.23), (12.34), (123.45), (0.1234), (-0.1234), (-1.234), (-12.345), (123.45);
+select c1 from t where c1 >= -0.0120;
+c1
+0.12000
+0.12340
+1.23000
+12.34000
+123.45000
+123.45000
+select c1 from t where c1 >= 0;
+c1
+0.12000
+0.12340
+1.23000
+12.34000
+123.45000
+123.45000
+select c1 from t where c1 >= -1.23 and c1 < 10;
+c1
+-0.12340
+0.12000
+0.12340
+1.23000

@@ -1,0 +1,33 @@
+DROP TABLE IF EXISTS t;
+
+# Test TEXT
+# create table
+CREATE TABLE t (c1 int, c2 text, primary key(c1));
+
+# insert data
+INSERT INTO t (c1, c2) VALUES(11, "test-str");
+
+SELECT * FROM t;
+
+--disable_query_log
+SELECT c1, c2 FROM t;
+
+INSERT INTO t (c1) VALUES(12);
+
+INSERT INTO t (c1) VALUES(111);
+
+# Test VARCHAR
+#  TODO: add more testcase for VARCHAR
+DROP TABLE IF EXISTS t1;
+CREATE TABLE t1 (c1 int, c2 varchar(30));
+
+# insert data
+INSERT INTO t1 (c1, c2) VALUES(11, "test-str");
+
+SELECT * FROM t1;
+
+# int24
+DROP TABLE IF EXISTS t1;
+CREATE TABLE t1 (c1 MEDIUMINT, c2 varchar(30));
+INSERT INTO t1 (c1, c2) VALUES(11, "test-str");
+SELECT * FROM t1;

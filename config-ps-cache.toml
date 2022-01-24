@@ -1,0 +1,24 @@
+port = 4001
+lease = "0"
+enable-table-lock = true
+
+# When create table, split a separated region for it. It is recommended to
+# turn off this option if there will be a large number of tables created.
+split-table = false
+
+[log]
+level = "error"
+
+[status]
+status-port = 9081
+
+[performance]
+stats-lease = "0"
+
+[prepared-plan-cache]
+enabled = true
+
+# experimental section controls the features that are still experimental: their semantics,
+# interfaces are subject to change, using these features in the production environment is not recommended.
+[experimental]
+allow-expression-index = true

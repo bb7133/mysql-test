@@ -1,0 +1,23 @@
+DROP TABLE IF EXISTS tbl_test;
+
+CREATE TABLE tbl_test(id INT NOT NULL DEFAULT 1, name text, PRIMARY KEY(id));
+INSERT INTO tbl_test VALUES (2, "hello");
+# update noindex column
+UPDATE tbl_test SET name = "abc" where id = 2;
+select * from tbl_test where name="abc";
+select * from tbl_test where id=2;
+
+INSERT INTO tbl_test VALUES (3, "hello");
+# update index column
+UPDATE tbl_test SET id = 4 where name = "hello";
+SELECT * from tbl_test where id=4;
+select * from tbl_test;
+
+
+drop table if exists t;
+create table t (c1 int default 1, c2 int not null default 2);
+insert into t values (1,1);
+update t set c1 = null;
+--error ER_BAD_NULL_ERROR
+update t set c2 = null;
+select * from t;

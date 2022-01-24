@@ -1,0 +1,120 @@
+DROP TABLE IF EXISTS t;
+
+CREATE TABLE t (
+    c1 int,
+    c2 int,
+    c3 int
+);
+
+INSERT INTO t (c1, c2) VALUES (11, 21);
+INSERT INTO t (c1, c3) VALUES (12, 22);
+INSERT INTO t (c2, c3) VALUES (23, 33);
+INSERT INTO t (c3) VALUES (34);
+
+SELECT * from t;
+SELECT COALESCE(c1, c2, c3) from t;
+SELECT CoAlEsCe(c1, c2, c3) from t;
+
+# For decimal sum
+DROP TABLE IF EXISTS t;
+
+CREATE TABLE t (
+    c1 decimal(10,1),
+    c2 int,
+    c3 int
+);
+INSERT INTO t (c1, c2) VALUES (11.5, 21);
+INSERT INTO t (c1, c3) VALUES (12.5, 22);
+SELECT * from t;
+SELECT sum(c1) from t;
+
+# For cast
+SELECT 1, CAST(1 AS CHAR);
+--error Data Too Long.
+SELECT 1, CAST(1234 AS CHAR(3));
+SELECT 1, CAST("-1234" AS SIGNED);
+--error bad cast type.
+SELECT 1, CAST("-1234" AS UNSIGNED);
+SELECT cast("2011-11-20" as DATE);
+SELECT cast("00:00:00.1" as TIME(1));
+--error Data Too Long.
+SELECT 1, CAST(1234 AS CHAR(0));
+SELECT cast('2011-11-20 00:00:00' as DATE);
+SELECT cast(null AS UNSIGNED);
+SELECT cast(null AS CHAR(0));
+SELECT cast(123 AS DECIMAL), cast(123.001 AS DECIMAL);
+SELECT abs(cast("20150817015609" as DATETIME));
+SELECT cast(3.1 as SIGNED) as a, cast(3.9 as SIGNED) as b, cast(-3.1 as SIGNED) as c, cast(-3.9 as SIGNED) as d;
+select CAST( - 2 - - ( 52 ) / ( 24 * + 25 + + 91 ) AS SIGNED );
+select cast("11:11:11.123457" as time(5));
+select cast("11:11:11.888888" as time(5));
+select cast(cast("11:11:11.888888" as time(5)) as time(6));
+select cast(cast("11:11:11.1234547" as time(6)) as time(5));
+select cast("2010-11-11 11:11:11.888888" as datetime);
+select cast(cast("2010-11-11 11:11:11.888888" as datetime) as time(6));
+select cast(cast("2010-11-11 11:11:11.123456" as datetime(4)) as time(6));
+select cast(cast("11:11:11.888888" as time(6)) as unsigned), cast(cast("11:11:11.188888" as time(6)) as unsigned);
+select cast(cast("2011-10-10 11:11:11.888888" as datetime(6)) as unsigned);
+
+# For repeat
+SELECT REPEAT('b',10);
+SELECT REPEAT(1,10);
+SELECT REPEAT(1,0);
+SELECT REPEAT(1,-1);
+
+# For control flow
+select if(1 > 2, 2, 3), if(1 < 2, 'yes', 'no'), if(null, 1, 2);
+select ifnull(1, 0), ifnull(null, 10), ifnull(1/0, 10);
+select nullif(1, 1), nullif(1, 2), nullif(null, null), nullif(1, null);
+
+# For left
+SELECT LEFT('foobarbar', 5);
+SELECT LEFT('12345', 10);
+SELECT LEFT('12345', -1);
+
+# For convert
+SELECT CONVERT("ABCD" USING ASCII);
+
+# For DayOfMonth
+SELECT DAYOFMONTH('2007-02-03');
+
+# For substring
+SELECT SUBSTRING('Quadratically',5);
+SELECT SUBSTRING('foobarbar' FROM 4);
+SELECT SUBSTRING('Quadratically',5,6);
+SELECT SUBSTRING('Sakila', -3);
+SELECT SUBSTRING('Sakila', -5, 3);
+SELECT SUBSTRING('Sakila' FROM -4 FOR 2);
+
+# For time
+select year("2000-01-01"), month("2000-01-01"), day("2000-01-01"), dayofmonth("2000-01-01");
+select hour("10:11:12"), minute("10:11:12"), second("10:11:12"), microsecond("10:11:12.123456");
+select dayofweek("2015-09-01"), weekday("2015-09-01"), yearweek("2015-09-01"), weekofyear("2015-09-01"), week("2015-09-01");
+
+# For Convert
+SELECT 1, CONVERT(1, CHAR);
+--error Data Too Long
+SELECT 1, CONVERT(1234, CHAR(3));
+SELECT 1, CONVERT("-1234", SIGNED);
+
+# For time extract
+select extract(microsecond from "2011-11-11 10:10:10.123456");
+select extract(second from "2011-11-11 10:10:10.123456");
+select extract(minute from "2011-11-11 10:10:10.123456");
+select extract(hour from "2011-11-11 10:10:10.123456");
+select extract(day from "2011-11-11 10:10:10.123456");
+select extract(week from "2011-11-11 10:10:10.123456");
+select extract(month from "2011-11-11 10:10:10.123456");
+select extract(quarter from "2011-11-11 10:10:10.123456");
+select extract(year from "2011-11-11 10:10:10.123456");
+select extract(second_microsecond from "2011-11-11 10:10:10.123456");
+select extract(minute_microsecond from "2011-11-11 10:10:10.123456");
+select extract(minute_second from "2011-11-11 10:10:10.123456");
+select extract(hour_microsecond from "2011-11-11 10:10:10.123456");
+select extract(hour_second from "2011-11-11 10:10:10.123456");
+select extract(hour_minute from "2011-11-11 10:10:10.123456");
+select extract(day_microsecond from "2011-11-11 10:10:10.123456");
+select extract(day_second from "2011-11-11 10:10:10.123456");
+select extract(day_minute from "2011-11-11 10:10:10.123456");
+select extract(day_hour from "2011-11-11 10:10:10.123456");
+select extract(year_month from "2011-11-11 10:10:10.123456");

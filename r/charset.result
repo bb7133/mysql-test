@@ -1,0 +1,98 @@
+#
+#Bug#21958734: INNODB: FAILING ASSERTION: *MBMAXLEN < 5 IN
+#              FILE HA_INNODB.CC LINE 1803
+#
+SHOW CHARACTER SET LIKE '%filename%';
+Charset	Description	Default collation	Maxlen
+SHOW COLLATION LIKE '%filename%';
+Collation	Charset	Id	Default	Compiled	Sortlen
+SELECT _filename'abcd';
+Error 1054: Unknown column '_filename' in 'field list'
+SELECT CONVERT(_latin1'abcd' USING filename);
+[parser:1115]Unknown character set: 'filename'
+SELECT CAST(_latin1'abcd' AS CHAR CHARACTER SET filename);
+[parser:1115]Unknown character set: 'filename'
+SET NAMES 'filename';
+[parser:1115]Unknown character set: 'filename'
+SET NAMES 'utf8';
+DROP DATABASE IF EXISTS db21958734;
+CREATE DATABASE db21958734 CHARACTER SET filename;
+[parser:1115]Unknown character set: 'filename'
+CREATE DATABASE db21958734 COLLATE filename;
+[ddl:1273]Unknown collation: 'filename'
+CREATE DATABASE db21958734 CHARACTER SET utf8;
+ALTER DATABASE db21958734 CHARACTER SET filename;
+[parser:1115]Unknown character set: 'filename'
+ALTER DATABASE db21958734 COLLATE filename;
+[ddl:1273]Unknown collation: 'filename'
+ALTER DATABASE db21958734 CHARACTER SET latin1;
+USE db21958734;
+CREATE TABLE t1(a VARCHAR(10)) CHARACTER SET filename;
+[parser:1115]Unknown character set: 'filename'
+CREATE TABLE t1(a VARCHAR(10)) COLLATE filename;
+[ddl:1273]Unknown collation: 'filename'
+CREATE TABLE t1(a VARCHAR(10) CHARACTER SET filename);
+[parser:1115]Unknown character set: 'filename'
+CREATE TABLE t1(a VARCHAR(10) COLLATE filename);
+[ddl:1273]Unknown collation: 'filename'
+CREATE TABLE t1(a VARCHAR(10) CHARACTER SET utf8) CHARACTER SET latin1;
+ALTER TABLE t1 CHARACTER SET filename;
+[parser:1115]Unknown character set: 'filename'
+ALTER TABLE t1 COLLATE filename;
+[ddl:1273]Unknown collation: 'filename'
+ALTER TABLE t1 MODIFY a VARCHAR(10) CHARACTER SET filename;
+[parser:1115]Unknown character set: 'filename'
+ALTER TABLE t1 MODIFY a VARCHAR(10) COLLATE filename;
+[ddl:1273]Unknown collation: 'filename'
+DROP DATABASE db21958734;
+#
+# Bug#29110613: UNICODE STRING INCORRECTLY MARKED AS INVALID
+#
+USE charset;
+SET NAMES utf8mb4;
+SELECT 'x' AS '🐬';
+🐬
+x
+SELECT '🐬';
+🐬
+🐬
+CREATE TABLE t2(a INT COMMENT "🐬");
+CREATE TABLE t3(a INT);
+CREATE VIEW v1 AS SELECT 'x' AS'🐬';
+DROP TABLE t2, t3;
+PREPARE stmt FROM "SELECT 'x' AS '🐬'";
+EXECUTE stmt;
+🐬
+x
+SELECT 'x' AS '🐬';
+🐬
+x
+SELECT '🐬';
+🐬
+🐬
+SET NAMES default;
+#
+# Bug#29909573 SHOW CREATE TABLE OUTPUT CAN'T BE EXECUTED
+# The following CREATE TABLE would fail without fix.
+#
+CREATE TABLE t1 (f1 CHAR(20) COLLATE binary);
+SHOW CREATE TABLE t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `f1` binary(20) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+DROP TABLE t1;
+CREATE TABLE t1 (f1 ENUM('a') COLLATE binary);
+SHOW CREATE TABLE t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `f1` enum('a') DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+DROP TABLE t1;
+CREATE TABLE t1 (
+`id` int NOT NULL AUTO_INCREMENT,
+`etype` enum('a','b','c') CHARACTER SET binary COLLATE binary DEFAULT NULL,
+PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+DROP TABLE t1;
+# Bug#32244631: Illegal mix of collations (ascii_general_ci,implicit)

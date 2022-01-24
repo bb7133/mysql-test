@@ -1,0 +1,13 @@
+drop table if exists t;
+create table t (c1 int);
+
+insert into t values (1), (null), (2);
+select * from t where c1 in (1, null);
+select * from t where c1 not in (1, null);
+select * from t where c1 in (select c1 from t);
+select * from t where c1 in (select c1 from t where c1 = 1 || c1 is null);
+select * from t where c1 not in (select c1 from t);
+select * from t where c1 not in (select c1 from t where c1 = 1 || c1 is null);
+select * from t where c1 not in (select c1 from t where c1 = 1);
+select * from t where null in (1, null);
+select * from t where null not in (1, null);

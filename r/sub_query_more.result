@@ -1,0 +1,904 @@
+set @save_sql_mode=@@sql_mode;
+set sql_mode="STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION"
+drop table if exists t1,t2,t3;
+CREATE TABLE t1
+(
+FOLDERID VARCHAR(32)BINARY NOT NULL
+, FOLDERNAME VARCHAR(255)BINARY NOT NULL
+, CREATOR VARCHAR(255)BINARY
+, CREATED TIMESTAMP NOT NULL
+, DESCRIPTION VARCHAR(255)BINARY
+, FOLDERTYPE INTEGER NOT NULL
+, MODIFIED TIMESTAMP
+, MODIFIER VARCHAR(255)BINARY
+, FOLDERSIZE INTEGER NOT NULL
+, PARENTID VARCHAR(32)BINARY
+, REPID VARCHAR(32)BINARY
+, ORIGINATOR INTEGER
+, PRIMARY KEY ( FOLDERID )
+) ENGINE=InnoDB;
+CREATE INDEX FFOLDERID_IDX ON t1 (FOLDERID);
+CREATE INDEX CMFLDRPARNT_IDX ON t1 (PARENTID);
+INSERT INTO t1 VALUES("0c9aab05b15048c59bc35c8461507deb", "System", "System", "2003-06-05 16:30:00", "The system content repository folder.", "3", "2003-06-05 16:30:00", "System", "0", NULL, "9c9aab05b15048c59bc35c8461507deb", "1");
+INSERT INTO t1 VALUES("2f6161e879db43c1a5b82c21ddc49089", "Default", "System", "2003-06-09 10:52:02", "The default content repository folder.", "3", "2003-06-05 16:30:00", "System", "0", NULL, "03eea05112b845949f3fd03278b5fe43", "1");
+INSERT INTO t1 VALUES("c373e9f5ad0791724315444553544200", "AddDocumentTest", "admin", "2003-06-09 10:51:25", "Movie Reviews", "0", "2003-06-09 10:51:25", "admin", "0", "2f6161e879db43c1a5b82c21ddc49089", "03eea05112b845949f3fd03278b5fe43", NULL);
+SELECT 'c373e9f5ad0791a0dab5444553544200' IN(SELECT t1.FOLDERID FROM t1 WHERE t1.PARENTID='2f6161e879db43c1a5b82c21ddc49089' AND t1.FOLDERNAME = 'Level1');
+'c373e9f5ad0791a0dab5444553544200' IN(SELECT t1.FOLDERID FROM t1 WHERE t1.PARENTID='2f6161e879db43c1a5b82c21ddc49089' AND t1.FOLDERNAME = 'Level1')
+0
+drop table t1;
+CREATE TABLE t1 (
+processor_id INTEGER NOT NULL,
+PRIMARY KEY (processor_id)
+) ENGINE=InnoDB;
+CREATE TABLE t3 (
+yod_id BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
+login_processor INTEGER UNSIGNED ,
+PRIMARY KEY (yod_id)
+) ENGINE=InnoDB;
+CREATE TABLE t2 (
+processor_id INTEGER NOT NULL,
+yod_id BIGINT UNSIGNED NOT NULL,
+PRIMARY KEY (processor_id, yod_id),
+INDEX (processor_id),
+INDEX (yod_id),
+FOREIGN KEY (processor_id) REFERENCES t1(processor_id),
+FOREIGN KEY (yod_id) REFERENCES t3(yod_id)
+) ENGINE=InnoDB;
+INSERT INTO t1 VALUES (1),(2),(3);
+INSERT INTO t3 VALUES (1,1),(2,2),(3,3);
+INSERT INTO t2 VALUES (1,1),(2,2),(3,3);
+SELECT distinct p1.processor_id, (SELECT y.yod_id FROM t1 p2, t2 y WHERE p2.processor_id = p1.processor_id and p2.processor_id = y.processor_id) FROM t1 p1 ORDER BY p1.processor_id;
+processor_id	(SELECT y.yod_id FROM t1 p2, t2 y WHERE p2.processor_id = p1.processor_id and p2.processor_id = y.processor_id)
+1	1
+2	2
+3	3
+drop table t2,t1,t3;
+CREATE TABLE t1 (
+id int(11) NOT NULL default '0',
+b int(11) default NULL,
+c char(3) default NULL,
+PRIMARY KEY  (id),
+KEY t2i1 (b)
+) ENGINE=innodb DEFAULT CHARSET=utf8mb4;
+INSERT INTO t1 VALUES (0,0,'GPL'),(1,0,'GPL'),(2,1,'GPL'),(3,2,'GPL');
+CREATE TABLE t2 (
+id int(11) NOT NULL default '0',
+b int(11) default NULL,
+c char(3) default NULL,
+PRIMARY KEY  (id),
+KEY t2i (b)
+) ENGINE=innodb DEFAULT CHARSET=utf8mb4;
+INSERT INTO t2 VALUES (0,0,'GPL'),(1,0,'GPL'),(2,1,'GPL'),(3,2,'GPL');
+select (select max(id) from t2 where b=1 group by b) as x,b from t1 where b=1;
+x	b
+2	1
+drop table t1,t2;
+create table t1 (id int not null, value char(255), primary key(id)) engine=innodb;
+create table t2 (id int not null, value char(255)) engine=innodb;
+insert into t1 values (1,'a'),(2,'b');
+insert into t2 values (1,'z'),(2,'x');
+select t2.id,t2.value,(select t1.value from t1 where t1.id=t2.id) from t2;
+id	value	(select t1.value from t1 where t1.id=t2.id)
+1	z	a
+2	x	b
+select t2.id,t2.value,(select t1.value from t1 where t1.id=t2.id) from t2;
+id	value	(select t1.value from t1 where t1.id=t2.id)
+1	z	a
+2	x	b
+drop table t1,t2;
+CREATE TABLE `t1` ( `unit` varchar(50) NOT NULL default '', `ingredient` varchar(50) NOT NULL default '') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE `t2` ( `ingredient` varchar(50) NOT NULL default '', `unit` varchar(50) NOT NULL default '', PRIMARY KEY (ingredient, unit)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+INSERT INTO `t1` VALUES ('xx','yy');
+INSERT INTO `t2` VALUES ('yy','xx');
+SELECT R.unit, R.ingredient FROM t1 R WHERE R.ingredient IN (SELECT N.ingredient FROM t2 N WHERE N.unit = R.unit);
+unit	ingredient
+xx	yy
+drop table t1, t2;
+CREATE TABLE t1 (
+id INT NOT NULL auto_increment,
+date1 DATE, coworkerid INT,
+description VARCHAR(255),
+sum_used DOUBLE,
+sum_remaining DOUBLE,
+comments VARCHAR(255),
+PRIMARY KEY(id)
+) engine=innodb;
+insert into t1 values (NULL, '1999-01-01', 1,'test', 22, 33, 'comment'), (NULL, '1999-01-01', 1,'test', 22, 33, 'comment'), (NULL, '1999-01-01', 1,'test', 22, 33, 'comment'), (NULL, '1998-01-01', 1,'test', 22, 33, 'comment'), (NULL, '1998-01-01', 1,'test', 22, 33, 'comment'), (NULL, '2004-01-01', 1,'test', 22, 33, 'comment'), (NULL, '2004-01-01', 1,'test', 22, 33, 'comment');
+SELECT DISTINCT
+(SELECT sum(sum_used) FROM t1 WHERE sum_used > 0 AND year(date1) <= '2004') as somallontvangsten,
+(SELECT sum(sum_used) FROM t1 WHERE sum_used < 0 AND year(date1) <= '2004') as somalluitgaven
+FROM t1;
+somallontvangsten	somalluitgaven
+154	NULL
+select * from t1;
+id	date1	coworkerid	description	sum_used	sum_remaining	comments
+1	1999-01-01	1	test	22	33	comment
+2	1999-01-01	1	test	22	33	comment
+3	1999-01-01	1	test	22	33	comment
+4	1998-01-01	1	test	22	33	comment
+5	1998-01-01	1	test	22	33	comment
+6	2004-01-01	1	test	22	33	comment
+7	2004-01-01	1	test	22	33	comment
+drop table t1;
+CREATE TABLE t1
+(
+DOCID VARCHAR(32)BINARY NOT NULL
+, UUID VARCHAR(32)BINARY
+, MIMETYPE VARCHAR(80)BINARY
+, CONTENTDATA LONGBLOB
+, CONTENTSIZE INTEGER
+, VERSIONID INTEGER
+, REPID VARCHAR(32)BINARY
+, MODIFIED TIMESTAMP
+, MODIFIER VARCHAR(255)BINARY
+, ORIGINATOR INTEGER
+, PRIMARY KEY ( DOCID )
+) ENGINE=InnoDB
+;
+INSERT INTO t1 (DOCID) VALUES ("1"), ("2");
+CREATE TABLE t2
+(
+DOCID VARCHAR(32)BINARY NOT NULL
+, DOCNAME VARCHAR(255)BINARY NOT NULL
+, DOCTYPEID VARCHAR(32)BINARY NOT NULL
+, FOLDERID VARCHAR(32)BINARY NOT NULL
+, AUTHOR VARCHAR(255)BINARY
+, CREATED TIMESTAMP NOT NULL
+, TITLE VARCHAR(255)BINARY
+, SUBTITLE VARCHAR(255)BINARY
+, DOCABSTRACT LONGBLOB
+, PUBLISHDATE TIMESTAMP
+, EXPIRATIONDATE TIMESTAMP
+, LOCKEDBY VARCHAR(80)BINARY
+, STATUS VARCHAR(80)BINARY
+, PARENTDOCID VARCHAR(32)BINARY
+, REPID VARCHAR(32)BINARY
+, MODIFIED TIMESTAMP NOT NULL
+, MODIFIER VARCHAR(255)BINARY NOT NULL
+, PUBLISHSTATUS INTEGER
+, ORIGINATOR INTEGER
+, PRIMARY KEY ( DOCID )
+) ENGINE=InnoDB
+;
+CREATE INDEX DDOCTYPEID_IDX ON t2 (DOCTYPEID);
+CREATE INDEX DFOLDERID_IDX ON t2 (FOLDERID);
+CREATE TABLE t3
+(
+FOLDERID VARCHAR(32)BINARY NOT NULL
+, FOLDERNAME VARCHAR(255)BINARY NOT NULL
+, CREATOR VARCHAR(255)BINARY
+, CREATED TIMESTAMP NOT NULL
+, DESCRIPTION VARCHAR(255)BINARY
+, FOLDERTYPE INTEGER NOT NULL
+, MODIFIED TIMESTAMP
+, MODIFIER VARCHAR(255)BINARY
+, FOLDERSIZE INTEGER NOT NULL
+, PARENTID VARCHAR(32)BINARY
+, REPID VARCHAR(32)BINARY
+, ORIGINATOR INTEGER
+, PRIMARY KEY ( FOLDERID )
+) ENGINE=InnoDB;
+CREATE INDEX FFOLDERID_IDX ON t3 (FOLDERID);
+CREATE INDEX CMFLDRPARNT_IDX ON t3 (PARENTID);
+CREATE TABLE t4
+(
+DOCTYPEID VARCHAR(32)BINARY NOT NULL
+, DOCTYPENAME VARCHAR(80)BINARY NOT NULL
+, DESCRIPTION VARCHAR(255)BINARY
+, EXTNDATA LONGBLOB
+, MODIFIED TIMESTAMP
+, MODIFIER VARCHAR(255)BINARY
+, ORIGINATOR INTEGER
+, PRIMARY KEY ( DOCTYPEID )
+) ENGINE=InnoDB;
+INSERT INTO t2 VALUES("c373e9f59cf15a6c3e57444553544200", "c373e9f59cf15a6c3e57444553544200", "340d243d45f111d497b00010a4ef934d", "2f6161e879db43c1a5b82c21ddc49089", NULL, "2003-06-06 07:48:42", NULL, NULL, NULL, "2003-06-06 07:48:42", "2003-06-06 07:48:42", NULL, NULL, NULL, "03eea05112b845949f3fd03278b5fe43", "2003-06-06 07:48:42", "admin", "0", NULL);
+INSERT INTO t2 VALUES("c373e9f5a472f43ba45e444553544200", "c373e9f5a472f43ba45e444553544200", "340d243d45f111d497b00010a4ef934d", "2f6161e879db43c1a5b82c21ddc49089", NULL, "2003-06-07 18:50:12", NULL, NULL, NULL, "2003-06-07 18:50:12", "2003-06-07 18:50:12", NULL, NULL, NULL, "03eea05112b845949f3fd03278b5fe43", "2003-06-07 18:50:12", "admin", "0", NULL);
+INSERT INTO t2 VALUES("c373e9f5a4a0f56014eb444553544200", "c373e9f5a4a0f56014eb444553544200", "340d243d45f111d497b00010a4ef934d", "2f6161e879db43c1a5b82c21ddc49089", NULL, "2003-06-07 19:39:26", NULL, NULL, NULL, "2003-06-07 19:39:26", "2003-06-07 19:39:26", NULL, NULL, NULL, "03eea05112b845949f3fd03278b5fe43", "2003-06-07 19:39:26", "admin", "0", NULL);
+INSERT INTO t2 VALUES("c373e9f5a4a0f8fa4a86444553544200", "c373e9f5a4a0f8fa4a86444553544200", "340d243d45f111d497b00010a4ef934d", "2f6161e879db43c1a5b82c21ddc49089", NULL, "2003-06-07 19:43:05", NULL, NULL, NULL, "2003-06-07 19:43:05", "2003-06-07 19:43:05", NULL, NULL, NULL, "03eea05112b845949f3fd03278b5fe43", "2003-06-07 19:43:05", "admin", "0", NULL);
+INSERT INTO t2 VALUES("c373e9f5ac7b537205ce444553544200", "c373e9f5ac7b537205ce444553544200", "340d243d45f111d497b00010a4ef934d", "2f6161e879db43c1a5b82c21ddc49089", NULL, "2003-06-09 08:15:24", NULL, NULL, NULL, "2003-06-09 08:15:24", "2003-06-09 08:15:24", NULL, NULL, NULL, "03eea05112b845949f3fd03278b5fe43", "2003-06-09 08:15:24", "admin", "0", NULL);
+INSERT INTO t2 VALUES("c373e9f5ad0792012454444553544200", "c373e9f5ad0792012454444553544200", "340d243d45f111d497b00010a4ef934d", "2f6161e879db43c1a5b82c21ddc49089", NULL, "2003-06-09 10:51:44", NULL, NULL, NULL, "2003-06-09 10:51:44", "2003-06-09 10:51:44", NULL, NULL, NULL, "03eea05112b845949f3fd03278b5fe43", "2003-06-09 10:51:44", "admin", "0", NULL);
+INSERT INTO t2 VALUES("c373e9f5ad079821ef34444553544200", "First Discussion", "c373e9f5ad079174ff17444553544200", "c373e9f5ad0796c0eca4444553544200", "Goldilocks", "2003-06-09 11:16:50", "Title: First Discussion", NULL, NULL, "2003-06-09 10:51:26", "2003-06-09 10:51:26", NULL, NULL, NULL, "03eea05112b845949f3fd03278b5fe43", "2003-06-09 11:16:50", "admin", "0", NULL);
+INSERT INTO t2 VALUES("c373e9f5ad07993f3859444553544200", "Last Discussion", "c373e9f5ad079174ff17444553544200", "c373e9f5ad0796c0eca4444553544200", "Goldilocks", "2003-06-09 11:21:06", "Title: Last Discussion", NULL, "Setting new abstract and keeping doc checked out", "2003-06-09 10:51:26", "2003-06-09 10:51:26", NULL, NULL, NULL, "03eea05112b845949f3fd03278b5fe43", "2003-06-09 11:21:06", "admin", "0", NULL);
+INSERT INTO t2 VALUES("c373e9f5ad079a3219c4444553544200", "testdoclayout", "340d243c45f111d497b00010a4ef934d", "c373e9f5ad0796c0eca4444553544200", "Goldilocks", "2003-06-09 11:25:31", "Title: Test doc layout", "Subtitle: test doc layout", NULL, "2003-06-09 10:51:27", "2003-06-09 10:51:27", NULL, NULL, NULL, "03eea05112b845949f3fd03278b5fe43", "2003-06-09 11:25:31", "admin", "0", NULL);
+INSERT INTO t3 VALUES("0c9aab05b15048c59bc35c8461507deb", "System", "System", "2003-06-05 16:30:00", "The system content repository folder.", "3", "2003-06-05 16:30:00", "System", "0", NULL, "9c9aab05b15048c59bc35c8461507deb", "1");
+INSERT INTO t3 VALUES("2f6161e879db43c1a5b82c21ddc49089", "Default", "System", "2003-06-09 10:52:02", "The default content repository folder.", "3", "2003-06-05 16:30:00", "System", "0", NULL, "03eea05112b845949f3fd03278b5fe43", "1");
+INSERT INTO t3 VALUES("c373e9f5ad0791724315444553544200", "AddDocumentTest", "admin", "2003-06-09 10:51:25", "Movie Reviews", "0", "2003-06-09 10:51:25", "admin", "0", "2f6161e879db43c1a5b82c21ddc49089", "03eea05112b845949f3fd03278b5fe43", NULL);
+INSERT INTO t3 VALUES("c373e9f5ad07919e1963444553544200", "NewDestDirectory", "admin", "2003-06-09 10:51:28", "Adding new directory", "128", "2003-06-09 10:51:28", "admin", "0", "2f6161e879db43c1a5b82c21ddc49089", "03eea05112b845949f3fd03278b5fe43", NULL);
+INSERT INTO t3 VALUES("c373e9f5ad07919fe525444553544200", "SubDestDirectory", "admin", "2003-06-09 10:51:28", "Adding new directory", "128", "2003-06-09 10:51:28", "admin", "0", "c373e9f5ad07919e1963444553544200", "03eea05112b845949f3fd03278b5fe43", NULL);
+INSERT INTO t3 VALUES("c373e9f5ad0791a0dab5444553544200", "Level1", "admin", "2003-06-09 10:51:29", NULL, "0", "2003-06-09 10:51:29", "admin", "0", "2f6161e879db43c1a5b82c21ddc49089", "03eea05112b845949f3fd03278b5fe43", NULL);
+INSERT INTO t3 VALUES("c373e9f5ad0791a14669444553544200", "Level2", "admin", "2003-06-09 10:51:29", NULL, "0", "2003-06-09 10:51:29", "admin", "0", "c373e9f5ad0791a0dab5444553544200", "03eea05112b845949f3fd03278b5fe43", NULL);
+INSERT INTO t3 VALUES("c373e9f5ad0791a23c0e444553544200", "Level3", "admin", "2003-06-09 10:51:29", NULL, "0", "2003-06-09 10:51:29", "admin", "0", "c373e9f5ad0791a14669444553544200", "03eea05112b845949f3fd03278b5fe43", NULL);
+INSERT INTO t3 VALUES("c373e9f5ad0791a6b11f444553544200", "Dir1", "admin", "2003-06-09 10:51:30", NULL, "0", "2003-06-09 10:51:30", "admin", "0", "2f6161e879db43c1a5b82c21ddc49089", "03eea05112b845949f3fd03278b5fe43", NULL);
+INSERT INTO t3 VALUES("c373e9f5ad0791a897d6444553544200", "Dir2", "admin", "2003-06-09 10:51:30", NULL, "0", "2003-06-09 10:51:30", "admin", "0", "c373e9f5ad0791a6b11f444553544200", "03eea05112b845949f3fd03278b5fe43", NULL);
+INSERT INTO t3 VALUES("c373e9f5ad0791a9a063444553544200", "NewDestDirectory", "admin", "2003-06-09 10:51:31", NULL, "0", "2003-06-09 10:51:31", "admin", "0", "c373e9f5ad0791a897d6444553544200", "03eea05112b845949f3fd03278b5fe43", NULL);
+INSERT INTO t3 VALUES("c373e9f5ad0791aa73e3444553544200", "LevelA", "admin", "2003-06-09 10:51:31", NULL, "0", "2003-06-09 10:51:31", "admin", "0", "c373e9f5ad0791a0dab5444553544200", "03eea05112b845949f3fd03278b5fe43", NULL);
+INSERT INTO t3 VALUES("c373e9f5ad0791ab034b444553544200", "LevelB", "admin", "2003-06-09 10:51:31", NULL, "0", "2003-06-09 10:51:31", "admin", "0", "c373e9f5ad0791aa73e3444553544200", "03eea05112b845949f3fd03278b5fe43", NULL);
+INSERT INTO t3 VALUES("c373e9f5ad0791ac7311444553544200", "LevelC", "admin", "2003-06-09 10:51:32", NULL, "0", "2003-06-09 10:51:32", "admin", "0", "c373e9f5ad0791ab034b444553544200", "03eea05112b845949f3fd03278b5fe43", NULL);
+INSERT INTO t3 VALUES("c373e9f5ad0791ad66cf444553544200", "test2", "admin", "2003-06-09 10:51:32", NULL, "0", "2003-06-09 10:51:32", "admin", "0", "c373e9f5ad0791724315444553544200", "03eea05112b845949f3fd03278b5fe43", NULL);
+INSERT INTO t3 VALUES("c373e9f5ad0791aebd87444553544200", "test3", "admin", "2003-06-09 10:51:33", NULL, "0", "2003-06-09 10:51:33", "admin", "0", "c373e9f5ad0791ad66cf444553544200", "03eea05112b845949f3fd03278b5fe43", NULL);
+INSERT INTO t3 VALUES("c373e9f5ad0791dbaac4444553544200", "Special Café Folder", "admin", "2003-06-09 10:51:43", "test folder names with special chars", "0", "2003-06-09 10:51:43", "admin", "0", "2f6161e879db43c1a5b82c21ddc49089", "03eea05112b845949f3fd03278b5fe43", NULL);
+INSERT INTO t3 VALUES("c373e9f5ad0796bf913f444553544200", "CopiedFolder", "admin", "2003-06-09 11:09:05", "Movie Reviews", "0", "2003-06-09 11:09:05", "admin", "0", "c373e9f5ad0791a23c0e444553544200", "03eea05112b845949f3fd03278b5fe43", NULL);
+INSERT INTO t3 VALUES("c373e9f5ad0796c0eca4444553544200", "Movie Reviews", "admin", "2003-06-09 11:09:13", "Movie Reviews", "0", "2003-06-09 11:09:13", "admin", "33", "c373e9f5ad0796bf913f444553544200", "03eea05112b845949f3fd03278b5fe43", NULL);
+INSERT INTO t3 VALUES("c373e9f5ad0796d9b895444553544200", "NewBookFolder", "admin", "2003-06-09 11:12:41", "NewBooks - folder", "0", "2003-06-09 11:12:41", "admin", "0", "c373e9f5ad0796c0eca4444553544200", "03eea05112b845949f3fd03278b5fe43", NULL);
+INSERT INTO t3 VALUES("c373e9f5ad079b4c9355444553544200", "CopiedFolder", "admin", "2003-06-09 11:26:34", "Movie Reviews", "0", "2003-06-09 11:26:34", "admin", "0", "2f6161e879db43c1a5b82c21ddc49089", "03eea05112b845949f3fd03278b5fe43", NULL);
+INSERT INTO t4 VALUES("340d243c45f111d497b00010a4ef934d", "Document Layout", "The system Document Layouts Document Type", NULL, "2003-06-05 16:30:00", "System", "1");
+INSERT INTO t4 VALUES("340d243d45f111d497b00010a4ef934d", "Default", "The default system Document Type", NULL, "2003-06-05 16:30:00", "System", "1");
+INSERT INTO t4 VALUES("4d09dd60850711d4998a204c4f4f5020", "__SystemResourceType", "The type for all the uploaded resources", NULL, "2003-06-05 16:30:00", "System", "1");
+INSERT INTO t4 VALUES("91d4d595478211d497b40010a4ef934d", "__PmcSystemDefaultType", "The type for all the default available fields", NULL, "2003-06-05 16:30:00", "System", "1");
+INSERT INTO t4 VALUES("c373e9f59cf15a59b08a444553544200", "NoFieldDocType", "plain doc type", NULL, "2003-06-06 07:48:40", "admin", NULL);
+INSERT INTO t4 VALUES("c373e9f59cf15a5c6a99444553544200", "Movie Review", "This doc type is for movie reviews", "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<props autocheckin=\"false\" autopublish=\"false\" binary=\"choice\" categories=\"none\" cleanup=\"false\" folder=\"none\"><![CDATA[Doc type for cm tests]]></props>\r\n", "2003-06-06 07:48:40", "admin", NULL);
+INSERT INTO t4 VALUES("c373e9f59cf15a6116a5444553544200", "Special DocÃu20A4u20A4u0113ééøÉu016BType", "test special chars xxxé in doc type", NULL, "2003-06-06 07:48:41", "admin", NULL);
+INSERT INTO t4 VALUES("c373e9f59cf15a695d47444553544200", "Movie", NULL, NULL, "2003-06-06 07:48:41", "admin", NULL);
+INSERT INTO t4 VALUES("c373e9f5ad079174ff17444553544200", "Discussion", NULL, NULL, "2003-06-09 10:51:25", "admin", NULL);
+INSERT INTO t4 VALUES("c373e9f5ad0791da7e2b444553544200", "Books", "list of recommended books", "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<props autocheckin=\"false\" autopublish=\"false\" binary=\"choice\" categories=\"none\" cleanup=\"false\" folder=\"none\"><![CDATA[Doc type for cm tests]]><![CDATA[Doc type for book tests]]></props>\r\n", "2003-06-09 10:51:40", "admin", NULL);
+ALTER TABLE t2 ADD  FOREIGN KEY FK_DCMNTS_DCTYPES ( DOCTYPEID)
+REFERENCES t4 (DOCTYPEID );
+ALTER TABLE t2 ADD  FOREIGN KEY FK_DCMNTS_FLDRS ( FOLDERID)
+REFERENCES t3 (FOLDERID );
+ALTER TABLE t3 ADD  FOREIGN KEY FK_FLDRS_PRNTID ( PARENTID)
+REFERENCES t3 (FOLDERID );
+SELECT t2.*, t4.DOCTYPENAME, t1.CONTENTSIZE,t1.MIMETYPE FROM t2 INNER JOIN t4 ON t2.DOCTYPEID = t4.DOCTYPEID LEFT OUTER JOIN t1 ON t2.DOCID = t1.DOCID WHERE t2.FOLDERID IN(SELECT t3.FOLDERID FROM t3 WHERE t3.PARENTID IN(SELECT t3.FOLDERID FROM t3 WHERE t3.PARENTID IN(SELECT t3.FOLDERID FROM t3 WHERE t3.PARENTID IN(SELECT t3.FOLDERID FROM t3 WHERE t3.PARENTID IN(SELECT t3.FOLDERID FROM t3 WHERE t3.PARENTID='2f6161e879db43c1a5b82c21ddc49089' AND t3.FOLDERNAME = 'Level1') AND t3.FOLDERNAME = 'Level2') AND t3.FOLDERNAME = 'Level3') AND t3.FOLDERNAME = 'CopiedFolder') AND t3.FOLDERNAME = 'Movie Reviews') AND t2.DOCNAME = 'Last Discussion';
+DOCID	DOCNAME	DOCTYPEID	FOLDERID	AUTHOR	CREATED	TITLE	SUBTITLE	DOCABSTRACT	PUBLISHDATE	EXPIRATIONDATE	LOCKEDBY	STATUS	PARENTDOCID	REPID	MODIFIED	MODIFIER	PUBLISHSTATUS	ORIGINATOR	DOCTYPENAME	CONTENTSIZE	MIMETYPE
+c373e9f5ad07993f3859444553544200	Last Discussion	c373e9f5ad079174ff17444553544200	c373e9f5ad0796c0eca4444553544200	Goldilocks	2003-06-09 11:21:06	Title: Last Discussion	NULL	Setting new abstract and keeping doc checked out	2003-06-09 10:51:26	2003-06-09 10:51:26	NULL	NULL	NULL	03eea05112b845949f3fd03278b5fe43	2003-06-09 11:21:06	admin	0	NULL	Discussion	NULL	NULL
+drop table t1, t2, t3, t4;
+CREATE TABLE t1 (
+school_name varchar(45) NOT NULL,
+country varchar(45) NOT NULL,
+funds_requested float NOT NULL,
+schooltype varchar(45) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+insert into t1 values ("the school", "USA", 1200, "Human");
+select count(country) as countrycount, sum(funds_requested) as smcnt,
+country, (select sum(funds_requested) from t1) as total_funds
+from t1
+group by country;
+countrycount	smcnt	country	total_funds
+1	1200	USA	1200
+select count(country) as countrycount, sum(funds_requested) as smcnt,
+country, (select sum(funds_requested) from t1) as total_funds
+from t1
+group by country;
+countrycount	smcnt	country	total_funds
+1	1200	USA	1200
+drop table t1;
+CREATE TABLE `t1` (
+`t3_id` int NOT NULL,
+`t1_id` int NOT NULL,
+PRIMARY KEY  (`t1_id`)
+);
+CREATE TABLE `t2` (
+`t2_id` int NOT NULL,
+`t1_id` int NOT NULL,
+`b` int NOT NULL,
+PRIMARY KEY  (`t2_id`),
+UNIQUE KEY `idx_t2_t1_b` (`t1_id`,`b`)
+) ENGINE=InnoDB;
+CREATE TABLE `t3` (
+`t3_id` int NOT NULL
+);
+INSERT INTO `t3` VALUES (3);
+select
+(SELECT rs.t2_id
+FROM t2 rs
+WHERE rs.t1_id=
+(SELECT lt.t1_id
+FROM t1 lt
+WHERE lt.t3_id=a.t3_id)
+ORDER BY b DESC LIMIT 1)
+from t3 AS a;
+(SELECT rs.t2_id
+FROM t2 rs
+WHERE rs.t1_id=
+(SELECT lt.t1_id
+FROM t1 lt
+WHERE lt.t3_id=a.t3_id)
+ORDER BY b DESC LIMIT 1)
+NULL
+drop table t1,t2,t3;
+CREATE TABLE t1 (a int(10) , PRIMARY KEY (a)) Engine=InnoDB;
+INSERT INTO t1 VALUES (1),(2);
+CREATE TABLE t2 (a int(10), PRIMARY KEY (a)) Engine=InnoDB;
+INSERT INTO t2 VALUES (1);
+CREATE TABLE t3 (a int(10), b int(10), c int(10),
+PRIMARY KEY (a)) Engine=InnoDB;
+INSERT INTO t3 VALUES (1,2,1);
+SELECT t1.* FROM t1 WHERE (SELECT COUNT(*) FROM t3,t2 WHERE t3.c=t2.a and t2.a='1' AND t1.a=t3.b) > 0;
+a
+2
+DROP TABLE t1,t2,t3;
+#
+# Bug #58756
+# Crash in heap_rrnd on query with HAVING ... IN (subquery) + LIMIT
+#
+CREATE TABLE t1 (
+col_time_key time DEFAULT NULL,
+col_datetime_key datetime DEFAULT NULL,
+col_varchar_nokey varchar(1) DEFAULT NULL,
+KEY col_time_key (col_time_key),
+KEY col_datetime_key (col_datetime_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+INSERT INTO t1 VALUES ('17:53:30','2005-11-10 12:40:29','h');
+INSERT INTO t1 VALUES ('11:35:49','2009-04-25 00:00:00','b');
+INSERT INTO t1 VALUES (NULL,'2002-11-27 00:00:00','s');
+INSERT INTO t1 VALUES ('06:01:40','2004-01-26 20:32:32','e');
+INSERT INTO t1 VALUES ('05:45:11','2007-10-26 11:41:40','j');
+INSERT INTO t1 VALUES ('00:00:00','2005-10-07 00:00:00','e');
+INSERT INTO t1 VALUES ('00:00:00','2000-07-15 05:00:34','f');
+INSERT INTO t1 VALUES ('06:11:01','2000-04-03 16:33:32','v');
+INSERT INTO t1 VALUES ('13:02:46',NULL,'x');
+INSERT INTO t1 VALUES ('21:44:25','2001-04-25 01:26:12','m');
+INSERT INTO t1 VALUES ('22:43:58','2000-12-27 00:00:00','c');
+CREATE TABLE t2 (
+col_time_key time DEFAULT NULL,
+col_datetime_key datetime DEFAULT NULL,
+col_varchar_nokey varchar(1) DEFAULT NULL,
+KEY col_time_key (col_time_key),
+KEY col_datetime_key (col_datetime_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+INSERT INTO t2 VALUES ('11:28:45','2004-10-11 18:13:16','w');
+SELECT col_time_key, col_datetime_key
+FROM
+( SELECT * FROM t1 ) AS table1
+HAVING ( 'r' , 'e' ) IN
+( SELECT col_varchar_nokey , col_varchar_nokey FROM t2 )
+ORDER BY col_datetime_key
+LIMIT 10;
+col_time_key	col_datetime_key
+DROP TABLE t1;
+DROP TABLE t2;
+# End of Bug #58756
+#
+# Bug#60085 crash in Item::save_in_field() with time data type
+#
+CREATE TABLE t1(a date, b int, unique(b), unique(a), key(b)) engine=innodb;
+INSERT INTO t1 VALUES ('2011-05-13', 0);
+SELECT * FROM t1 WHERE b < (SELECT CAST(a as signed) FROM t1 GROUP BY a);
+a	b
+2011-05-13	0
+DROP TABLE t1;
+#
+# Bug #11766300  59387: FAILING ASSERTION: CURSOR->POS_STATE == 1997660512 (BTR_PCUR_IS_POSITIONE
+#
+CREATE TABLE t1 (a INT) ENGINE=INNODB;
+INSERT INTO t1 VALUES (0);
+CREATE TABLE t2 (d BINARY(2), PRIMARY KEY (d(1)), UNIQUE KEY (d)) ENGINE=INNODB;
+SELECT 1 FROM t1 WHERE NOT EXISTS
+(SELECT 1 FROM t2 WHERE d = (SELECT d FROM t2 WHERE a >= 1) ORDER BY d);
+1
+1
+DROP TABLE t2;
+CREATE TABLE t2 (b INT, c INT, UNIQUE KEY (b), UNIQUE KEY (b, c )) ENGINE=INNODB;
+INSERT INTO t2 VALUES (1, 1);
+SELECT 1 FROM t1 WHERE a != (SELECT 1 FROM t2 WHERE a <=> b OR a > '' AND 6 = 7 ORDER BY b, c);
+1
+DROP TABLE t1, t2;
+CREATE TABLE t1 (
+ID int(10) unsigned NOT NULL auto_increment,
+SUB_ID int(3) unsigned NOT NULL default '0',
+REF_ID int(10) unsigned default NULL,
+REF_SUB int(3) unsigned default '0',
+PRIMARY KEY (ID,SUB_ID),
+UNIQUE KEY t1_PK (ID,SUB_ID),
+KEY t1_FK (REF_ID,REF_SUB),
+KEY t1_REFID (REF_ID)
+) ENGINE=MyISAM CHARSET=utf8mb4;
+INSERT INTO t1 VALUES (1,0,NULL,NULL),(2,0,NULL,NULL);
+SELECT DISTINCT REF_ID FROM t1 WHERE ID= (SELECT DISTINCT REF_ID FROM t1 WHERE ID=2);
+REF_ID
+DROP TABLE t1;
+create table t1 (s1 int);
+create table t2 (s1 int);
+insert into t1 values (1);
+insert into t2 values (1);
+update t1 set  s1 = s1 + 1 where 1 = (select x.s1 as A from t2 WHERE t2.s1 > t1.s1 order by A);
+Error 1054: Unknown column 'x.s1' in 'field list'
+DROP TABLE t1, t2;
+create table t1(toid int,rd int);
+create table t2(userid int,pmnew int,pmtotal int);
+insert into t2 values(1,0,0),(2,0,0);
+insert into t1 values(1,0),(1,0),(1,0),(1,12),(1,15),(1,123),(1,12312),(1,12312),(1,123),(2,0),(2,0),(2,1),(2,2);
+select userid,pmtotal,pmnew, (select count(rd) from t1 where toid=t2.userid) calc_total, (select count(rd) from t1 where rd=0 and toid=t2.userid) calc_new from t2 where userid in (select distinct toid from t1);
+userid	pmtotal	pmnew	calc_total	calc_new
+1	0	0	9	3
+2	0	0	4	2
+drop table t1, t2;
+CREATE TABLE t1 (id int(11) default NULL) ENGINE=MyISAM CHARSET=utf8mb4;
+INSERT INTO t1 VALUES (1),(5);
+CREATE TABLE t2 (id int(11) default NULL) ENGINE=MyISAM CHARSET=utf8mb4;
+INSERT INTO t2 VALUES (2),(6);
+select * from t1 where (1,2,6) in (select * from t2);
+Error 1241: Operand should contain 3 column(s)
+DROP TABLE t1,t2;
+CREATE TABLE `t1` (
+`id` int(11) NOT NULL auto_increment,
+`id_cns` tinyint(3) unsigned NOT NULL default '0',
+`tipo` enum('','UNO','DUE') NOT NULL default '',
+`anno_dep` smallint(4) unsigned zerofill NOT NULL default '0000',
+`particolare` mediumint(8) unsigned NOT NULL default '0',
+`generale` mediumint(8) unsigned NOT NULL default '0',
+`bis` tinyint(3) unsigned NOT NULL default '0',
+PRIMARY KEY  (`id`),
+UNIQUE KEY `idx_cns_gen_anno` (`anno_dep`,`id_cns`,`generale`,`particolare`),
+UNIQUE KEY `idx_cns_par_anno` (`id_cns`,`anno_dep`,`tipo`,`particolare`,`bis`)
+);
+INSERT INTO `t1` VALUES (1,16,'UNO',1987,2048,9681,0),(2,50,'UNO',1987,1536,13987,0),(3,16,'UNO',1987,2432,14594,0),(4,16,'UNO',1987,1792,13422,0),(5,16,'UNO',1987,1025,10240,0),(6,16,'UNO',1987,1026,7089,0);
+CREATE TABLE `t2` (
+`id` tinyint(3) unsigned NOT NULL auto_increment,
+`max_anno_dep` smallint(6) unsigned NOT NULL default '0',
+PRIMARY KEY  (`id`)
+);
+INSERT INTO `t2` VALUES (16,1987),(50,1990),(51,1990);
+SELECT cns.id, cns.max_anno_dep, cns.max_anno_dep = (SELECT s.anno_dep FROM t1 AS s WHERE s.id_cns = cns.id ORDER BY s.anno_dep DESC LIMIT 1) AS PIPPO FROM t2 AS cns;
+id	max_anno_dep	PIPPO
+16	1987	1
+50	1990	0
+51	1990	NULL
+DROP TABLE t1, t2;
+create table t1 (a int);
+insert into t1 values (1), (2), (3);
+SET SQL_SELECT_LIMIT=1;
+select sum(a) from (select * from t1) as a;
+sum(a)
+6
+select 2 in (select * from t1);
+2 in (select * from t1)
+1
+SET SQL_SELECT_LIMIT=default;
+drop table t1;
+CREATE TABLE t1 (a int, b int, INDEX (a));
+INSERT INTO t1 VALUES (1, 1), (1, 2), (1, 3);
+SELECT * FROM t1 WHERE a = (SELECT MAX(a) FROM t1 WHERE a = 1) ORDER BY b;
+a	b
+1	1
+1	2
+1	3
+DROP TABLE t1;
+create table t1(val varchar(10));
+insert into t1 values ('aaa'), ('bbb'),('eee'),('mmm'),('ppp');
+select count(*) from t1 as w1 where w1.val in (select w2.val from t1 as w2 where w2.val like 'm%') and w1.val in (select w3.val from t1 as w3 where w3.val like 'e%');
+count(*)
+0
+drop table t1;
+CREATE TABLE t1 (id int(11) default NULL,name varchar(10) default NULL);
+INSERT INTO t1 VALUES (1,'Tim'),(2,'Rebecca'),(3,NULL);
+CREATE TABLE t2 (id int(11) default NULL, pet varchar(10) default NULL);
+INSERT INTO t2 VALUES (1,'Fido'),(2,'Spot'),(3,'Felix');
+SELECT a.*, b.* FROM (SELECT * FROM t1) AS a JOIN t2 as b on a.id=b.id;
+id	name	id	pet
+1	Tim	1	Fido
+2	Rebecca	2	Spot
+3	NULL	3	Felix
+drop table t1,t2;
+CREATE TABLE `t1` ( `master` int(10) unsigned NOT NULL default '0', `map` smallint(6) unsigned NOT NULL default '0', `slave` int(10) unsigned NOT NULL default '0', `access` int(10) unsigned NOT NULL default '0', UNIQUE KEY `access_u` (`master`,`map`,`slave`));
+INSERT INTO `t1` VALUES (1,0,0,700),(1,1,1,400),(1,5,5,400),(1,12,12,400),(1,12,32,400),(4,12,32,400);
+CREATE TABLE `t2` ( `id` int(10) unsigned NOT NULL default '0', `pid` int(10) unsigned NOT NULL default '0', `map` smallint(6) unsigned NOT NULL default '0', `level` tinyint(4) unsigned NOT NULL default '0', `title` varchar(255) default NULL, PRIMARY KEY  (`id`,`pid`,`map`), KEY `level` (`level`), KEY `id` (`id`,`map`)) ;
+INSERT INTO `t2` VALUES (6,5,12,7,'a'),(12,0,0,7,'a'),(12,1,0,7,'a'),(12,5,5,7,'a'),(12,5,12,7,'a');
+SELECT b.sc FROM (SELECT (SELECT a.access FROM t1 a WHERE a.map = op.map AND a.slave = op.pid AND a.master = 1) ac FROM t2 op WHERE op.id = 12 AND op.map = 0) b;
+Error 1054: Unknown column 'b.sc' in 'field list'
+SELECT b.ac FROM (SELECT (SELECT a.access FROM t1 a WHERE a.map = op.map AND a.slave = op.pid AND a.master = 1) ac FROM t2 op WHERE op.id = 12 AND op.map = 0) b;
+ac
+700
+NULL
+drop tables t1,t2;
+create table t1 (s1 int);
+insert into t1 values (1),(null);
+select * from t1 where s1 < all (select s1 from t1);
+s1
+select s1, s1 < all (select s1 from t1) from t1;
+s1	s1 < all (select s1 from t1)
+1	0
+NULL	NULL
+drop table t1;
+CREATE TABLE t1 (
+Code char(3) NOT NULL default '',
+Name char(52) NOT NULL default '',
+Continent enum('Asia','Europe','North America','Africa','Oceania','Antarctica','South America') NOT NULL default 'Asia',
+Region char(26) NOT NULL default '',
+SurfaceArea float(10,2) NOT NULL default '0.00',
+IndepYear smallint(6) default NULL,
+Population int(11) NOT NULL default '0',
+LifeExpectancy float(3,1) default NULL,
+GNP float(10,2) default NULL,
+GNPOld float(10,2) default NULL,
+LocalName char(45) NOT NULL default '',
+GovernmentForm char(45) NOT NULL default '',
+HeadOfState char(60) default NULL,
+Capital int(11) default NULL,
+Code2 char(2) NOT NULL default ''
+) ENGINE=MyISAM;
+INSERT INTO t1 VALUES ('XXX','Xxxxx','Oceania','Xxxxxx',26.00,0,0,0,0,0,'Xxxxx','Xxxxx','Xxxxx',NULL,'XX');
+INSERT INTO t1 VALUES ('ASM','American Samoa','Oceania','Polynesia',199.00,0,68000,75.1,334.00,NULL,'Amerika Samoa','US Territory','George W. Bush',54,'AS');
+INSERT INTO t1 VALUES ('ATF','French Southern territories','Antarctica','Antarctica',7780.00,0,0,NULL,0.00,NULL,'Terres australes françaises','Nonmetropolitan Territory of France','Jacques Chirac',NULL,'TF');
+INSERT INTO t1 VALUES ('UMI','United States Minor Outlying Islands','Oceania','Micronesia/Caribbean',16.00,0,0,NULL,0.00,NULL,'United States Minor Outlying Islands','Dependent Territory of the US','George W. Bush',NULL,'UM');
+/*!40000 ALTER TABLE t1 ENABLE KEYS */;
+SELECT DISTINCT Continent AS c FROM t1 outr WHERE
+Code <> SOME ( SELECT Code FROM t1 WHERE Continent = outr.Continent AND
+Population < 200);
+c
+Oceania
+drop table t1;
+create table t1 (a integer, b integer);
+select (select * from t1) = (select 1,2);
+(select * from t1) = (select 1,2)
+NULL
+select (select 1,2) = (select * from t1);
+(select 1,2) = (select * from t1)
+NULL
+select  row(1,2) = ANY (select * from t1);
+row(1,2) = ANY (select * from t1)
+0
+select  row(1,2) != ALL (select * from t1);
+row(1,2) != ALL (select * from t1)
+1
+drop table t1;
+CREATE TABLE t1 (
+categoryId int(11) NOT NULL,
+courseId int(11) NOT NULL,
+startDate datetime NOT NULL,
+endDate datetime NOT NULL,
+createDate datetime NOT NULL,
+modifyDate timestamp NOT NULL,
+attributes text NOT NULL
+);
+INSERT INTO t1 VALUES (1,41,'2004-02-09','2010-01-01','2004-02-09','2004-02-09',''),
+(1,86,'2004-08-16','2004-08-16','2004-08-16','2004-08-16',''),
+(1,87,'2004-08-16','2004-08-16','2004-08-16','2004-08-16',''),
+(2,52,'2004-03-15','2004-10-01','2004-03-15','2004-09-17',''),
+(2,53,'2004-03-16','2004-10-01','2004-03-16','2004-09-17',''),
+(2,88,'2004-08-16','2004-08-16','2004-08-16','2004-08-16',''),
+(2,89,'2004-08-16','2004-08-16','2004-08-16','2004-08-16',''),
+(3,51,'2004-02-09','2010-01-01','2004-02-09','2004-02-09',''),
+(5,12,'2004-02-18','2010-01-01','2004-02-18','2004-02-18','');
+CREATE TABLE t2 (
+userId int(11) NOT NULL,
+courseId int(11) NOT NULL,
+date datetime NOT NULL
+);
+INSERT INTO t2 VALUES (5141,71,'2003-11-18'),
+(5141,72,'2003-11-25'),(5141,41,'2004-08-06'),
+(5141,52,'2004-08-06'),(5141,53,'2004-08-06'),
+(5141,12,'2004-08-06'),(5141,86,'2004-10-21'),
+(5141,87,'2004-10-21'),(5141,88,'2004-10-21'),
+(5141,89,'2004-10-22'),(5141,51,'2004-10-26');
+CREATE TABLE t3 (
+groupId int(11) NOT NULL,
+parentId int(11) NOT NULL,
+startDate datetime NOT NULL,
+endDate datetime NOT NULL,
+createDate datetime NOT NULL,
+modifyDate timestamp NOT NULL,
+ordering int(11)
+);
+INSERT INTO t3 VALUES (12,9,'1000-01-01','3999-12-31','2004-01-29','2004-01-29',NULL);
+CREATE TABLE t4 (
+id int(11) NOT NULL,
+groupTypeId int(11) NOT NULL,
+groupKey varchar(50) NOT NULL,
+name text,
+ordering int(11),
+description text,
+createDate datetime NOT NULL,
+modifyDate timestamp NOT NULL
+);
+INSERT INTO t4 VALUES (9,5,'stationer','stationer',0,'Stationer','2004-01-29','2004-01-29'),
+(12,5,'group2','group2',0,'group2','2004-01-29','2004-01-29');
+CREATE TABLE t5 (
+userId int(11) NOT NULL,
+groupId int(11) NOT NULL,
+createDate datetime NOT NULL,
+modifyDate timestamp NOT NULL
+);
+INSERT INTO t5 VALUES (5141,12,'2004-08-06','2004-08-06');
+select
+count(distinct t2.userid) pass,
+groupstuff.*,
+count(t2.courseid) crse,
+t1.categoryid,
+t2.courseid,
+date_format(date, '%b%y') as colhead
+from t2
+join t1 on t2.courseid=t1.courseid
+join
+(
+select
+t5.userid,
+parentid,
+parentgroup,
+childid,
+groupname,
+grouptypeid
+from t5
+join
+(
+select t4.id as parentid,
+t4.name as parentgroup,
+t4.id as childid,
+t4.name as groupname,
+t4.grouptypeid
+from t4
+) as gin on t5.groupid=gin.childid
+) as groupstuff on t2.userid = groupstuff.userid
+group by
+groupstuff.groupname, colhead , t2.courseid
+order by
+colhead, t2.courseid;
+pass	userid	parentid	parentgroup	childid	groupname	grouptypeid	crse	categoryid	courseid	colhead
+1	5141	12	group2	12	group2	5	1	5	12	Aug04
+1	5141	12	group2	12	group2	5	1	1	41	Aug04
+1	5141	12	group2	12	group2	5	1	2	52	Aug04
+1	5141	12	group2	12	group2	5	1	2	53	Aug04
+1	5141	12	group2	12	group2	5	1	3	51	Oct04
+1	5141	12	group2	12	group2	5	1	1	86	Oct04
+1	5141	12	group2	12	group2	5	1	1	87	Oct04
+1	5141	12	group2	12	group2	5	1	2	88	Oct04
+1	5141	12	group2	12	group2	5	1	2	89	Oct04
+drop table t1, t2, t3, t4, t5;
+create table t1 (a int);
+insert into t1 values (1), (2), (3);
+SELECT 1 FROM t1 WHERE (SELECT 1) in (SELECT 1);
+1
+1
+1
+1
+drop table t1;
+CREATE TABLE t1 (a int);
+CREATE TABLE t2 (a int, b int);
+CREATE TABLE t3 (b int NOT NULL);
+INSERT INTO t1 VALUES (1), (2), (3), (4);
+INSERT INTO t2 VALUES (1,10), (3,30);
+SELECT * FROM t2 LEFT JOIN t3 ON t2.b=t3.b
+WHERE t3.b IS NOT NULL OR t2.a > 10;
+a	b	b
+SELECT * FROM t1
+WHERE t1.a NOT IN (SELECT a FROM t2 LEFT JOIN t3 ON t2.b=t3.b
+WHERE t3.b IS NOT NULL OR t2.a > 10);
+a
+1
+2
+3
+4
+DROP TABLE t1,t2,t3;
+CREATE TABLE t1 (f1 INT);
+CREATE TABLE t2 (f2 INT);
+INSERT INTO t1 VALUES (1);
+SELECT * FROM t1 WHERE f1 > ALL (SELECT f2 FROM t2);
+f1
+1
+SELECT * FROM t1 WHERE f1 > ALL (SELECT f2 FROM t2 WHERE 1=0);
+f1
+1
+INSERT INTO t2 VALUES (1);
+INSERT INTO t2 VALUES (2);
+SELECT * FROM t1 WHERE f1 > ALL (SELECT f2 FROM t2 WHERE f2=0);
+f1
+1
+DROP TABLE t1, t2
+select 1 from dual where 1 < any (select 2);
+1
+1
+select 1 from dual where 1 < all (select 2);
+1
+1
+select 1 from dual where 2 > any (select 1);
+1
+1
+select 1 from dual where 2 > all (select 1);
+1
+1
+select 1 from dual where 1 < any (select 2 from dual);
+1
+1
+select 1 from dual where 1 < all (select 2 from dual where 1!=1);
+1
+1
+create table t1 (s1 char);
+insert into t1 values (1),(2);
+select * from t1 where (s1 < any (select s1 from t1));
+s1
+1
+select * from t1 where not (s1 < any (select s1 from t1));
+s1
+2
+select * from t1 where (s1 < ALL (select s1+1 from t1));
+s1
+1
+select * from t1 where not(s1 < ALL (select s1+1 from t1));
+s1
+2
+select * from t1 where (s1+1 = ANY (select s1 from t1));
+s1
+1
+select * from t1 where NOT(s1+1 = ANY (select s1 from t1));
+s1
+2
+select * from t1 where (s1 = ALL (select s1/s1 from t1));
+s1
+1
+select * from t1 where NOT(s1 = ALL (select s1/s1 from t1));
+s1
+2
+drop table t1;
+create table t1 (
+retailerID varchar(8) NOT NULL,
+statusID   int(10) unsigned NOT NULL,
+changed    datetime NOT NULL,
+UNIQUE KEY retailerID (retailerID, statusID, changed)
+);
+INSERT INTO t1 VALUES("0026", "1", "2005-12-06 12:18:56");
+INSERT INTO t1 VALUES("0026", "2", "2006-01-06 12:25:53");
+INSERT INTO t1 VALUES("0037", "1", "2005-12-06 12:18:56");
+INSERT INTO t1 VALUES("0037", "2", "2006-01-06 12:25:53");
+INSERT INTO t1 VALUES("0048", "1", "2006-01-06 12:37:50");
+INSERT INTO t1 VALUES("0059", "1", "2006-01-06 12:37:50");
+select * from t1 r1
+where (r1.retailerID,(r1.changed)) in
+(SELECT r2.retailerId,(max(changed)) from t1 r2
+group by r2.retailerId);
+retailerID	statusID	changed
+0026	2	2006-01-06 12:25:53
+0037	2	2006-01-06 12:25:53
+0048	1	2006-01-06 12:37:50
+0059	1	2006-01-06 12:37:50
+drop table t1;
+CREATE TABLE t1 (
+field1 int NOT NULL,
+field2 int NOT NULL,
+field3 int NOT NULL,
+PRIMARY KEY  (field1,field2,field3)
+);
+CREATE TABLE t2 (
+fieldA int NOT NULL,
+fieldB int NOT NULL,
+PRIMARY KEY  (fieldA,fieldB)
+);
+INSERT INTO t1 VALUES
+(1,1,1), (1,1,2), (1,2,1), (1,2,2), (1,2,3), (1,3,1);
+INSERT INTO t2 VALUES (1,1), (1,2), (1,3);
+SELECT field1, field2, COUNT(*)
+FROM t1 GROUP BY field1, field2 order by field1, field2;
+field1	field2	COUNT(*)
+1	1	2
+1	2	3
+1	3	1
+SELECT field1, field2
+FROM  t1
+GROUP BY field1, field2
+HAVING COUNT(*) >= ALL (SELECT fieldB
+FROM t2 WHERE fieldA = field1);
+field1	field2
+1	2
+SELECT field1, field2
+FROM  t1
+GROUP BY field1, field2
+HAVING COUNT(*) < ANY (SELECT fieldB
+FROM t2 WHERE fieldA = field1)
+order by field1, field2;
+field1	field2
+1	1
+1	3
+DROP TABLE t1, t2;
+create table t1( f1 int,f2 int);
+insert into t1 values (1,1),(2,2);
+select tt.t from (select 'crash1' as t, f2 from t1) as tt left join t1 on tt.t = 'crash2' and tt.f2 = t1.f2 where tt.t = 'crash1';
+t
+crash1
+crash1
+drop table t1;
+create table t1 (i int, j bigint);
+insert into t1 values (1, 2), (2, 2), (3, 2);
+select * from (select min(i) from t1 where j=(select * from (select min(j) from t1) t2)) t3;
+min(i)
+1
+drop table t1;
+CREATE TABLE t1 (
+id bigint(20) unsigned NOT NULL auto_increment,
+name varchar(255) NOT NULL,
+PRIMARY KEY  (id)
+);
+INSERT INTO t1 VALUES
+(1, 'Balazs'), (2, 'Joe'), (3, 'Frank');
+CREATE TABLE t2 (
+id bigint(20) unsigned NOT NULL auto_increment,
+mid bigint(20) unsigned NOT NULL,
+date date NOT NULL,
+PRIMARY KEY  (id)
+);
+INSERT INTO t2 VALUES
+(1, 1, '2006-03-30'), (2, 2, '2006-04-06'), (3, 3, '2006-04-13'),
+(4, 2, '2006-04-20'), (5, 1, '2006-05-01');
+SELECT *,
+(SELECT date FROM t2 WHERE mid = t1.id
+ORDER BY date DESC LIMIT 0, 1) AS date_last,
+(SELECT date FROM t2 WHERE mid = t1.id
+ORDER BY date DESC LIMIT 3, 1) AS date_next_to_last
+FROM t1;
+id	name	date_last	date_next_to_last
+1	Balazs	2006-05-01	NULL
+2	Joe	2006-04-20	NULL
+3	Frank	2006-04-13	NULL
+SELECT *,
+(SELECT COUNT(*) FROM t2 WHERE mid = t1.id
+ORDER BY date DESC LIMIT 1, 1) AS date_count
+FROM t1;
+id	name	date_count
+1	Balazs	NULL
+2	Joe	NULL
+3	Frank	NULL
+SELECT *,
+(SELECT date FROM t2 WHERE mid = t1.id
+ORDER BY date DESC LIMIT 0, 1) AS date_last,
+(SELECT date FROM t2 WHERE mid = t1.id
+ORDER BY date DESC LIMIT 1, 1) AS date_next_to_last
+FROM t1;
+id	name	date_last	date_next_to_last
+1	Balazs	2006-05-01	2006-03-30
+2	Joe	2006-04-20	2006-04-06
+3	Frank	2006-04-13	NULL
+DROP TABLE t1,t2;
+CREATE TABLE t1 (a INT);
+ INSERT INTO t1 values (1),(1),(1),(1);
+CREATE TABLE t2 (x INT);
+ INSERT INTO t1 values (1000),(1001),(1002);
+SELECT SUM( (SELECT COUNT(a) FROM t2) ) FROM t1;
+SUM( (SELECT COUNT(a) FROM t2) )
+0
+SELECT SUM( (SELECT SUM(COUNT(a)) FROM t2) ) FROM t1;
+Error 1111: Invalid use of group function
+SELECT COUNT(1) FROM DUAL;
+COUNT(1)
+1
+SELECT SUM( (SELECT AVG( (SELECT t1.a FROM t2) ) FROM DUAL) ) FROM t1;
+SUM( (SELECT AVG( (SELECT t1.a FROM t2) ) FROM DUAL) )
+NULL
+SELECT
+SUM( (SELECT AVG( (SELECT COUNT(*) FROM t1 t HAVING t1.a < 12) ) FROM t2) )
+FROM t1;
+SUM( (SELECT AVG( (SELECT COUNT(*) FROM t1 t HAVING t1.a < 12) ) FROM t2) )
+NULL
+SELECT t1.a as XXA,
+SUM( (SELECT AVG( (SELECT COUNT(*) FROM t1 t HAVING XXA < 12) ) FROM t2) )
+FROM t1;
+Error 1054: Unknown column 'XXA' in 'having clause'
+DROP TABLE t1,t2;
+CREATE TABLE t1 (id int NOT NULL, st CHAR(2), UNIQUE INDEX idx(id));
+INSERT INTO t1 VALUES
+(3,'FL'), (2,'GA'), (4,'FL'), (1,'GA'), (5,'NY'), (7,'FL'), (6,'NY');
+CREATE TABLE t2 (id int NOT NULL, INDEX idx(id));
+INSERT INTO t2 VALUES (7), (5), (1), (3);
+SELECT id, st FROM t1
+WHERE st IN ('GA','FL') AND EXISTS(SELECT 1 FROM t2 WHERE t2.id=t1.id) ORDER BY id;
+id	st
+1	GA
+3	FL
+7	FL
+SELECT id, st FROM t1
+WHERE st IN ('GA','FL') AND EXISTS(SELECT 1 FROM t2 WHERE t2.id=t1.id)
+GROUP BY id ORDER BY id;
+id	st
+1	GA
+3	FL
+7	FL
+SELECT id, st FROM t1
+WHERE st IN ('GA','FL') AND NOT EXISTS(SELECT 1 FROM t2 WHERE t2.id=t1.id) ORDER BY id;
+id	st
+2	GA
+4	FL
+SELECT id, st FROM t1
+WHERE st IN ('GA','FL') AND NOT EXISTS(SELECT 1 FROM t2 WHERE t2.id=t1.id)
+GROUP BY id ORDER BY id;
+id	st
+2	GA
+4	FL
+DROP TABLE t1,t2;
+CREATE TABLE t1 (a1 INT, a2 INT);
+CREATE TABLE t2 (b1 INT, b2 INT);
+INSERT INTO t1 VALUES (100, 200);
+INSERT INTO t1 VALUES (101, 201);
+INSERT INTO t2 VALUES (101, 201);
+INSERT INTO t2 VALUES (103, 203);
+SELECT ((a1,a2) IN (SELECT * FROM t2 WHERE b2 > 0)) IS NULL FROM t1;
+((a1,a2) IN (SELECT * FROM t2 WHERE b2 > 0)) IS NULL
+0
+0
+DROP TABLE t1, t2;
+SET @@sql_mode = @SAVE_sql_mode ;

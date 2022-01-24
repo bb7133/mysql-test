@@ -1,0 +1,108 @@
+DROP TABLE IF EXISTS t1;
+CREATE TABLE t1 ( number INT, alpha CHAR(6) );
+INSERT INTO t1 VALUES
+(1413006,'idlfmv'),
+(1413065,'smpsfz'),
+(1413127,'sljrhx'),
+(1413304,'qerfnd'),
+(9999999,''),
+(null,'abcdef'),
+(null, null);
+SELECT number, alpha, CONCAT_WS('<---->',number,alpha) AS new FROM t1;
+number	alpha	new
+1413006	idlfmv	1413006<---->idlfmv
+1413065	smpsfz	1413065<---->smpsfz
+1413127	sljrhx	1413127<---->sljrhx
+1413304	qerfnd	1413304<---->qerfnd
+9999999		9999999<---->
+NULL	abcdef	abcdef
+NULL	NULL	
+SELECT CONCAT_WS('<---->',number,alpha) AS new FROM t1;
+new
+1413006<---->idlfmv
+1413065<---->smpsfz
+1413127<---->sljrhx
+1413304<---->qerfnd
+9999999<---->
+abcdef
+
+SELECT number, alpha, CONCAT_WS('<->',number,alpha) AS new FROM t1;
+number	alpha	new
+1413006	idlfmv	1413006<->idlfmv
+1413065	smpsfz	1413065<->smpsfz
+1413127	sljrhx	1413127<->sljrhx
+1413304	qerfnd	1413304<->qerfnd
+9999999		9999999<->
+NULL	abcdef	abcdef
+NULL	NULL	
+SELECT number, alpha, CONCAT_WS('-',number,alpha,alpha,alpha,alpha,alpha,alpha,alpha) AS new FROM t1;
+number	alpha	new
+1413006	idlfmv	1413006-idlfmv-idlfmv-idlfmv-idlfmv-idlfmv-idlfmv-idlfmv
+1413065	smpsfz	1413065-smpsfz-smpsfz-smpsfz-smpsfz-smpsfz-smpsfz-smpsfz
+1413127	sljrhx	1413127-sljrhx-sljrhx-sljrhx-sljrhx-sljrhx-sljrhx-sljrhx
+1413304	qerfnd	1413304-qerfnd-qerfnd-qerfnd-qerfnd-qerfnd-qerfnd-qerfnd
+9999999		9999999-------
+NULL	abcdef	abcdef-abcdef-abcdef-abcdef-abcdef-abcdef-abcdef
+NULL	NULL	
+SELECT number, alpha, CONCAT_WS('<------------------>',number,alpha) AS new FROM t1;
+number	alpha	new
+1413006	idlfmv	1413006<------------------>idlfmv
+1413065	smpsfz	1413065<------------------>smpsfz
+1413127	sljrhx	1413127<------------------>sljrhx
+1413304	qerfnd	1413304<------------------>qerfnd
+9999999		9999999<------------------>
+NULL	abcdef	abcdef
+NULL	NULL	
+SELECT number, alpha, CONCAT_WS(NULL,number,alpha) AS new FROM t1;
+number	alpha	new
+1413006	idlfmv	NULL
+1413065	smpsfz	NULL
+1413127	sljrhx	NULL
+1413304	qerfnd	NULL
+9999999		NULL
+NULL	abcdef	NULL
+NULL	NULL	NULL
+SELECT number, alpha, CONCAT(number,alpha) AS new FROM t1;
+number	alpha	new
+1413006	idlfmv	1413006idlfmv
+1413065	smpsfz	1413065smpsfz
+1413127	sljrhx	1413127sljrhx
+1413304	qerfnd	1413304qerfnd
+9999999		9999999
+NULL	abcdef	NULL
+NULL	NULL	NULL
+drop table t1;
+create table t1 (a char(4), b double, c date, d tinyint(4));
+insert into t1 values ('AAAA', 105, '2003-03-01', 1);
+select * from t1 where concat(A,C,B,D) = 'AAAA2003-03-011051';
+a	b	c	d
+AAAA	105	2003-03-01	1
+drop table t1;
+create table t1(f1 varchar(6)) CHARSET=utf8mb4;
+insert into t1 values ("123456");
+drop table t1;
+CREATE TABLE t1 (c1 varchar(100), c2 varchar(100));
+INSERT INTO t1 VALUES ('',''), ('','First'), ('Random','Random');
+DROP TABLE t1;
+CREATE TABLE t1 (
+a VARCHAR(100) NOT NULL DEFAULT '0',
+b VARCHAR(2) NOT NULL DEFAULT '',
+c VARCHAR(2) NOT NULL DEFAULT '',
+d TEXT NOT NULL,
+PRIMARY KEY (a, b, c),
+KEY (a)
+) DEFAULT CHARSET=utf8mb4;
+INSERT INTO t1 VALUES ('gui_A', 'a', 'b', 'str1'),
+('gui_AB', 'a', 'b', 'str2'), ('gui_ABC', 'a', 'b', 'str3');
+CREATE TABLE t2 (
+a VARCHAR(100) NOT NULL DEFAULT '',
+PRIMARY KEY (a)
+) DEFAULT CHARSET=utf8mb4;
+INSERT INTO t2 VALUES ('A'), ('AB'), ('ABC');
+SELECT CONCAT('gui_', t2.a), t1.d FROM t2
+LEFT JOIN t1 ON t1.a = CONCAT('gui_', t2.a) AND t1.b = 'a' AND t1.c = 'b';
+CONCAT('gui_', t2.a)	d
+gui_A	str1
+gui_AB	str2
+gui_ABC	str3
+DROP TABLE t1, t2;

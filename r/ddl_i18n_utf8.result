@@ -1,0 +1,93 @@
+DROP DATABASE IF EXISTS mysqltest1;
+CREATE DATABASE mysqltest1 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
+use mysqltest1;
+CREATE TABLE t1(ËÏÌ INT);
+INSERT INTO t1 VALUES(1);
+SHOW CREATE TABLE t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `ËÏÌ` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
+
+---> connection: con2
+SET @@character_set_client= utf8;
+SET @@character_set_results= utf8;
+SET @@collation_connection= utf8_general_ci;
+DROP DATABASE mysqltest1;
+
+-------------------------------------------------------------------
+Stored procedures/functions
+-------------------------------------------------------------------
+
+DROP DATABASE IF EXISTS mysqltest1;
+DROP DATABASE IF EXISTS mysqltest2;
+CREATE DATABASE mysqltest1 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
+CREATE DATABASE mysqltest2 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
+use mysqltest1;
+
+---> connection: con2
+SET @@character_set_client= utf8;
+SET @@character_set_results= utf8;
+SET @@collation_connection= utf8_general_ci;
+DROP DATABASE mysqltest1;
+DROP DATABASE mysqltest2;
+use ddl_i18n_utf8;
+CREATE DATABASE mysqltest1 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
+CREATE DATABASE mysqltest2 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
+use mysqltest1;
+CREATE TABLE t1(c INT);
+CREATE TABLE mysqltest2.t1(c INT);
+ALTER TABLE t1 ADD COLUMN fake INT;
+ALTER TABLE t1 DROP COLUMN fake;
+ALTER TABLE mysqltest2.t1 ADD COLUMN fake INT;
+ALTER TABLE mysqltest2.t1 DROP COLUMN fake;
+SHOW CREATE TABLE t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `c` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
+SHOW CREATE TABLE mysqltest2.t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `c` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
+
+---> connection: con2
+SET @@character_set_client= utf8;
+SET @@character_set_results= utf8;
+SET @@collation_connection= utf8_general_ci;
+INSERT INTO mysqltest1.t1 VALUES(0);
+INSERT INTO mysqltest2.t1 VALUES(0);
+SELECT * from mysqltest1.t1;
+c
+0
+SELECT * from mysqltest2.t1;
+c
+0
+DROP DATABASE mysqltest1;
+DROP DATABASE mysqltest2;
+DROP DATABASE IF EXISTS mysqltest1;
+DROP DATABASE IF EXISTS mysqltest2;
+CREATE DATABASE mysqltest1 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
+CREATE DATABASE mysqltest2 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
+DROP DATABASE mysqltest1;
+DROP DATABASE mysqltest2;
+
+-------------------------------------------------------------------
+DDL statements within stored routine.
+-------------------------------------------------------------------
+
+DROP DATABASE IF EXISTS mysqltest1;
+DROP DATABASE IF EXISTS mysqltest2;
+CREATE DATABASE mysqltest1 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
+CREATE DATABASE mysqltest2 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
+use mysqltest1;
+
+---> connection: con2
+
+---> connection: con3
+
+---> connection: default
+use ddl_i18n_utf8;
+DROP DATABASE mysqltest1;
+DROP DATABASE mysqltest2;

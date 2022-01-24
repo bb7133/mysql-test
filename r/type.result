@@ -1,0 +1,12 @@
+DROP TABLE IF EXISTS t;
+CREATE TABLE t (c1 int, c2 text, primary key(c1));
+INSERT INTO t (c1, c2) VALUES(11, "test-str");
+SELECT * FROM t;
+c1	c2
+11	test-str
+c1	c2
+11	test-str
+c1	c2
+11	test-str
+c1	c2
+11	test-str

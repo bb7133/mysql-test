@@ -1,0 +1,231 @@
+# The include statement below is a temp one for tests that are yet to
+#be ported to run with InnoDB,
+#but needs to be kept for tests that would need MyISAM in future.
+--source include/force_myisam_default.inc
+
+# For stored routines:
+#   - create a database with collation utf8_unicode_ci;
+#   - create an object, which
+#     - contains SP-var with explicit CHARSET-clause;
+#     - contains SP-var without CHARSET-clause;
+#     - contains text constant;
+#     - has localized routine/parameter names;
+#   - check:
+#     - execute;
+#     - SHOW CREATE output;
+#     - SHOW output;
+#     - SELECT FROM INFORMATION_SCHEMA output;
+#   - change connection collation;
+#   - check again;
+#   - drop object;
+# 
+
+###########################################################################
+#
+# NOTE: this file contains text in UTF8 and KOI8-R encodings.
+#
+###########################################################################
+
+#
+# Preparation:
+#
+
+#   - Create database with fixed, pre-defined character set.
+
+--disable_warnings
+DROP DATABASE IF EXISTS mysqltest1;
+--enable_warnings
+
+CREATE DATABASE mysqltest1 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
+
+use mysqltest1;
+
+CREATE TABLE t1(ËÏÌ INT);
+INSERT INTO t1 VALUES(1);
+
+# TODO: support modify charset.
+SHOW CREATE TABLE t1;
+
+#
+# Second-round checks:
+#
+
+#   - Change connection to flush cache;
+
+--connect (con2,localhost,root,,)
+--echo
+--echo ---> connection: con2
+
+#   - Switch environment variables and trigger loading views;
+
+SET @@character_set_client= utf8;
+SET @@character_set_results= utf8;
+SET @@collation_connection= utf8_general_ci;
+
+DROP DATABASE mysqltest1;
+
+###########################################################################
+#
+# * Stored procedures/functions.
+#
+###########################################################################
+
+--echo
+--echo -------------------------------------------------------------------
+--echo Stored procedures/functions
+--echo -------------------------------------------------------------------
+--echo
+
+#
+# Preparation:
+#
+
+#   - Create database with fixed, pre-defined character set.
+
+--disable_warnings
+DROP DATABASE IF EXISTS mysqltest1;
+DROP DATABASE IF EXISTS mysqltest2;
+--enable_warnings
+
+CREATE DATABASE mysqltest1 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
+CREATE DATABASE mysqltest2 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
+
+use mysqltest1;
+
+#
+# Second-round checks:
+#
+
+#   - Change connection to flush SP-cache;
+
+--connect (con2,localhost,root,,mysqltest1)
+--echo
+--echo ---> connection: con2
+
+#   - Switch environment variables and trigger loading stored procedures;
+
+SET @@character_set_client= utf8;
+SET @@character_set_results= utf8;
+SET @@collation_connection= utf8_general_ci;
+
+DROP DATABASE mysqltest1;
+DROP DATABASE mysqltest2;
+
+use ddl_i18n_utf8;
+
+#
+# Second-round checks:
+#
+
+#  - Flush table cache;
+
+CREATE DATABASE mysqltest1 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
+CREATE DATABASE mysqltest2 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
+use mysqltest1;
+CREATE TABLE t1(c INT);
+CREATE TABLE mysqltest2.t1(c INT);
+
+ALTER TABLE t1 ADD COLUMN fake INT;
+ALTER TABLE t1 DROP COLUMN fake;
+
+ALTER TABLE mysqltest2.t1 ADD COLUMN fake INT;
+ALTER TABLE mysqltest2.t1 DROP COLUMN fake;
+
+# TODO: support modify charset.
+SHOW CREATE TABLE t1;
+# TODO: support modify charset.
+SHOW CREATE TABLE mysqltest2.t1;
+
+#   - Switch environment variables and initiate loading of triggers
+#     (connect using NULL database);
+
+--connect (con2,localhost,root,,)
+--echo
+--echo ---> connection: con2
+
+SET @@character_set_client= utf8;
+SET @@character_set_results= utf8;
+SET @@collation_connection= utf8_general_ci;
+
+INSERT INTO mysqltest1.t1 VALUES(0);
+INSERT INTO mysqltest2.t1 VALUES(0);
+
+SELECT * from mysqltest1.t1;
+SELECT * from mysqltest2.t1;
+
+DROP DATABASE mysqltest1;
+DROP DATABASE mysqltest2;
+
+#
+# Preparation:
+#
+
+#   - Create database with fixed, pre-defined character set.
+
+--disable_warnings
+DROP DATABASE IF EXISTS mysqltest1;
+DROP DATABASE IF EXISTS mysqltest2;
+--enable_warnings
+
+CREATE DATABASE mysqltest1 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
+CREATE DATABASE mysqltest2 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
+
+DROP DATABASE mysqltest1;
+DROP DATABASE mysqltest2;
+
+###########################################################################
+#
+# * DDL statements inside stored routine.
+#
+# Here we check that DDL statements use actual database collation even if they
+# are called from stored routine.
+#
+###########################################################################
+
+--echo
+--echo -------------------------------------------------------------------
+--echo DDL statements within stored routine.
+--echo -------------------------------------------------------------------
+--echo
+
+#
+# Preparation:
+#
+
+#   - Create database with fixed, pre-defined character set.
+
+--disable_warnings
+DROP DATABASE IF EXISTS mysqltest1;
+DROP DATABASE IF EXISTS mysqltest2;
+--enable_warnings
+
+CREATE DATABASE mysqltest1 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
+CREATE DATABASE mysqltest2 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
+
+use mysqltest1;
+
+###########################################################################
+#
+# That's it.
+#
+###########################################################################
+
+#
+# Cleanup.
+#
+delimiter ;;
+
+--connection con2
+--echo
+--echo ---> connection: con2
+--disconnect con2
+--source include/wait_until_disconnected.inc
+--echo
+--echo ---> connection: con3
+--source include/wait_until_disconnected.inc
+--connection default
+--echo
+--echo ---> connection: default
+use ddl_i18n_utf8;
+DROP DATABASE mysqltest1;
+DROP DATABASE mysqltest2;

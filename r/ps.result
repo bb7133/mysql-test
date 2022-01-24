@@ -1,0 +1,779 @@
+drop database if exists prepare_test;
+create database prepare_test;
+use prepare_test;
+drop table if exists t1,t2,t3,t4;
+create table t1
+(
+a int primary key,
+b char(10)
+);
+insert into t1 values (1,'one');
+insert into t1 values (2,'two');
+insert into t1 values (3,'three');
+insert into t1 values (4,'four');
+set @a=2;
+prepare stmt1 from 'select * from t1 where a <= ?';
+execute stmt1 using @a;
+a	b
+1	one
+2	two
+set @a=3;
+execute stmt1 using @a;
+a	b
+1	one
+2	two
+3	three
+deallocate prepare no_such_statement;
+Error 8111: Prepared statement not found
+execute stmt1;
+Error 8112: Wrong parameter count
+prepare stmt3 from 'insert into t1 values (?,?)';
+set @arg1=5, @arg2='five';
+execute stmt3 using @arg1, @arg2;
+
+select * from t1 where a>3;
+a	b
+4	four
+5	five
+prepare stmt4 from 'update t1 set a=? where b=?';
+set @arg1=55, @arg2='five';
+execute stmt4 using @arg1, @arg2;
+
+select * from t1 where a>3;
+a	b
+4	four
+55	five
+prepare stmt5 from 'select ? + a from t1';
+set @a=1;
+execute stmt5 using @a;
+? + a
+2
+3
+4
+5
+56
+execute stmt5 using @no_such_var;
+? + a
+NULL
+NULL
+NULL
+NULL
+NULL
+set @nullvar=1;
+set @nullvar=NULL;
+execute stmt5 using @nullvar;
+? + a
+NULL
+NULL
+NULL
+NULL
+NULL
+set @nullvar2=NULL;
+execute stmt5 using @nullvar2;
+? + a
+NULL
+NULL
+NULL
+NULL
+NULL
+prepare stmt6 from 'select 1; select2';
+Error 1064: You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 17 near "select2" 
+prepare stmt6 from 'insert into t1 values (5,"five"); select2';
+Error 1064: You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 41 near "select2" 
+explain prepare stmt6 from 'insert into t1 values (5,"five"); select2';
+[parser:1064]You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 26 near "from 'insert into t1 values (5,"five"); select2';" 
+create table t2
+(
+a int
+);
+insert into t2 values (0);
+set @arg00=NULL ;
+prepare stmt1 from 'select 1 FROM t2 where a=?' ;
+execute stmt1 using @arg00 ;
+1
+prepare stmt1 from @nosuchvar;
+Error 1064: You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 4 near "NULL" 
+set @ivar= 1234;
+prepare stmt1 from @ivar;
+Error 1064: You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 4 near "1234" 
+set @fvar= 123.4567;
+prepare stmt1 from @fvar;
+Error 1064: You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 8 near "123.4567" 
+drop table t1,t2;
+deallocate prepare stmt3;
+deallocate prepare stmt4;
+deallocate prepare stmt5;
+PREPARE stmt1 FROM "select _utf8 'A' collate utf8_bin = ?";
+set @var='A';
+EXECUTE stmt1 USING @var;
+_utf8 'A' collate utf8_bin = ?
+1
+DEALLOCATE PREPARE stmt1;
+create table t1 (id int);
+prepare stmt1 from "select FOUND_ROWS()";
+set tidb_enable_noop_functions=1;
+ # required against master
+select SQL_CALC_FOUND_ROWS * from t1;
+execute stmt1;
+FOUND_ROWS()
+0
+insert into t1 values (1);
+select SQL_CALC_FOUND_ROWS * from t1;
+id
+1
+execute stmt1;
+FOUND_ROWS()
+1
+execute stmt1;
+FOUND_ROWS()
+1
+deallocate prepare stmt1;
+drop table t1;
+create table t1 (id int(10) unsigned NOT NULL default '0',
+name varchar(64) NOT NULL default '',
+PRIMARY KEY  (id), UNIQUE KEY `name` (`name`));
+insert into t1 values (1,'1'),(2,'2'),(3,'3'),(4,'4'),(5,'5'),(6,'6'),(7,'7');
+prepare stmt1 from 'select name from t1 where id=? or id=?';
+set @id1=1,@id2=6;
+execute stmt1 using @id1, @id2;
+name
+1
+6
+select name from t1 where id=1 or id=6;
+name
+1
+6
+deallocate prepare stmt1;
+drop table t1;
+prepare stmt1 from ' show table status from prepare_test like ''t1%'' ';
+execute stmt1;
+Name	Engine	Version	Row_format	Rows	Avg_row_length	Data_length	Max_data_length	Index_length	Data_free	Auto_increment	Create_time	Update_time	Check_time	Collation	Checksum	Create_options	Comment
+show table status from prepare_test like 't1%' ;
+Name	Engine	Version	Row_format	Rows	Avg_row_length	Data_length	Max_data_length	Index_length	Data_free	Auto_increment	Create_time	Update_time	Check_time	Collation	Checksum	Create_options	Comment
+deallocate prepare stmt1 ;
+drop table if exists t1;
+create table t1(a varchar(2), b varchar(3));
+prepare stmt1 from "select a, b from t1 where (not (a='aa' and b < 'zzz'))";
+execute stmt1;
+a	b
+execute stmt1;
+a	b
+deallocate prepare stmt1;
+drop table t1;
+create table t1 (a varchar(10)) charset=utf8;
+insert into t1 (a) values ('yahoo');
+set character_set_connection=latin1;
+prepare stmt from 'select a from t1 where a like ?';
+set @var='google';
+execute stmt using @var;
+a
+execute stmt using @var;
+a
+deallocate prepare stmt;
+drop table t1;
+create table t1 (a bigint(20) not null primary key auto_increment);
+insert into t1 (a) values (null);
+select * from t1;
+a
+1
+prepare stmt from "insert into t1 (a) values (?)";
+set @var=null;
+execute stmt using @var;
+
+select * from t1;
+a
+1
+2
+drop table t1;
+prepare stmt from "select 'abc' like convert('abc' using utf8)";
+execute stmt;
+'abc' like convert('abc' using utf8)
+1
+execute stmt;
+'abc' like convert('abc' using utf8)
+1
+deallocate prepare stmt;
+create table t1 ( a bigint );
+prepare stmt from 'select a from t1 where a between ? and ?';
+set @a=1;
+execute stmt using @a, @a;
+a
+execute stmt using @a, @a;
+a
+execute stmt using @a, @a;
+a
+drop table t1;
+deallocate prepare stmt;
+create table t1 (a int);
+prepare stmt from "select * from t1 where 1 > (1 in (SELECT * FROM t1))";
+execute stmt;
+a
+execute stmt;
+a
+execute stmt;
+a
+drop table t1;
+deallocate prepare stmt;
+create table t1 (a int, b int) engine = myisam;
+insert into t1 (a, b) values (1,1), (1,2), (2,1), (2,2);
+prepare stmt from
+"explain select * from t1 where t1.a=2 and t1.a=t1.b and t1.b > 1 + ?";
+set @v=5;
+execute stmt using @v;
+id	estRows	task	access object	operator info
+-	-	-	-	-
+set @v=0;
+execute stmt using @v;
+id	estRows	task	access object	operator info
+-	-	-	-	-
+-	-	-	-	-
+-	-	-	-	-
+set @v=5;
+execute stmt using @v;
+id	estRows	task	access object	operator info
+-	-	-	-	-
+drop table t1;
+deallocate prepare stmt;
+create table t1 (pnum char(3));
+create table t2 (pnum char(3));
+prepare stmt from "select pnum from t2 having pnum in (select 'p1' from t1)";
+execute stmt;
+pnum
+execute stmt;
+pnum
+execute stmt;
+pnum
+deallocate prepare stmt;
+drop table t1, t2;
+create table t1 (a varchar(20));
+insert into t1 values ('foo');
+prepare stmt FROM 'SELECT char_length (a) FROM t1';
+prepare stmt2 FROM 'SELECT not_a_function (a) FROM t1';
+Error 1305: FUNCTION prepare_test.not_a_function does not exist
+drop table t1;
+drop table if exists t1;
+create table t1 (c1 int(11) not null, c2 int(11) not null,
+primary key  (c1,c2), key c2 (c2), key c1 (c1));
+insert into t1 values (200887, 860);
+insert into t1 values (200887, 200887);
+select * from t1 where (c1=200887 and c2=200887) or c2=860;
+c1	c2
+200887	860
+200887	200887
+prepare stmt from
+"select * from t1 where (c1=200887 and c2=200887) or c2=860";
+execute stmt;
+c1	c2
+200887	860
+200887	200887
+prepare stmt from
+"select * from t1 where (c1=200887 and c2=?) or c2=?";
+set @a=200887, @b=860;
+execute stmt using @a, @b;
+c1	c2
+200887	860
+200887	200887
+deallocate prepare stmt;
+drop table t1;
+create table t1 (
+id bigint(20) not null auto_increment,
+code varchar(20) character set utf8 collate utf8_bin not null default '',
+company_name varchar(250) character set utf8 collate utf8_bin default null,
+setup_mode tinyint(4) default null,
+start_date datetime default null,
+primary key  (id), unique key code (code)
+);
+create table t2 (
+id bigint(20) not null auto_increment,
+email varchar(250) character set utf8 collate utf8_bin default null,
+name varchar(250) character set utf8 collate utf8_bin default null,
+t1_id bigint(20) default null,
+password varchar(250) character set utf8 collate utf8_bin default null,
+primary_contact tinyint(4) not null default '0',
+email_opt_in tinyint(4) not null default '1',
+primary key  (id), unique key email (email), key t1_id (t1_id),
+constraint t2_fk1 foreign key (t1_id) references t1 (id)
+);
+insert into t1 values
+(1, 'demo', 'demo s', 0, current_date()),
+(2, 'code2', 'name 2', 0, current_date()),
+(3, 'code3', 'name 3', 0, current_date());
+insert into t2 values
+(2, 'email1', 'name1', 3, 'password1', 0, 0),
+(3, 'email2', 'name1', 1, 'password2', 1, 0),
+(5, 'email3', 'name3', 2, 'password3', 0, 0);
+prepare stmt from 'select t2.id from t2, t1 where (t1.id=? and t2.t1_id=t1.id)';
+set @a=1;
+execute stmt using @a;
+id
+3
+select t2.id from t2, t1 where (t1.id=1 and t2.t1_id=t1.id);
+id
+3
+deallocate prepare stmt;
+drop table t2, t1;
+create table t1 (id int);
+prepare stmt from "insert into t1 (id) select id from t1 union select id from t1";
+execute stmt;
+
+execute stmt;
+
+deallocate prepare stmt;
+drop table t1;
+create table t1 (
+word_id mediumint(8) unsigned not null default '0',
+formatted varchar(20) not null default ''
+);
+insert into t1 values
+(80,'pendant'), (475,'pretendants'), (989,'tendances'),
+(1019,'cependant'),(1022,'abondance'),(1205,'independants'),
+(13,'lessiver'),(25,'lambiner'),(46,'situer'),(71,'terminer'),
+(82,'decrocher');
+select count(*) from t1 where formatted like '%ndan%';
+count(*)
+6
+select count(*) from t1 where formatted like '%er';
+count(*)
+5
+prepare stmt from "select count(*) from t1 where formatted like ?";
+set @like="%ndsn%";
+execute stmt using @like;
+count(*)
+0
+set @like="%er";
+execute stmt using @like;
+count(*)
+5
+set @like="%ndan%";
+execute stmt using @like;
+count(*)
+6
+set @like="%er";
+execute stmt using @like;
+count(*)
+5
+deallocate prepare stmt;
+drop table t1;
+create table t1 (col1 integer, col2 integer);
+insert into t1 values(100,100),(101,101),(102,102),(103,103);
+prepare stmt from 'select col1, col2 from t1 where (col1, col2) in ((?,?))';
+set @a=100, @b=100;
+execute stmt using @a,@b;
+col1	col2
+100	100
+set @a=101, @b=101;
+execute stmt using @a,@b;
+col1	col2
+101	101
+set @a=102, @b=102;
+execute stmt using @a,@b;
+col1	col2
+102	102
+set @a=102, @b=103;
+execute stmt using @a,@b;
+col1	col2
+deallocate prepare stmt;
+drop table t1;
+CREATE TABLE t1(
+ID int(10) unsigned NOT NULL auto_increment,
+Member_ID varchar(15) NOT NULL default '',
+Action varchar(12) NOT NULL,
+Action_Date datetime NOT NULL,
+Track varchar(15) default NULL,
+User varchar(12) default NULL,
+Date_Updated timestamp NOT NULL default CURRENT_TIMESTAMP on update
+CURRENT_TIMESTAMP,
+PRIMARY KEY (ID),
+KEY Action (Action),
+KEY Action_Date (Action_Date)
+);
+INSERT INTO t1(Member_ID, Action, Action_Date, Track) VALUES
+('111111', 'Disenrolled', '2006-03-01', 'CAD' ),
+('111111', 'Enrolled', '2006-03-01', 'CAD' ),
+('111111', 'Disenrolled', '2006-07-03', 'CAD' ),
+('222222', 'Enrolled', '2006-03-07', 'CAD' ),
+('222222', 'Enrolled', '2006-03-07', 'CHF' ),
+('222222', 'Disenrolled', '2006-08-02', 'CHF' ),
+('333333', 'Enrolled', '2006-03-01', 'CAD' ),
+('333333', 'Disenrolled', '2006-03-01', 'CAD' ),
+('444444', 'Enrolled', '2006-03-01', 'CAD' ),
+('555555', 'Disenrolled', '2006-03-01', 'CAD' ),
+('555555', 'Enrolled', '2006-07-21', 'CAD' ),
+('555555', 'Disenrolled', '2006-03-01', 'CHF' ),
+('666666', 'Enrolled', '2006-02-09', 'CAD' ),
+('666666', 'Enrolled', '2006-05-12', 'CHF' ),
+('666666', 'Disenrolled', '2006-06-01', 'CAD' );
+PREPARE STMT FROM
+"SELECT GROUP_CONCAT(Track SEPARATOR ', ') FROM t1
+WHERE Member_ID=? AND Action='Enrolled' AND
+(Track,Action_Date) IN (SELECT Track, MAX(Action_Date) FROM t1
+WHERE Member_ID=?
+GROUP BY Track
+HAVING Track>='CAD' AND
+MAX(Action_Date)>'2006-03-01')";
+SET @id='111111';
+EXECUTE STMT USING @id,@id;
+GROUP_CONCAT(Track SEPARATOR ', ')
+NULL
+SET @id='222222';
+EXECUTE STMT USING @id,@id;
+GROUP_CONCAT(Track SEPARATOR ', ')
+CAD
+DEALLOCATE PREPARE STMT;
+DROP TABLE t1;
+DROP TABLE IF EXISTS t1;
+CREATE TABLE t1 (i INT, INDEX(i));
+INSERT INTO t1 VALUES (1);
+PREPARE stmt FROM "SELECT (COUNT(i) = 1), COUNT(i) FROM t1 WHERE i = ?";
+SET @a = 0;
+EXECUTE stmt USING @a;
+(COUNT(i) = 1)	COUNT(i)
+0	0
+SET @a = 1;
+EXECUTE stmt USING @a;
+(COUNT(i) = 1)	COUNT(i)
+1	1
+SET @a = 0;
+EXECUTE stmt USING @a;
+(COUNT(i) = 1)	COUNT(i)
+0	0
+PREPARE stmt FROM "SELECT (AVG(i) = 1), AVG(i) FROM t1 WHERE i = ?";
+SET @a = 0;
+EXECUTE stmt USING @a;
+(AVG(i) = 1)	AVG(i)
+NULL	NULL
+SET @a = 1;
+EXECUTE stmt USING @a;
+(AVG(i) = 1)	AVG(i)
+1	1.0000
+SET @a = 0;
+EXECUTE stmt USING @a;
+(AVG(i) = 1)	AVG(i)
+NULL	NULL
+PREPARE stmt FROM "SELECT (BIT_OR(i) = 1), BIT_OR(i) FROM t1 WHERE i = ?";
+SET @a = 0;
+EXECUTE stmt USING @a;
+(BIT_OR(i) = 1)	BIT_OR(i)
+0	0
+SET @a = 1;
+EXECUTE stmt USING @a;
+(BIT_OR(i) = 1)	BIT_OR(i)
+1	1
+SET @a = 0;
+EXECUTE stmt USING @a;
+(BIT_OR(i) = 1)	BIT_OR(i)
+0	0
+PREPARE stmt FROM "SELECT (BIT_AND(i) = 1), BIT_AND(i) FROM t1 WHERE i = ?";
+SET @a = 0;
+EXECUTE stmt USING @a;
+(BIT_AND(i) = 1)	BIT_AND(i)
+0	18446744073709551615
+SET @a = 1;
+EXECUTE stmt USING @a;
+(BIT_AND(i) = 1)	BIT_AND(i)
+1	1
+SET @a = 0;
+EXECUTE stmt USING @a;
+(BIT_AND(i) = 1)	BIT_AND(i)
+0	18446744073709551615
+PREPARE stmt FROM "SELECT (BIT_XOR(i) = 1), BIT_XOR(i) FROM t1 WHERE i = ?";
+SET @a = 0;
+EXECUTE stmt USING @a;
+(BIT_XOR(i) = 1)	BIT_XOR(i)
+0	0
+SET @a = 1;
+EXECUTE stmt USING @a;
+(BIT_XOR(i) = 1)	BIT_XOR(i)
+1	1
+SET @a = 0;
+EXECUTE stmt USING @a;
+(BIT_XOR(i) = 1)	BIT_XOR(i)
+0	0
+DEALLOCATE PREPARE stmt;
+DROP TABLE t1;
+CREATE TABLE t1(a int);
+INSERT INTO t1 VALUES (2), (3), (1);
+PREPARE st1 FROM
+'(SELECT a FROM t1) UNION (SELECT a+10 FROM t1) ORDER BY RAND()*0+a';
+EXECUTE st1;
+a
+1
+2
+3
+11
+12
+13
+EXECUTE st1;
+a
+1
+2
+3
+11
+12
+13
+DEALLOCATE PREPARE st1;
+DROP TABLE t1;
+create table t1 (a int, b tinyint);
+prepare st1 from 'update t1 set b= (str_to_date(a, a))';
+execute st1;
+
+deallocate prepare st1;
+drop table t1;
+End of 4.1 tests.
+create table t1 (a varchar(20));
+insert into t1 values ('foo');
+prepare stmt FROM 'SELECT char_length (a) FROM t1';
+prepare stmt2 FROM 'SELECT not_a_function (a) FROM t1';
+Error 1305: FUNCTION prepare_test.not_a_function does not exist
+drop table t1;
+create table t1 (a char(3) not null, b char(3) not null,
+c char(3) not null, primary key  (a, b, c));
+create table t2 like t1;
+prepare stmt from
+"select t1.a from (t1 left outer join t2 on t2.a=1 and t1.b=t2.b)
+where t1.a=1";
+execute stmt;
+a
+execute stmt;
+a
+execute stmt;
+a
+prepare stmt from
+"select t1.a, t1.b, t1.c, t2.a, t2.b, t2.c from
+(t1 left outer join t2 on t2.a=? and t1.b=t2.b)
+left outer join t2 t3 on t3.a=? where t1.a=?";
+set @a:=1, @b:=1, @c:=1;
+execute stmt using @a, @b, @c;
+a	b	c	a	b	c
+execute stmt using @a, @b, @c;
+a	b	c	a	b	c
+execute stmt using @a, @b, @c;
+a	b	c	a	b	c
+deallocate prepare stmt;
+drop table t1,t2;
+create table t1 (a int);
+insert into t1 (a) values (1), (2), (3), (4), (5), (6), (7), (8), (9), (10);
+prepare stmt from "select * from t1 order by a limit ?, ?";
+set @offset=0, @limit=1;
+execute stmt using @offset, @limit;
+a
+1
+select * from t1 limit 0, 1;
+a
+1
+set @offset=3, @limit=2;
+execute stmt using @offset, @limit;
+a
+4
+5
+select * from t1 limit 3, 2;
+a
+4
+5
+prepare stmt from "select * from t1 order by a limit ?";
+execute stmt using @limit;
+a
+1
+2
+drop table t1;
+deallocate prepare stmt;
+create table t1 (id int);
+prepare ins_call from "insert into t1 (id) values (1)";
+execute ins_call;
+
+select row_count();
+row_count()
+0
+drop table t1;
+create table t1 (a int, b int);
+insert into t1 (a,b) values (2,8),(1,9),(3,7);
+prepare stmt from "select * from t1 order by ?";
+set @a=1;
+execute stmt using @a;
+a	b
+1	9
+2	8
+3	7
+set @a=2;
+execute stmt using @a;
+a	b
+3	7
+2	8
+1	9
+deallocate prepare stmt;
+select * from t1 order by 1;
+a	b
+1	9
+2	8
+3	7
+prepare stmt from "select * from t1 order by ?+1";
+set @a=0;
+execute stmt using @a;
+a	b
+2	8
+1	9
+3	7
+set @a=1;
+execute stmt using @a;
+a	b
+2	8
+1	9
+3	7
+deallocate prepare stmt;
+select * from t1 order by 1+1;
+a	b
+2	8
+1	9
+3	7
+drop table t1;
+DROP TABLE IF EXISTS t1, t2, t3;
+CREATE TABLE t1 (i BIGINT, j BIGINT);
+CREATE TABLE t2 (i BIGINT);
+CREATE TABLE t3 (i BIGINT, j BIGINT);
+PREPARE stmt FROM "SELECT * FROM t1 JOIN t2 ON (t2.i = t1.i)
+LEFT JOIN t3 ON ((t3.i, t3.j) = (t1.i, t1.j))
+WHERE t1.i = ?";
+SET @a= 1;
+EXECUTE stmt USING @a;
+i	j	i	i	j
+EXECUTE stmt USING @a;
+i	j	i	i	j
+DEALLOCATE PREPARE stmt;
+DROP TABLE IF EXISTS t1, t2, t3;
+DROP TABLE IF EXISTS t1, t2;
+CREATE TABLE t1 (i INT KEY);
+CREATE TABLE t2 (i INT);
+INSERT INTO t1 VALUES (1), (2);
+INSERT INTO t2 VALUES (1);
+PREPARE stmt FROM "SELECT t2.i FROM t1 LEFT JOIN t2 ON t2.i = t1.i
+WHERE t1.i = ?";
+SET @arg= 1;
+EXECUTE stmt USING @arg;
+i
+1
+SET @arg= 2;
+EXECUTE stmt USING @arg;
+i
+NULL
+SET @arg= 1;
+EXECUTE stmt USING @arg;
+i
+1
+DEALLOCATE PREPARE stmt;
+DROP TABLE t1, t2;
+CREATE TABLE t1 (a int);
+INSERT INTO t1 VALUES (1), (2);
+CREATE TABLE t2 (b int);
+INSERT INTO t2 VALUES (NULL);
+SELECT a FROM t1 WHERE (SELECT b FROM t2) IS NULL;
+a
+1
+2
+PREPARE stmt FROM 'SELECT a FROM t1 WHERE (SELECT b FROM t2) IS NULL';
+EXECUTE stmt;
+a
+1
+2
+DEALLOCATE PREPARE stmt;
+PREPARE stmt FROM 'SELECT a FROM t1 WHERE (SELECT b FROM t2 limit ?) IS NULL';
+SET @arg=1;
+EXECUTE stmt USING @arg;
+a
+1
+2
+DEALLOCATE PREPARE stmt;
+DROP TABLE t1,t2;
+drop table if exists t1;
+create table t1 (a bigint unsigned, b bigint(20) unsigned);
+prepare stmt from "insert into t1 values (?,?)";
+set @a= 9999999999999999;
+set @b= 14632475938453979136;
+insert into t1 values (@a, @b);
+select * from t1 where a = @a and b = @b;
+a	b
+9999999999999999	14632475938453979136
+execute stmt using @a, @b;
+
+select * from t1 where a = @a and b = @b;
+a	b
+9999999999999999	14632475938453979136
+9999999999999999	14632475938453979136
+deallocate prepare stmt;
+drop table t1;
+prepare stmt from "select ?";
+set @arg= 123456789.987654321;
+select @arg;
+@arg
+123456789.987654321
+execute stmt using @arg;
+?
+123456789.987654321
+set @arg= "string";
+select @arg;
+@arg
+string
+execute stmt using @arg;
+?
+string
+set @arg= 123456;
+select @arg;
+@arg
+123456
+execute stmt using @arg;
+?
+123456
+set @arg= cast(-12345.54321 as decimal(20, 10));
+select @arg;
+@arg
+-12345.5432100000
+execute stmt using @arg;
+?
+-12345.5432100000
+deallocate prepare stmt;
+#
+# Bug#48508: Crash on prepared statement re-execution.
+#
+create table t1(b int);
+insert into t1 values (0);
+prepare stmt from "select * from t1 where b";
+execute stmt;
+b
+execute stmt;
+b
+deallocate prepare stmt;
+drop table t1;
+create table t1(a bigint);
+create table t2(b tinyint);
+insert into t2 values (null);
+prepare stmt from "select 1 from t1 join  t2 on a xor b where b > 1  and a =1";
+execute stmt;
+1
+execute stmt;
+1
+deallocate prepare stmt;
+drop table t1,t2;
+#
+#
+# Bug #49570: Assertion failed: !(order->used & map)
+# on re-execution of prepared statement
+#
+CREATE TABLE t1(a INT PRIMARY KEY);
+INSERT INTO t1 VALUES(0), (1);
+PREPARE stmt FROM
+"SELECT 1 FROM t1 JOIN t1 t2 USING(a) GROUP BY t2.a, t1.a";
+EXECUTE stmt;
+1
+1
+1
+EXECUTE stmt;
+1
+1
+1
+EXECUTE stmt;
+1
+1
+1
+DEALLOCATE PREPARE stmt;
+DROP TABLE t1;
+End of 5.0 tests.
+drop database if exists prepare_test;

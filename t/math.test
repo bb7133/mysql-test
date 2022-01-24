@@ -1,0 +1,5 @@
+select abs(1), abs(-1), abs(3.13), abs(-3.15), abs(1 - 2), abs(2 - 1), abs("1"), abs("-1");
+drop table if exists t1;
+create table t1(c1 bigint);
+insert into t1 (c1) values (-100508511);
+select c1 from t1 where abs(c1) = 100508511;

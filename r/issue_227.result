@@ -1,0 +1,15 @@
+drop table if exists t;
+create table t (c1 int, c2 int);
+insert into t values (1, 2);
+select * from t;
+c1	c2
+1	2
+select c2, t.*, c1 from t;
+c2	c1	c2	c1
+2	1	2	1
+select 10, t.* from t;
+10	c1	c2
+10	1	2
+select 20, a.* from (select * from t) as a;
+20	c1	c2
+20	1	2

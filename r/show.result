@@ -1,0 +1,344 @@
+show databases;
+Database
+INFORMATION_SCHEMA
+METRICS_SCHEMA
+PERFORMANCE_SCHEMA
+mysql
+show
+test
+show DATABASES;
+Database
+INFORMATION_SCHEMA
+METRICS_SCHEMA
+PERFORMANCE_SCHEMA
+mysql
+show
+test
+set session sql_mode='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
+DROP TABLE  IF EXISTS  t;
+CREATE TABLE t (
+c1 int,
+c2 int,
+c3 int,
+c4 int,
+primary key(c1));
+CREATE INDEX c2_index ON t (c2);
+CREATE UNIQUE INDEX c3_index ON t (c3);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+c1	int(11)	NO	PRI	NULL	
+c2	int(11)	YES	MUL	NULL	
+c3	int(11)	YES	UNI	NULL	
+c4	int(11)	YES		NULL	
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+c1	int(11)	NULL	NO	PRI	NULL		select,insert,update,references	
+c2	int(11)	NULL	YES	MUL	NULL		select,insert,update,references	
+c3	int(11)	NULL	YES	UNI	NULL		select,insert,update,references	
+c4	int(11)	NULL	YES		NULL		select,insert,update,references	
+DROP TABLE  IF EXISTS  t1;
+CREATE TABLE t1 (
+c1 bigint NOT NULL AUTO_INCREMENT,
+c2 bigint, c3 bigint,
+c4 bigint NOT NULL DEFAULT 10,
+PRIMARY KEY (c1),
+UNIQUE INDEX c2_index (c2),
+INDEX c3_index (c3));
+show tables;
+Tables_in_show
+t
+t1
+show TABLES;
+Tables_in_show
+t
+t1
+show columns from t1;
+Field	Type	Null	Key	Default	Extra
+c1	bigint(20)	NO	PRI	NULL	auto_increment
+c2	bigint(20)	YES	UNI	NULL	
+c3	bigint(20)	YES	MUL	NULL	
+c4	bigint(20)	NO		10	
+show full columns from t1;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+c1	bigint(20)	NULL	NO	PRI	NULL	auto_increment	select,insert,update,references	
+c2	bigint(20)	NULL	YES	UNI	NULL		select,insert,update,references	
+c3	bigint(20)	NULL	YES	MUL	NULL		select,insert,update,references	
+c4	bigint(20)	NULL	NO		10		select,insert,update,references	
+create database d2;
+use d2;
+show databases;
+Database
+INFORMATION_SCHEMA
+METRICS_SCHEMA
+PERFORMANCE_SCHEMA
+d2
+mysql
+show
+test
+drop database d2;
+show tables from `show`;
+Tables_in_show
+t
+t1
+show columns from t1 from `show`;
+Field	Type	Null	Key	Default	Extra
+c1	bigint(20)	NO	PRI	NULL	auto_increment
+c2	bigint(20)	YES	UNI	NULL	
+c3	bigint(20)	YES	MUL	NULL	
+c4	bigint(20)	NO		10	
+show warnings;
+Level	Code	Message
+use test;
+DROP TABLE  IF EXISTS  t2;
+CREATE TABLE t2 (
+c1 bigint NOT NULL AUTO_INCREMENT,
+c2 bigint,
+c3 bigint,
+c4 bigint NOT NULL DEFAULT 10,
+c5 bigint,
+c6 bigint,
+PRIMARY KEY (c1),
+UNIQUE KEY c2_index (c2),
+KEY c3_index (c3),
+UNIQUE c4_index (c4),
+UNIQUE c5_c6_index (c5, c6));
+show columns from t2;
+Field	Type	Null	Key	Default	Extra
+c1	bigint(20)	NO	PRI	NULL	auto_increment
+c2	bigint(20)	YES	UNI	NULL	
+c3	bigint(20)	YES	MUL	NULL	
+c4	bigint(20)	NO	UNI	10	
+c5	bigint(20)	YES	MUL	NULL	
+c6	bigint(20)	YES		NULL	
+show full columns from t2;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+c1	bigint(20)	NULL	NO	PRI	NULL	auto_increment	select,insert,update,references	
+c2	bigint(20)	NULL	YES	UNI	NULL		select,insert,update,references	
+c3	bigint(20)	NULL	YES	MUL	NULL		select,insert,update,references	
+c4	bigint(20)	NULL	NO	UNI	10		select,insert,update,references	
+c5	bigint(20)	NULL	YES	MUL	NULL		select,insert,update,references	
+c6	bigint(20)	NULL	YES		NULL		select,insert,update,references	
+drop table if exists t;
+create table t (id int, c1 timestamp);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+id	int(11)	YES		NULL	
+c1	timestamp	YES		NULL	
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+id	int(11)	NULL	YES		NULL		select,insert,update,references	
+c1	timestamp	NULL	YES		NULL		select,insert,update,references	
+drop table if exists t;
+create table t (id int, c1 timestamp default 20150608);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+id	int(11)	YES		NULL	
+c1	timestamp	YES		2015-06-08 00:00:00	
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+id	int(11)	NULL	YES		NULL		select,insert,update,references	
+c1	timestamp	NULL	YES		2015-06-08 00:00:00		select,insert,update,references	
+drop table if exists t;
+create table t (id int, c1 timestamp default current_timestamp);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+id	int(11)	YES		NULL	
+c1	timestamp	YES		CURRENT_TIMESTAMP	
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+id	int(11)	NULL	YES		NULL		select,insert,update,references	
+c1	timestamp	NULL	YES		CURRENT_TIMESTAMP		select,insert,update,references	
+drop table if exists t;
+create table t (id int, c1 timestamp null);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+id	int(11)	YES		NULL	
+c1	timestamp	YES		NULL	
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+id	int(11)	NULL	YES		NULL		select,insert,update,references	
+c1	timestamp	NULL	YES		NULL		select,insert,update,references	
+drop table if exists t;
+create table t (id int, c1 timestamp null default null);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+id	int(11)	YES		NULL	
+c1	timestamp	YES		NULL	
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+id	int(11)	NULL	YES		NULL		select,insert,update,references	
+c1	timestamp	NULL	YES		NULL		select,insert,update,references	
+drop table if exists t;
+create table t (id int, c1 timestamp null default 0);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+id	int(11)	YES		NULL	
+c1	timestamp	YES		0000-00-00 00:00:00	
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+id	int(11)	NULL	YES		NULL		select,insert,update,references	
+c1	timestamp	NULL	YES		0000-00-00 00:00:00		select,insert,update,references	
+drop table if exists t;
+create table t (id int, c1 timestamp not null default 0);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+id	int(11)	YES		NULL	
+c1	timestamp	NO		0000-00-00 00:00:00	
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+id	int(11)	NULL	YES		NULL		select,insert,update,references	
+c1	timestamp	NULL	NO		0000-00-00 00:00:00		select,insert,update,references	
+drop table if exists t;
+create table t (id int, c1 timestamp on update current_timestamp);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+id	int(11)	YES		NULL	
+c1	timestamp	YES		NULL	DEFAULT_GENERATED on update CURRENT_TIMESTAMP
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+id	int(11)	NULL	YES		NULL		select,insert,update,references	
+c1	timestamp	NULL	YES		NULL	DEFAULT_GENERATED on update CURRENT_TIMESTAMP	select,insert,update,references	
+drop table if exists t;
+create table t (id int, c1 timestamp default current_timestamp on update current_timestamp);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+id	int(11)	YES		NULL	
+c1	timestamp	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED on update CURRENT_TIMESTAMP
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+id	int(11)	NULL	YES		NULL		select,insert,update,references	
+c1	timestamp	NULL	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED on update CURRENT_TIMESTAMP	select,insert,update,references	
+drop table if exists t;
+create table t (id int, c1 datetime);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+id	int(11)	YES		NULL	
+c1	datetime	YES		NULL	
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+id	int(11)	NULL	YES		NULL		select,insert,update,references	
+c1	datetime	NULL	YES		NULL		select,insert,update,references	
+drop table if exists t;
+create table t (id int, c1 datetime default 20150608);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+id	int(11)	YES		NULL	
+c1	datetime	YES		2015-06-08 00:00:00	
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+id	int(11)	NULL	YES		NULL		select,insert,update,references	
+c1	datetime	NULL	YES		2015-06-08 00:00:00		select,insert,update,references	
+drop table if exists t;
+create table t (id int, c1 datetime default current_timestamp);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+id	int(11)	YES		NULL	
+c1	datetime	YES		CURRENT_TIMESTAMP	
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+id	int(11)	NULL	YES		NULL		select,insert,update,references	
+c1	datetime	NULL	YES		CURRENT_TIMESTAMP		select,insert,update,references	
+drop table if exists t;
+create table t (id int, c1 datetime null);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+id	int(11)	YES		NULL	
+c1	datetime	YES		NULL	
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+id	int(11)	NULL	YES		NULL		select,insert,update,references	
+c1	datetime	NULL	YES		NULL		select,insert,update,references	
+drop table if exists t;
+create table t (id int, c1 datetime null default null);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+id	int(11)	YES		NULL	
+c1	datetime	YES		NULL	
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+id	int(11)	NULL	YES		NULL		select,insert,update,references	
+c1	datetime	NULL	YES		NULL		select,insert,update,references	
+drop table if exists t;
+create table t (id int, c1 datetime null default 0);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+id	int(11)	YES		NULL	
+c1	datetime	YES		0000-00-00 00:00:00	
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+id	int(11)	NULL	YES		NULL		select,insert,update,references	
+c1	datetime	NULL	YES		0000-00-00 00:00:00		select,insert,update,references	
+drop table if exists t;
+create table t (id int, c1 datetime not null default 0);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+id	int(11)	YES		NULL	
+c1	datetime	NO		0000-00-00 00:00:00	
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+id	int(11)	NULL	YES		NULL		select,insert,update,references	
+c1	datetime	NULL	NO		0000-00-00 00:00:00		select,insert,update,references	
+drop table if exists t;
+create table t (id int, c1 datetime on update current_timestamp);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+id	int(11)	YES		NULL	
+c1	datetime	YES		NULL	DEFAULT_GENERATED on update CURRENT_TIMESTAMP
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+id	int(11)	NULL	YES		NULL		select,insert,update,references	
+c1	datetime	NULL	YES		NULL	DEFAULT_GENERATED on update CURRENT_TIMESTAMP	select,insert,update,references	
+drop table if exists t;
+create table t (id int, c1 datetime default current_timestamp on update current_timestamp);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+id	int(11)	YES		NULL	
+c1	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED on update CURRENT_TIMESTAMP
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+id	int(11)	NULL	YES		NULL		select,insert,update,references	
+c1	datetime	NULL	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED on update CURRENT_TIMESTAMP	select,insert,update,references	
+drop table if exists t;
+create table t (a date, b datetime, c timestamp);
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+a	date	YES		NULL	
+b	datetime	YES		NULL	
+c	timestamp	YES		NULL	
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+a	date	NULL	YES		NULL		select,insert,update,references	
+b	datetime	NULL	YES		NULL		select,insert,update,references	
+c	timestamp	NULL	YES		NULL		select,insert,update,references	
+drop table if exists t;
+create table t( a date , b datetime , c year(4), d timestamp,e time ,f year, h datetime(2) );
+show columns from t;
+Field	Type	Null	Key	Default	Extra
+a	date	YES		NULL	
+b	datetime	YES		NULL	
+c	year(4)	YES		NULL	
+d	timestamp	YES		NULL	
+e	time	YES		NULL	
+f	year(4)	YES		NULL	
+h	datetime(2)	YES		NULL	
+show full columns from t;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+a	date	NULL	YES		NULL		select,insert,update,references	
+b	datetime	NULL	YES		NULL		select,insert,update,references	
+c	year(4)	NULL	YES		NULL		select,insert,update,references	
+d	timestamp	NULL	YES		NULL		select,insert,update,references	
+e	time	NULL	YES		NULL		select,insert,update,references	
+f	year(4)	NULL	YES		NULL		select,insert,update,references	
+h	datetime(2)	NULL	YES		NULL		select,insert,update,references	
+show engines;
+Engine	Support	Comment	Transactions	XA	Savepoints
+InnoDB	DEFAULT	Supports transactions, row-level locking, and foreign keys	YES	YES	YES
+show character set;
+Charset	Description	Default collation	Maxlen
+ascii	US ASCII	ascii_bin	1
+binary	binary	binary	1
+gbk	Chinese Internal Code Specification	gbk_bin	2
+latin1	Latin1	latin1_bin	1
+utf8	UTF-8 Unicode	utf8_bin	3
+utf8mb4	UTF-8 Unicode	utf8mb4_bin	4
+set session sql_mode='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';

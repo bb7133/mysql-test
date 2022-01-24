@@ -1,0 +1,78 @@
+drop table if exists t1;
+# Case 1. Partitioning by RANGE based on a non-stored generated column.
+CREATE TABLE t1 (
+a DATE NOT NULL,
+b int generated always as (year(a)) virtual
+)
+PARTITION BY RANGE( b ) (
+PARTITION p0 VALUES LESS THAN (2006),
+PARTITION p2 VALUES LESS THAN (2008)
+);
+insert into t1(a) values ('2006-01-01');
+insert into t1(a) values ('2007-01-01');
+insert into t1(a) values ('2005-01-01');
+select * from t1;
+a	b
+2005-01-01	2005
+2006-01-01	2006
+2007-01-01	2007
+# Modify the expression of generated column b
+ALTER TABLE t1 modify b int generated always as (year(a)-1) virtual;
+select * from t1;
+a	b
+2005-01-01	2004
+2006-01-01	2005
+2007-01-01	2006
+drop table t1;
+# Case 3. Partitioning by HASH based on a non-stored generated column.
+CREATE TABLE t1 (
+a DATE NOT NULL,
+b int generated always as (year(a)) virtual
+)
+PARTITION BY HASH( b % 3 ) PARTITIONS 3;
+insert into t1(a) values ('2005-01-01');
+insert into t1(a) values ('2006-01-01');
+select * from t1;
+a	b
+2005-01-01	2005
+2006-01-01	2006
+# Modify the expression of generated column b
+ALTER TABLE t1 modify b int generated always as (year(a)-1) virtual;
+select * from t1;
+a	b
+2005-01-01	2004
+2006-01-01	2005
+drop table t1;
+#
+# Bug#21779011 INVALID READS AND SENDING RANDOM SERVER MEMORY BACK
+#              TO CLIENT
+#
+CREATE TABLE t (
+c INTEGER GENERATED ALWAYS AS (2) VIRTUAL,
+d INTEGER,
+KEY (d)
+) PARTITION BY KEY (d) PARTITIONS 2;
+INSERT INTO t (d) VALUES (1),(1),(2),(2);
+set @previous_sql_mode_htnt542nh=@@sql_mode;
+set sql_mode=(select replace(@@sql_mode,'ONLY_FULL_GROUP_BY',''));
+SELECT c FROM t WHERE d >= 1 GROUP BY d LIMIT 2;
+c
+2
+2
+set @@sql_mode=@previous_sql_mode_htnt542nh;
+DROP TABLE t;
+#
+# Bug#22574695 ASSERTION `!TABLE || (!TABLE->READ_SET || BITMAP_IS_SET(TABLE->READ_SET, FIELD_I
+#
+CREATE TABLE t1(
+col1 VARCHAR(500),
+col2 INT,
+col5 VARCHAR(500) GENERATED ALWAYS AS
+(SUBSTR(col1,1,500)) VIRTUAL
+) ENGINE = InnoDB PARTITION BY KEY(col5) PARTITIONS 2;
+INSERT INTO t1(col1) values (REPEAT('_', 500));
+UPDATE t1 SET col2 = 1;
+SELECT 'Obviously no crash';
+Obviously no crash
+Obviously no crash
+DROP TABLE t1;

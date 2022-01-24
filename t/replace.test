@@ -1,0 +1,156 @@
+drop table if exists t;
+create table t (c1 int default 5, c2 int default 10);
+
+replace into t values (1, default);
+select * from t;
+
+replace into t values (1, default(c2));
+select * from t;
+
+replace into t values (default(c2), 1);
+select * from t;
+
+replace into t values (default, default);
+select * from t;
+
+--error ER_NO_COLUMN
+replace into t values (default(c3), default);
+
+select * from t;
+
+drop table if exists t1;
+create table t1 (c1 int, c2 int);
+
+replace into t1 values (default, default);
+select * from t1;
+
+replace into t1 values (1, default);
+select * from t1;
+
+--error ER_NO_COLUMN
+replace into t1 values (default(c2), 1);
+
+select * from t1;
+
+drop table if exists t;
+create table t (c1 int, c2 int);
+replace into t values ();
+replace into t values (),();
+replace into t values (1, 1), (2,2);
+--error ER_WRONG_VALUE_COUNT_ON_ROW
+replace into t (c1, c2) values ();
+--error ER_WRONG_VALUE_COUNT_ON_ROW
+replace into t (c1, c2) values (1,2,3);
+--error ER_WRONG_VALUE_COUNT_ON_ROW
+replace into t (c1, c2) values (1);
+--error ER_WRONG_VALUE_COUNT_ON_ROW
+replace into t values (1,2,3);
+--error ER_WRONG_VALUE_COUNT_ON_ROW
+replace into t (c1) values ();
+--error ER_WRONG_VALUE_COUNT_ON_ROW
+replace into t values (), (1,2);
+--error ER_WRONG_VALUE_COUNT_ON_ROW
+replace into t values (1,2), ();
+--error ER_WRONG_VALUE_COUNT_ON_ROW
+replace into t values (1,2), (1);
+select * from t;
+
+drop table t;
+
+--error ER_INVALID_DEFAULT
+create table t (c1 int not null default null);
+
+create table t (c1 int default 1, c2 int);
+replace into t values (null, null);
+replace into t values (default, default(c1));
+replace into t values (default(c2), default);
+select * from t;
+
+drop table t;
+create table t (c1 int auto_increment, c2 int, primary key(c1));
+replace into t values ();
+replace into t values (null, 2);
+replace into t values (null, default(c2));
+replace into t values (default(c2), null);
+
+drop table t;
+create table t (c1 int not null, c2 int default 1, c3 int);
+--error ER_NO_DEFAULT_FOR_FIELD
+replace into t values ();
+replace into t (c1, c2, c3) select 1,1,1;
+replace into t (c1) select 2;
+--error ER_BAD_NULL_ERROR
+replace into t (c1, c2, c3) select null, 1, 1;
+replace into t select 1,1,1;
+--error ER_WRONG_VALUE_COUNT_ON_ROW
+replace into t (c1, c2) select 1,1,1;
+--error ER_WRONG_VALUE_COUNT_ON_ROW
+replace into t  select 1,1,1, 1;
+select * from t;
+
+drop table if exists t;
+create table t (id int, c1 int default 100);
+
+replace t (id) values (1);
+select * from t;
+
+drop table if exists t;
+create table t (id int, c1 int default +100);
+
+replace t (id) values (1);
+select * from t;
+
+drop table if exists t;
+create table t (id int, c1 int default -1);
+
+replace t (id) values (1);
+select * from t;
+
+drop table if exists t;
+create table t (id int, c1 float default 1.1);
+
+replace t (id) values (1);
+select * from t;
+
+drop table if exists t;
+create table t (id int, c1 double default -2.2);
+
+replace t (id) values (1);
+select * from t;
+
+drop table if exists t;
+create table t(id INTEGER UNSIGNED AUTO_INCREMENT, c1 INTEGER UNSIGNED NOT NULL, PRIMARY KEY (id));
+replace t (c1) values(1);
+replace t (c1) values(2);
+select * from t;
+
+drop table if exists t;
+create table t(c1 INTEGER UNSIGNED , c2 INTEGER UNSIGNED NOT NULL DEFAULT 100);
+replace t (c1) values(1);
+replace t (c1) values(2);
+select * from t;
+
+# For the duplicate key in a primary key
+drop table if exists t;
+create table t (c1 int, c2 int, c3 int, PRIMARY KEY(c1, c2));
+replace into t set c1=1, c2=2;
+select * from t;
+replace into t set c1=1, c2=2;
+select * from t;
+replace into t values (1, 2, 3);
+select * from t;
+
+# For the duplicate key in a unique index
+drop table if exists t;
+create table t (c1 int, c2 int, c3 int, UNIQUE INDEX(c1, c2));
+replace into t set c1=1, c2=2;
+select * from t;
+replace into t set c1=1, c2=2;
+select * from t;
+replace into t values (1, 2, 3);
+select * from t;
+
+drop table if exists t;
+create table t(id INTEGER UNSIGNED AUTO_INCREMENT, c1 INTEGER UNSIGNED NOT NULL, PRIMARY KEY (id));
+replace t (c1) values(1),(2);
+select * from t;

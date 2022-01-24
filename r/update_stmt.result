@@ -1,0 +1,28 @@
+DROP TABLE IF EXISTS tbl_test;
+CREATE TABLE tbl_test(id INT NOT NULL DEFAULT 1, name text, PRIMARY KEY(id));
+INSERT INTO tbl_test VALUES (2, "hello");
+UPDATE tbl_test SET name = "abc" where id = 2;
+select * from tbl_test where name="abc";
+id	name
+2	abc
+select * from tbl_test where id=2;
+id	name
+2	abc
+INSERT INTO tbl_test VALUES (3, "hello");
+UPDATE tbl_test SET id = 4 where name = "hello";
+SELECT * from tbl_test where id=4;
+id	name
+4	hello
+select * from tbl_test;
+id	name
+2	abc
+4	hello
+drop table if exists t;
+create table t (c1 int default 1, c2 int not null default 2);
+insert into t values (1,1);
+update t set c1 = null;
+update t set c2 = null;
+Error 1048: Column 'c2' cannot be null
+select * from t;
+c1	c2
+NULL	1

@@ -1,0 +1,33 @@
+# Test illegal expression in generated columns
+drop table if exists t;
+--enable_warnings
+create table t (a int, b int as (a / 0));
+--error
+insert into t (a) value (10);
+
+drop table if exists t;
+create table t (a int generated always as (tan(PI()/2)) virtual);;
+--error
+insert into t value (default);
+
+drop table if exists t;
+set sql_mode="NO_ZERO_DATE";
+create table t (a bigint generated always as (year("0000-00-00 00:00:00")) virtual);
+--error
+insert into t value (default);
+
+drop table if exists t;
+set sql_mode='traditional';
+create table t (a date generated always as (date_add('2000-01-01',interval 8000 year)) virtual);
+--error
+insert into t value (default);
+
+drop table if exists t;
+create table t (a int generated always as (cast(9223372036854775806 as unsigned) + cast(-9223372036854775807 as signed)) virtual);
+--error
+insert into t value (default);
+
+drop table if exists t;
+--error ER_PARSE_ERROR
+create table t (a int, b int generated always as (/*+ unknown_hint(a)*/));
+--disable_warnings

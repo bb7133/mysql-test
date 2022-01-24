@@ -1,0 +1,28 @@
+SET @a = 1;
+SET @@autocommit = 0;
+SET a = 1;
+Error 1193: Unknown system variable 'a'
+SET @abc = 2;
+SET @@global.autocommit = 1;
+SELECT @@global.autocommit;
+@@global.autocommit
+1
+SELECT @a;
+@a
+1
+SELECT @@autocommit;
+@@autocommit
+0
+SELECT 1;
+1
+1
+SELECT @@autocommit limit 1;
+@@autocommit
+0
+SET @@sql_mode = '';
+SELECT @@sql_mode;
+@@sql_mode
+
+SET @saved_sql_mode = @@sql_mode;
+SET sql_mode=NO_BACKSLASH_ESCAPES;
+SET sql_mode = @saved_sql_mode;

@@ -1,0 +1,143 @@
+drop table if exists t;
+create table t(a double, b double);
+alter table t add column c_implicit_virtual double as (sqrt(a * a + b * b));
+alter table t add column c_virtual double as (sqrt(a * a + b * b)) virtual;
+alter table t add column c_stored double as (sqrt(a * a + b * b)) stored;
+Error 3106: 'Adding generated stored column through ALTER TABLE' is not supported for generated columns.
+show create table t;
+Table	Create Table
+t	CREATE TABLE `t` (
+  `a` double DEFAULT NULL,
+  `b` double DEFAULT NULL,
+  `c_implicit_virtual` double GENERATED ALWAYS AS (sqrt(`a` * `a` + `b` * `b`)) VIRTUAL,
+  `c_virtual` double GENERATED ALWAYS AS (sqrt(`a` * `a` + `b` * `b`)) VIRTUAL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+drop table if exists t;
+create table t (c1 tinyint, c2 tinyint generated always as (c1 + 1) virtual);
+alter table t modify column c2 int generated always as (c1 + 5) virtual;
+drop table if exists t;
+create table t (c1 int, c2 int generated always as (c1 + 1) stored, c3 int as (c2 * 2), c4 int as (c2 + 2));
+alter table t change c3 c5 int generated always as (c2 * 3);
+alter table t drop c4;
+alter table t drop c2;
+Error 3108: Column 'c2' has a generated column dependency.
+alter table t change c2 c6 int generated always as (c1 + 1) stored;
+Error 1054: Unknown column 'c2' in 'generated column function'
+drop table if exists t;
+create table t (a int, b int, c int, index(c));
+alter table t modify column b int generated always as (a + 1) virtual;
+Error 3106: 'Changing the STORED status' is not supported for generated columns.
+alter table t modify column b int generated always as (a + 1) stored;
+Error 3106: 'modifying a stored column' is not supported for generated columns.
+alter table t change column b b1 int generated always as (a + 1) virtual;
+Error 3106: 'Changing the STORED status' is not supported for generated columns.
+alter table t change column b b1 int generated always as (a + 1) stored;
+Error 3106: 'modifying a stored column' is not supported for generated columns.
+alter table t modify column c int generated always as (a + 1) virtual;
+Error 3106: 'Changing the STORED status' is not supported for generated columns.
+alter table t modify column c int generated always as (a + 1) stored;
+Error 3106: 'modifying a stored column' is not supported for generated columns.
+alter table t change column c c1 int generated always as (a + 1) virtual;
+Error 3106: 'Changing the STORED status' is not supported for generated columns.
+alter table t change column c c1 int generated always as (a + 1) stored;
+Error 3106: 'modifying a stored column' is not supported for generated columns.
+drop table if exists t;
+create table t (
+a int,
+b int generated always as (a + 1) virtual,
+c int generated always as (a + 1) virtual,
+d int generated always as (a + 1) virtual,
+e int generated always as (a + 1) virtual
+);
+alter table t add index (c);
+alter table t add index (e);
+alter table t modify column b int;
+Error 3106: 'Changing the STORED status' is not supported for generated columns.
+alter table t modify column c int;
+Error 3106: 'Changing the STORED status' is not supported for generated columns.
+alter table t change column b b1 int;
+Error 3106: 'Changing the STORED status' is not supported for generated columns.
+alter table t change column c c1 int;
+Error 3106: 'Changing the STORED status' is not supported for generated columns.
+alter table t modify column b int generated always as (a + 10) virtual;
+show create table t;
+Table	Create Table
+t	CREATE TABLE `t` (
+  `a` int(11) DEFAULT NULL,
+  `b` int(11) GENERATED ALWAYS AS (`a` + 10) VIRTUAL,
+  `c` int(11) GENERATED ALWAYS AS (`a` + 1) VIRTUAL,
+  `d` int(11) GENERATED ALWAYS AS (`a` + 1) VIRTUAL,
+  `e` int(11) GENERATED ALWAYS AS (`a` + 1) VIRTUAL,
+  KEY `c` (`c`),
+  KEY `e` (`e`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+alter table t modify column c int generated always as (a + 10) virtual;
+Error 3106: 'modifying an indexed column' is not supported for generated columns.
+alter table t change column b b1 int generated always as (a + 100) virtual;
+show create table t;
+Table	Create Table
+t	CREATE TABLE `t` (
+  `a` int(11) DEFAULT NULL,
+  `b1` int(11) GENERATED ALWAYS AS (`a` + 100) VIRTUAL,
+  `c` int(11) GENERATED ALWAYS AS (`a` + 1) VIRTUAL,
+  `d` int(11) GENERATED ALWAYS AS (`a` + 1) VIRTUAL,
+  `e` int(11) GENERATED ALWAYS AS (`a` + 1) VIRTUAL,
+  KEY `c` (`c`),
+  KEY `e` (`e`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+alter table t change column c c1 int generated always as (a + 100) virtual;
+alter table t modify column d int generated always as (a + 10) stored;
+Error 3106: 'Changing the STORED status' is not supported for generated columns.
+alter table t modify column e int generated always as (a + 10) stored;
+Error 3106: 'Changing the STORED status' is not supported for generated columns.
+alter table t change column d d1 int generated always as (a + 10) stored;
+Error 3106: 'Changing the STORED status' is not supported for generated columns.
+alter table t change column e e1 int generated always as (a + 10) stored;
+Error 3106: 'Changing the STORED status' is not supported for generated columns.
+drop table if exists t;
+create table t (
+a int,
+b int generated always as (a + 1) stored,
+c int generated always as (a + 1) stored,
+d int generated always as (a + 1) stored,
+e int generated always as (a + 1) stored
+);
+alter table t add index (c);
+alter table t add index (e);
+alter table t modify column b int;
+alter table t modify column c int;
+alter table t change column d d1 int;
+alter table t change column e e1 int;
+show create table t;
+Table	Create Table
+t	CREATE TABLE `t` (
+  `a` int(11) DEFAULT NULL,
+  `b` int(11) DEFAULT NULL,
+  `c` int(11) DEFAULT NULL,
+  `d1` int(11) DEFAULT NULL,
+  `e1` int(11) DEFAULT NULL,
+  KEY `c` (`c`),
+  KEY `e` (`e1`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+drop table if exists t;
+create table t (a int,
+b int generated always as (a + 1) stored,
+c int generated always as (a + 1) stored,
+index(c)
+);
+alter table t modify column b int generated always as (a + 10) virtual;
+Error 3106: 'Changing the STORED status' is not supported for generated columns.
+alter table t modify column c int generated always as (a + 10) virtual;
+Error 3106: 'Changing the STORED status' is not supported for generated columns.
+alter table t change column b b1 int generated always as (a + 10) virtual;
+Error 3106: 'Changing the STORED status' is not supported for generated columns.
+alter table t change column c c1 int generated always as (a + 10) virtual;
+Error 3106: 'Changing the STORED status' is not supported for generated columns.
+alter table t modify column b int generated always as (a + 10) stored;
+Error 3106: 'modifying a stored column' is not supported for generated columns.
+alter table t modify column c int generated always as (a + 10) stored;
+Error 3106: 'modifying a stored column' is not supported for generated columns.
+alter table t change column b b1 int generated always as (a + 10) stored;
+Error 3106: 'modifying a stored column' is not supported for generated columns.
+alter table t change column c c1 int generated always as (a + 10) stored;
+Error 3106: 'modifying a stored column' is not supported for generated columns.

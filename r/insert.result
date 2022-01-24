@@ -1,0 +1,190 @@
+set sql_mode='STRICT_TRANS_TABLES';
+drop table if exists t;
+create table t (c1 int default 5, c2 int default 10);
+insert into t values (1, default);
+select * from t;
+c1	c2
+1	10
+insert into t values (1, default(c2));
+select * from t;
+c1	c2
+1	10
+1	10
+insert into t values (default(c2), 1);
+select * from t;
+c1	c2
+1	10
+1	10
+10	1
+insert into t values (default, default);
+select * from t;
+c1	c2
+1	10
+1	10
+10	1
+5	10
+insert into t values (default(c3), default);
+Error 1054: Unknown column 'c3' in 'field list'
+select * from t;
+c1	c2
+1	10
+1	10
+10	1
+5	10
+drop table if exists t1;
+create table t1 (c1 int, c2 int);
+insert into t1 values (default, default);
+select * from t1;
+c1	c2
+NULL	NULL
+insert into t1 values (1, default);
+select * from t1;
+c1	c2
+NULL	NULL
+1	NULL
+insert into t1 values (default(c2), 1);
+select * from t1;
+c1	c2
+NULL	NULL
+1	NULL
+NULL	1
+drop table if exists t;
+create table t (c1 int, c2 int);
+insert into t values ();
+insert into t values (),();
+insert into t values (1, 1), (2,2);
+insert into t (c1, c2) values ();
+Error 1136: Column count doesn't match value count at row 1
+insert into t (c1, c2) values (1,2,3);
+Error 1136: Column count doesn't match value count at row 1
+insert into t (c1, c2) values (1);
+Error 1136: Column count doesn't match value count at row 1
+insert into t values (1,2,3);
+Error 1136: Column count doesn't match value count at row 1
+insert into t (c1) values ();
+Error 1136: Column count doesn't match value count at row 1
+insert into t values (), (1,2);
+Error 1136: Column count doesn't match value count at row 2
+insert into t values (1,2), ();
+Error 1136: Column count doesn't match value count at row 2
+insert into t values (1,2), (1);
+Error 1136: Column count doesn't match value count at row 2
+select * from t;
+c1	c2
+NULL	NULL
+NULL	NULL
+NULL	NULL
+1	1
+2	2
+drop table t;
+create table t (c1 int not null default null);
+Error 1067: Invalid default value for 'c1'
+create table t (c1 int default 1, c2 int);
+insert into t values (null, null);
+insert into t values (default, default(c1));
+insert into t values (default(c2), default);
+select * from t;
+c1	c2
+NULL	NULL
+1	1
+NULL	NULL
+drop table t;
+create table t (c1 int auto_increment, c2 int, primary key(c1));
+insert into t values ();
+insert into t values (null, 2);
+insert into t values (null, default(c2));
+insert into t values (default(c2), null);
+drop table t;
+create table t (c1 int not null, c2 int default 1, c3 int);
+insert into t values ();
+Error 1364: Field 'c1' doesn't have a default value
+insert into t (c1, c2, c3) select 1,1,1;
+insert into t (c1) select 2;
+insert into t (c1, c2, c3) select null, 1, 1;
+Error 1048: Column 'c1' cannot be null
+insert into t select 1,1,1;
+insert into t (c1, c2) select 1,1,1;
+Error 1136: Column count doesn't match value count at row 1
+insert into t  select 1,1,1, 1;
+Error 1136: Column count doesn't match value count at row 1
+select * from t;
+c1	c2	c3
+1	1	1
+2	1	NULL
+1	1	1
+drop table if exists t;
+create table t (id int, c1 int default 100);
+insert t (id) values (1);
+select * from t;
+id	c1
+1	100
+drop table if exists t;
+create table t (id int, c1 int default +100);
+insert t (id) values (1);
+select * from t;
+id	c1
+1	100
+drop table if exists t;
+create table t (id int, c1 int default -1);
+insert t (id) values (1);
+select * from t;
+id	c1
+1	-1
+drop table if exists t;
+create table t (id int, c1 float default 1.1);
+insert t (id) values (1);
+select * from t;
+id	c1
+1	1.1
+drop table if exists t;
+create table t (id int, c1 double default -2.2);
+insert t (id) values (1);
+select * from t;
+id	c1
+1	-2.2
+drop table if exists t;
+create table t(id INTEGER UNSIGNED AUTO_INCREMENT, c1 INTEGER UNSIGNED NOT NULL, PRIMARY KEY (id));
+insert t (c1) values(1);
+insert t (c1) values(2);
+select * from t;
+id	c1
+1	1
+2	2
+drop table if exists t;
+create table t(c1 INTEGER UNSIGNED , c2 INTEGER UNSIGNED NOT NULL DEFAULT 100);
+insert t (c1) values(1);
+insert t (c1) values(2);
+select * from t;
+c1	c2
+1	100
+2	100
+drop table if exists t;
+create table t (c1 int primary key, c2 int);
+insert into t values (1, 2);
+select * from t;
+c1	c2
+1	2
+insert into t values (1, 2);
+Error 1062: Duplicate entry '1' for key 'PRIMARY'
+insert into t values (1, 2) on duplicate key update c2=3;
+select * from t;
+c1	c2
+1	3
+insert into t values (1, 2) on duplicate key update c2=values(c1) + values(c2) + values(c1);
+select * from t;
+c1	c2
+1	4
+drop table if exists t;
+create table t(id INTEGER UNSIGNED AUTO_INCREMENT, c1 INTEGER UNSIGNED NOT NULL, PRIMARY KEY (id));
+insert t (c1) values(1),(2);
+select * from t;
+id	c1
+1	1
+2	2
+drop table if exists t1;
+create table t1(id INTEGER UNSIGNED AUTO_INCREMENT, c1 INTEGER UNSIGNED NOT NULL, PRIMARY KEY (id));
+insert t1 (c1) select c1 from t order by c1 desc;
+select * from t1;
+id	c1
+1	2
+2	1

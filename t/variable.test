@@ -1,0 +1,25 @@
+# test set statement
+SET @a = 1;
+SET @@autocommit = 0;
+
+# pseudo error code below
+--error ER_UNKNOWN_SYSTEM_VARIABLE
+SET a = 1;
+SET @abc = 2;
+
+SET @@global.autocommit = 1;
+SELECT @@global.autocommit;
+SELECT @a;
+SELECT @@autocommit;
+SELECT 1;
+
+# select variables with limit clause
+SELECT @@autocommit limit 1;
+
+SET @@sql_mode = '';
+SELECT @@sql_mode;
+
+# for variable assignment, change Ident to string
+SET @saved_sql_mode = @@sql_mode;
+SET sql_mode=NO_BACKSLASH_ESCAPES;
+SET sql_mode = @saved_sql_mode;

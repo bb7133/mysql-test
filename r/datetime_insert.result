@@ -1,0 +1,388 @@
+set session sql_mode='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
+drop table if exists t;
+create table t (id int, c1 datetime not null default CURRENT_TIMESTAMP);
+select * from t;
+id	c1
+set TIMESTAMP = 1234;
+select @@timestamp;
+@@timestamp
+1234
+insert t (id) values (1);
+select * from t;
+id	c1
+1	1970-01-01 08:20:34
+set TIMESTAMP = 1235;
+select @@timestamp;
+@@timestamp
+1235
+insert t (id, c1) values (2, '2015-08-04 00:00:00');
+select * from t;
+id	c1
+1	1970-01-01 08:20:34
+2	2015-08-04 00:00:00
+drop table if exists t;
+create table t (id int, c1 datetime);
+set TIMESTAMP = 1236;
+select @@timestamp;
+@@timestamp
+1236
+insert t (id) values (1);
+select * from t;
+id	c1
+1	NULL
+insert t (id, c1) values (2, '2015-08-04 00:00:00');
+select * from t;
+id	c1
+1	NULL
+2	2015-08-04 00:00:00
+drop table if exists t;
+create table t (id int, c1 datetime null default CURRENT_TIMESTAMP);
+set TIMESTAMP = 1237;
+select @@timestamp;
+@@timestamp
+1237
+insert t (id) values (1);
+select * from t;
+id	c1
+1	1970-01-01 08:20:37
+drop table if exists t;
+create table t (id int, c1 datetime default '2015-08-04 12:00:00');
+set TIMESTAMP = 1238;
+select @@timestamp;
+@@timestamp
+1238
+insert t (id) values (1);
+select * from t;
+id	c1
+1	2015-08-04 12:00:00
+drop table if exists t;
+create table t (id int, c1 datetime default '12345678');
+Error 1067: Invalid default value for 'c1'
+set TIMESTAMP = 1239;
+select @@timestamp;
+@@timestamp
+1239
+drop table if exists t;
+create table t (id int, c1 datetime default 20101010111111);
+set TIMESTAMP = 1240;
+select @@timestamp;
+@@timestamp
+1240
+insert t (id) values (1);
+select * from t;
+id	c1
+1	2010-10-10 11:11:11
+drop table if exists t;
+create table t (id int, c1 datetime default 0);
+set TIMESTAMP = 1241;
+select @@timestamp;
+@@timestamp
+1241
+insert t (id) values (1);
+select * from t;
+id	c1
+1	0000-00-00 00:00:00
+drop table if exists t;
+create table t (id int, c1 datetime default -1);
+Error 1067: Invalid default value for 'c1'
+set TIMESTAMP = 1242;
+select @@timestamp;
+@@timestamp
+1242
+drop table if exists t;
+create table t (id int, c1 datetime default 99999999999999);
+Error 1067: Invalid default value for 'c1'
+set TIMESTAMP = 1243;
+select @@timestamp;
+@@timestamp
+1243
+drop table if exists t;
+create table t (id int, c1 datetime default 99991231235959);
+set TIMESTAMP = 1244;
+select @@timestamp;
+@@timestamp
+1244
+insert t (id) values (1);
+select * from t;
+id	c1
+1	9999-12-31 23:59:59
+drop table if exists t;
+create table t (id int, c1 datetime default 100000000000000);
+Error 1067: Invalid default value for 'c1'
+set TIMESTAMP = 1245;
+select @@timestamp;
+@@timestamp
+1245
+drop table if exists t;
+create table t (id int, c1 datetime default 10000102000000);
+set TIMESTAMP = 1246;
+select @@timestamp;
+@@timestamp
+1246
+insert t (id) values (1);
+select * from t;
+id	c1
+1	1000-01-02 00:00:00
+drop table if exists t;
+create table t (id int, c1 datetime default null);
+set TIMESTAMP = 1247;
+select @@timestamp;
+@@timestamp
+1247
+insert t (id) values (1);
+select * from t;
+id	c1
+1	NULL
+drop table if exists t;
+create table t (id int, c1 datetime not null default null);
+Error 1067: Invalid default value for 'c1'
+set TIMESTAMP = 1248;
+select @@timestamp;
+@@timestamp
+1248
+drop table if exists t;
+create table t (id int, c1 datetime null default null);
+set TIMESTAMP = 1249;
+select @@timestamp;
+@@timestamp
+1249
+insert t (id) values (1);
+select * from t;
+id	c1
+1	NULL
+drop table if exists t;
+create table t (id int, c1 datetime not null);
+set TIMESTAMP = 1250;
+select @@timestamp;
+@@timestamp
+1250
+insert t (id) values (1);
+Error 1364: Field 'c1' doesn't have a default value
+drop table if exists t;
+create table t (id int, c1 datetime null);
+set TIMESTAMP = 1251;
+select @@timestamp;
+@@timestamp
+1251
+insert t (id) values (1);
+select * from t;
+id	c1
+1	NULL
+drop table if exists t;
+create table t (id int, c1 datetime null default 0);
+set TIMESTAMP = 1252;
+select @@timestamp;
+@@timestamp
+1252
+insert t (id) values (1);
+select * from t;
+id	c1
+1	0000-00-00 00:00:00
+drop table if exists t;
+create table t (id int, c1 datetime not null default 0);
+set TIMESTAMP = 1253;
+select @@timestamp;
+@@timestamp
+1253
+insert t (id) values (1);
+select * from t;
+id	c1
+1	0000-00-00 00:00:00
+drop table if exists t;
+create table t (id int, c1 datetime default 20150804);
+set TIMESTAMP = 1254;
+select @@timestamp;
+@@timestamp
+1254
+insert t values (1, null);
+select * from t;
+id	c1
+1	NULL
+drop table if exists t;
+create table t (id int, c1 datetime);
+set TIMESTAMP = 1255;
+select @@timestamp;
+@@timestamp
+1255
+insert t values (1, null);
+select * from t;
+id	c1
+1	NULL
+drop table if exists t;
+create table t (id int, c1 datetime null default null);
+set TIMESTAMP = 1256;
+select @@timestamp;
+@@timestamp
+1256
+insert t values (1, null);
+select * from t;
+id	c1
+1	NULL
+drop table if exists t;
+create table t(id int, c1 datetime NOT NULL default '0000-00-00 00:00:00');
+insert t (id) values (1);
+drop table if exists t1;
+create table t1(c1 int, c2 int);
+insert t (id) values (2);
+select * from t;
+id	c1
+1	0000-00-00 00:00:00
+2	0000-00-00 00:00:00
+drop table if exists t;
+create table t(id int, c1 datetime NOT NULL default 0);
+insert t (id) values (1);
+drop table if exists t1;
+create table t1(c1 int, c2 int);
+insert t (id) values (2);
+select * from t;
+id	c1
+1	0000-00-00 00:00:00
+2	0000-00-00 00:00:00
+drop table if exists t;
+create table t (c1 datetime(2), c2 datetime(6));
+insert into t values ("2011-11-11 10:10:10.123999", "2011-11-11 10:10:10.1239999");
+select c1, c2, cast(c1 as time(6)), cast(c2 as time(6)) from t;
+c1	c2	cast(c1 as time(6))	cast(c2 as time(6))
+2011-11-11 10:10:10.12	2011-11-11 10:10:10.124000	10:10:10.120000	10:10:10.124000
+set session sql_mode='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
+drop table if exists t_ut;
+create table t_ut (dt datetime, dts varchar(60));
+set session time_zone = '+00:00';
+insert into t_ut values ('2020-10-10T10:10:10', '2020-10-10T10:10:10');
+insert into t_ut values ('2020-10-10T02:10:10', '2020-10-10T10:10:10+08:00');
+insert into t_ut values ('2020-10-10T18:10:10', '2020-10-10T10:10:10-08:00');
+select dt, cast(dts as datetime) from t_ut where dt = cast(dts as datetime);
+dt	cast(dts as datetime)
+2020-10-10 10:10:10	2020-10-10 10:10:10
+2020-10-10 02:10:10	2020-10-10 02:10:10
+2020-10-10 18:10:10	2020-10-10 18:10:10
+set session time_zone = '+08:00';
+delete from t_ut;
+insert into t_ut values ('2020-10-10T10:10:10', '2020-10-10T10:10:10');
+insert into t_ut values ('2020-10-10T10:10:10', '2020-10-10T10:10:10+08:00');
+insert into t_ut values ('2020-10-11T02:10:10', '2020-10-10T10:10:10-08:00');
+select dt, cast(dts as datetime) from t_ut where dt = cast(dts as datetime);
+dt	cast(dts as datetime)
+2020-10-10 10:10:10	2020-10-10 10:10:10
+2020-10-10 10:10:10	2020-10-10 10:10:10
+2020-10-11 02:10:10	2020-10-11 02:10:10
+set session time_zone = '-03:00';
+delete from t_ut;
+insert into t_ut values ('2020-10-10T10:10:10', '2020-10-10T10:10:10');
+insert into t_ut values ('2020-10-09T23:10:10', '2020-10-10T10:10:10+08:00');
+insert into t_ut values ('2020-10-10T15:10:10', '2020-10-10T10:10:10-08:00');
+select dt, cast(dts as datetime) from t_ut where dt = cast(dts as datetime);
+dt	cast(dts as datetime)
+2020-10-10 10:10:10	2020-10-10 10:10:10
+2020-10-09 23:10:10	2020-10-09 23:10:10
+2020-10-10 15:10:10	2020-10-10 15:10:10
+drop table if exists tt;
+create table tt (dts varchar(60), tss varchar(60), dts_a varchar(60), dts_b varchar(60), tss_f varchar(60));
+set session time_zone = '+08:00';
+insert into tt values ('2020-10-10T10:10:10+08:00', '2020-10-10T10:10:10+08:00', '2020-10-10 10:10:10', '2020-10-10 01:10:10', '1602295810.000000');
+insert into tt values ('2020-10-10T10:10:10-08:00', '2020-10-10T10:10:10-08:00', '2020-10-11 02:10:10', '2020-10-10 17:10:10', '1602353410.000000');
+insert into tt values ('2020-10-10T10:10:10-02:00', '2020-10-10T10:10:10-02:00', '2020-10-10 20:10:10', '2020-10-10 11:10:10', '1602331810.000000');
+insert into tt values ('2020-10-10T10:10:10+02:30', '2020-10-10T10:10:10+02:30', '2020-10-10 15:40:10', '2020-10-10 06:40:10', '1602315610.000000');
+select cast(dts as datetime), cast(cast(dts as datetime) as char), unix_timestamp(cast(dts as datetime)), unix_timestamp(tss) from tt;
+cast(dts as datetime)	cast(cast(dts as datetime) as char)	unix_timestamp(cast(dts as datetime))	unix_timestamp(tss)
+2020-10-10 10:10:10	2020-10-10 10:10:10	1602295810	1602295810.000000
+2020-10-11 02:10:10	2020-10-11 02:10:10	1602353410	1602353410.000000
+2020-10-10 20:10:10	2020-10-10 20:10:10	1602331810	1602331810.000000
+2020-10-10 15:40:10	2020-10-10 15:40:10	1602315610	1602315610.000000
+select cast(dts as datetime), cast(cast(dts as datetime) as char), unix_timestamp(cast(dts as datetime)), unix_timestamp(tss) from tt where cast(cast(dts as datetime) as char) = dts_a;
+cast(dts as datetime)	cast(cast(dts as datetime) as char)	unix_timestamp(cast(dts as datetime))	unix_timestamp(tss)
+2020-10-10 10:10:10	2020-10-10 10:10:10	1602295810	1602295810.000000
+2020-10-11 02:10:10	2020-10-11 02:10:10	1602353410	1602353410.000000
+2020-10-10 20:10:10	2020-10-10 20:10:10	1602331810	1602331810.000000
+2020-10-10 15:40:10	2020-10-10 15:40:10	1602315610	1602315610.000000
+select cast(dts as datetime), cast(cast(dts as datetime) as char), unix_timestamp(cast(dts as datetime)), unix_timestamp(tss) from tt where unix_timestamp(tss) = tss_f;
+cast(dts as datetime)	cast(cast(dts as datetime) as char)	unix_timestamp(cast(dts as datetime))	unix_timestamp(tss)
+2020-10-10 10:10:10	2020-10-10 10:10:10	1602295810	1602295810.000000
+2020-10-11 02:10:10	2020-10-11 02:10:10	1602353410	1602353410.000000
+2020-10-10 20:10:10	2020-10-10 20:10:10	1602331810	1602331810.000000
+2020-10-10 15:40:10	2020-10-10 15:40:10	1602315610	1602315610.000000
+set session time_zone = '-01:00';
+select cast(dts as datetime), cast(cast(dts as datetime) as char), unix_timestamp(cast(dts as datetime)), unix_timestamp(tss) from tt;
+cast(dts as datetime)	cast(cast(dts as datetime) as char)	unix_timestamp(cast(dts as datetime))	unix_timestamp(tss)
+2020-10-10 01:10:10	2020-10-10 01:10:10	1602295810	1602295810.000000
+2020-10-10 17:10:10	2020-10-10 17:10:10	1602353410	1602353410.000000
+2020-10-10 11:10:10	2020-10-10 11:10:10	1602331810	1602331810.000000
+2020-10-10 06:40:10	2020-10-10 06:40:10	1602315610	1602315610.000000
+select cast(dts as datetime), cast(cast(dts as datetime) as char), unix_timestamp(cast(dts as datetime)), unix_timestamp(tss) from tt where cast(cast(dts as datetime) as char) = dts_b;
+cast(dts as datetime)	cast(cast(dts as datetime) as char)	unix_timestamp(cast(dts as datetime))	unix_timestamp(tss)
+2020-10-10 01:10:10	2020-10-10 01:10:10	1602295810	1602295810.000000
+2020-10-10 17:10:10	2020-10-10 17:10:10	1602353410	1602353410.000000
+2020-10-10 11:10:10	2020-10-10 11:10:10	1602331810	1602331810.000000
+2020-10-10 06:40:10	2020-10-10 06:40:10	1602315610	1602315610.000000
+select cast(dts as datetime), cast(cast(dts as datetime) as char), unix_timestamp(cast(dts as datetime)), unix_timestamp(tss) from tt where unix_timestamp(tss) = tss_f;
+cast(dts as datetime)	cast(cast(dts as datetime) as char)	unix_timestamp(cast(dts as datetime))	unix_timestamp(tss)
+2020-10-10 01:10:10	2020-10-10 01:10:10	1602295810	1602295810.000000
+2020-10-10 17:10:10	2020-10-10 17:10:10	1602353410	1602353410.000000
+2020-10-10 11:10:10	2020-10-10 11:10:10	1602331810	1602331810.000000
+2020-10-10 06:40:10	2020-10-10 06:40:10	1602315610	1602315610.000000
+drop table if exists tt;
+create table tt (dt datetime, ts timestamp);
+set session time_zone = '+00:00';
+insert into tt values ('2020-10-10T10:10:10', '2020-10-10T10:10:10');
+select * from tt;
+dt	ts
+2020-10-10 10:10:10	2020-10-10 10:10:10
+set session time_zone = '+08:00';
+select * from tt;
+dt	ts
+2020-10-10 10:10:10	2020-10-10 18:10:10
+insert into tt values ('2020-10-10T10:10:10', '2020-10-10T10:10:10');
+select * from tt;
+dt	ts
+2020-10-10 10:10:10	2020-10-10 18:10:10
+2020-10-10 10:10:10	2020-10-10 10:10:10
+set session time_zone = '+00:00';
+insert into tt values ('2020-10-10T10:10:10+00:00', '2020-10-10T10:10:10+00:00');
+select * from tt;
+dt	ts
+2020-10-10 10:10:10	2020-10-10 10:10:10
+2020-10-10 10:10:10	2020-10-10 02:10:10
+2020-10-10 10:10:10	2020-10-10 10:10:10
+set session time_zone = '+08:00';
+select * from tt;
+dt	ts
+2020-10-10 10:10:10	2020-10-10 18:10:10
+2020-10-10 10:10:10	2020-10-10 10:10:10
+2020-10-10 10:10:10	2020-10-10 18:10:10
+insert into tt values ('2020-10-10T10:10:10+00:00', '2020-10-10T10:10:10+00:00');
+select * from tt;
+dt	ts
+2020-10-10 10:10:10	2020-10-10 18:10:10
+2020-10-10 10:10:10	2020-10-10 10:10:10
+2020-10-10 10:10:10	2020-10-10 18:10:10
+2020-10-10 18:10:10	2020-10-10 18:10:10
+set session time_zone = '+00:00';
+select * from tt;
+dt	ts
+2020-10-10 10:10:10	2020-10-10 10:10:10
+2020-10-10 10:10:10	2020-10-10 02:10:10
+2020-10-10 10:10:10	2020-10-10 10:10:10
+2020-10-10 18:10:10	2020-10-10 10:10:10
+set session time_zone = '-08:00';
+select * from tt;
+dt	ts
+2020-10-10 10:10:10	2020-10-10 02:10:10
+2020-10-10 10:10:10	2020-10-09 18:10:10
+2020-10-10 10:10:10	2020-10-10 02:10:10
+2020-10-10 18:10:10	2020-10-10 02:10:10
+insert into tt values ('2020-10-10T10:10:10-08:00', '2020-10-10T10:10:10-08:00');
+select * from tt;
+dt	ts
+2020-10-10 10:10:10	2020-10-10 02:10:10
+2020-10-10 10:10:10	2020-10-09 18:10:10
+2020-10-10 10:10:10	2020-10-10 02:10:10
+2020-10-10 18:10:10	2020-10-10 02:10:10
+2020-10-10 10:10:10	2020-10-10 10:10:10
+set session time_zone = '+00:00';
+select * from tt;
+dt	ts
+2020-10-10 10:10:10	2020-10-10 10:10:10
+2020-10-10 10:10:10	2020-10-10 02:10:10
+2020-10-10 10:10:10	2020-10-10 10:10:10
+2020-10-10 18:10:10	2020-10-10 10:10:10
+2020-10-10 10:10:10	2020-10-10 18:10:10

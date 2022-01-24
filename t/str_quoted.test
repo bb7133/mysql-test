@@ -1,0 +1,15 @@
+DROP TABLE IF EXISTS t;
+
+# create table
+CREATE TABLE t (c1 int, c2 TEXT);
+
+# insert data
+INSERT INTO t VALUES(11, '22');
+INSERT INTO t VALUES(12, '2\'2');
+
+SELECT * from t;
+
+SELECT * from `t`;
+
+INSERT INTO t VALUES(12, '2\'\\2');
+SELECT * from t;

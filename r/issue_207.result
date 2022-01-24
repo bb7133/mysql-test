@@ -1,0 +1,24 @@
+drop table if exists t;
+create table t (begin int);
+insert into t values (1);
+select * from t;
+begin
+1
+drop table if exists t;
+create table t (BEGIN int);
+insert into t values (1);
+select * from t;
+BEGIN
+1
+drop table if exists t;
+create table t (value int);
+insert into t values (1);
+select * from t;
+value
+1
+drop table if exists t;
+create table t (time int);
+insert into t values (1);
+select * from t;
+time
+1

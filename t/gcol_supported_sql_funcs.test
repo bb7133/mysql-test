@@ -1,0 +1,3645 @@
+################################################################################
+# inc/gcol_supported_sql_funcs_main.inc                                        #
+#                                                                              #
+# Purpose:                                                                     #
+#  Tests frame for allowed sql functions                                       #
+#                                                                              #
+#                                                                              #
+#------------------------------------------------------------------------------#
+# Original Author: Andrey Zhakov                                               #
+# Original Date: 2008-08-31                                                    #
+# Change Author:                                                               #
+# Change Date:                                                                 #
+# Change:                                                                      #
+################################################################################
+
+--echo #
+--echo # NUMERIC FUNCTIONS
+--echo #
+
+--echo # ABS()
+
+set sql_warnings = 1;
+create table t1 (a int, b int generated always as (abs(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (-1, default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # ACOS()
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (format(acos(a),6)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1, default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (1.0001,default);
+
+
+--error 0,1690,3020
+insert into t1 values (0,default);
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # ASIN()
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (format(asin(a),6)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (0.2, default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (1.0001,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo #ATAN
+
+set sql_warnings = 1;
+create table t1 (a double, b double, c double generated always as (format(atan(a,b),6)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (-2,2,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (format(PI(),6),0,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+
+set sql_warnings = 1;
+create table t1 (a double, c double generated always as (format(atan(a),6)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (-2,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (format(PI(),6),default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # ATAN2
+
+set sql_warnings = 1;
+create table t1 (a double, b double, c double generated always as (format(atan2(a,b),6)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (-2,2,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (format(PI(),6),0,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # CEIL()
+
+set sql_warnings = 1;
+create table t1 (a double, b int generated always as (ceil(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1.23,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (-1.23,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # CONV()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b int, c int, d varchar(10) generated always as (conv(a,b,c)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('a',16,2,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('6e',18,8,default);
+
+
+--error 0,1690,3020
+insert into t1 values (-17,10,-18,default);
+
+
+insert into t1 values (10+'10'+'10'+0xa,10,10,default);
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # COS()
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (format(cos(a),6)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (format(PI(),6),default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # COT()
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (format(cot(a),6)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (0,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (12,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # CRC32()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b bigint generated always as (crc32(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('MySQL',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('mysql',default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # DEGREES()
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (format(degrees(a),6)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (format(PI(),6),default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (format(PI()/2,6),default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # /
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (a/2) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (2,default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # EXP()
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (format(exp(a),6)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (2,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (-2,default);
+
+
+--error 0,1690,3020
+insert into t1 values (0,default);
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # FLOOR()
+
+set sql_warnings = 1;
+create table t1 (a double, b bigint generated always as (floor(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1.23,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (-1.23,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # LN()
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (format(ln(a),6)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (2,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (-2,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # LOG()
+
+set sql_warnings = 1;
+create table t1 (a double, b double, c double generated always as (format(log(a,b),6)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (2,65536,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (10,100,default);
+
+
+--error 0,1690,3020
+insert into t1 values (1,100,default);
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (format(log(a),6)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (2,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (-2,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # LOG2()
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (format(log2(a),6)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (65536,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (-100,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # LOG10()
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (format(log10(a),6)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (2,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (100,default);
+
+
+--error 0,1690,3020
+insert into t1 values (-100,default);
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # -
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (a-1) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (2,default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # MOD()
+
+set sql_warnings = 1;
+create table t1 (a int, b int generated always as (mod(a,10)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (11,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # %
+
+set sql_warnings = 1;
+create table t1 (a int, b int generated always as (a % 10) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (11,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # OCT()
+
+set sql_warnings = 1;
+create table t1 (a double, b varchar(10) generated always as (oct(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (12,default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # PI()
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (format(PI()*a*a,6)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1,default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # +
+
+set sql_warnings = 1;
+create table t1 (a int, b int generated always as (a+1) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1,default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # POW, POWER
+
+set sql_warnings = 1;
+create table t1 (a int, b int generated always as (pow(a,2)) virtual, c int generated always as (power(a,2)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1,default,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (2,default,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # RADIANS()
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (format(radians(a),6)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (90,default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # ROUND()
+
+set sql_warnings = 1;
+create table t1 (a double, b int generated always as (round(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (-1.23,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (-1.58,default);
+
+
+--error 0,1690,3020
+insert into t1 values (1.58,default);
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+
+set sql_warnings = 1;
+create table t1 (a double, b double, c int generated always as (round(a,b)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1.298,1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (1.298,0,default);
+
+
+--error 0,1690,3020
+insert into t1 values (23.298,-1,default);
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # SIGN()
+
+set sql_warnings = 1;
+create table t1 (a double, b int generated always as (sign(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (-32,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (0,default);
+
+
+--error 0,1690,3020
+insert into t1 values (234,default);
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # SIN()
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (format(sin(a),6)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (format(PI()/2,6),default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # SQRT()
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (format(sqrt(a),6)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (4,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (20,default);
+
+
+--error 0,1690,3020
+insert into t1 values (-16,default);
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # TAN()
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (format(tan(a),6)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (format(PI(),6),default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (format(PI()+1,6),default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # *
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (a*3) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (0,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (1,default);
+
+
+--error 0,1690,3020
+insert into t1 values (2,default);
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # TRUNCATE()
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (truncate(a,4)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1.223,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (1.999,default);
+
+
+--error 0,1690,3020
+insert into t1 values (1.999,default);
+
+
+insert into t1 values (122,default);
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # Unary -
+
+set sql_warnings = 1;
+create table t1 (a double, b double generated always as (-a) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (-1,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo #
+--echo # STRING FUNCTIONS
+--echo #
+
+--echo # ASCII()
+
+set sql_warnings = 1;
+create table t1 (a char(2), b int generated always as (ascii(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (2,default);
+
+
+--error 0,1690,3020
+insert into t1 values ('dx',default);
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # BIN()
+
+set sql_warnings = 1;
+create table t1 (a int, b varchar(10) generated always as (bin(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (12,default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # BIT_LENGTH()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b bigint generated always as (bit_length(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('text',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # CHAR_LENGTH()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b bigint generated always as (char_length(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('text',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # CHAR()
+
+set sql_warnings = 1;
+create table t1 (a int, b int, c varbinary(10) generated always as (char(a,b)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (77,121,default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # CHARACTER_LENGTH()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b bigint generated always as (character_length(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('text',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # CONCAT_WS()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10), c varchar(20) generated always as (concat_ws(',',a,b)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('value1','value2',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # CONCAT()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10), c varchar(20) generated always as (concat(a,',',b)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('value1','value2',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # ELT()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10), c int, d varchar(10) generated always as (elt(c,a,b)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('value1','value2',1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('value1','value2',2,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # EXPORT_SET()
+
+set sql_warnings = 1;
+create table t1 (a int, b varchar(10) generated always as (export_set(a,'1','0','',10)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (6,default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # FIELD()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10), c int generated always as (field('aa',a,b)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('aa','bb',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('bb','aa',default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # FIND_IN_SET()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10), c int generated always as (find_in_set(a,b)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('aa','aa,bb,cc',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('aa','bb,aa,cc',default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # FORMAT()
+
+set sql_warnings = 1;
+create table t1 (a double, b varchar(20) generated always as (format(a,2)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (12332.123456,default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # HEX()
+
+set sql_warnings = 1;
+create table t1 (a int, b varchar(10) generated always as (hex(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (17,default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10) generated always as (hex(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('abc',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # INSERT()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10), c varchar(20) generated always as (insert(a,length(a),length(b),b)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('start,','end',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # INSTR()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10), c int generated always as (instr(a,b)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('foobarbar,','bar',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('xbar,','foobar',default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # LCASE()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10) generated always as (lcase(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('MySQL',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # LEFT()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(5) generated always as (left(a,5)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('foobarbar',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # LENGTH()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b int generated always as (length(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('text',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # LIKE
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b bool generated always as (a like 'H%o') virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('Hello',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('MySQL',default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # LOCATE()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10) generated always as (locate('bar',a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('foobarbar',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # LOWER()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10) generated always as (lower(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('MySQL',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # LPAD()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10) generated always as (lpad(a,4,' ')) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('MySQL',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('M',default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # LTRIM()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10) generated always as (ltrim(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('  MySQL',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('MySQL',default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # MAKE_SET()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10), c int, d varchar(30) generated always as (make_set(c,a,b)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('a','b',1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('a','b',3,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # MID()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10) generated always as (mid(a,1,2)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('foobarbar',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # NOT LIKE
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b bool generated always as (a not like 'H%o') virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('Hello',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('MySQL',default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # NOT REGEXP
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b bool generated always as (a not regexp 'H.+o') virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('Hello',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('hello',default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # OCTET_LENGTH()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b int generated always as (octet_length(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('text',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # ORD()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b bigint generated always as (ord(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # POSITION()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10) generated always as (position('bar' in a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('foobarbar',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # QUOTE()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10) generated always as (quote(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('Don''t',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # REGEXP()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b bool generated always as (a regexp 'H.+o') virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('Hello',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('hello',default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # REPEAT()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(30) generated always as (repeat(a,3)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('MySQL',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # REPLACE()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(30) generated always as (replace(a,'aa','bb')) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('maa',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # REVERSE()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(30) generated always as (reverse(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('maa',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # RIGHT()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10) generated always as (right(a,4)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('foobarbar',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # RLIKE()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b bool generated always as (a rlike 'H.+o') virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('Hello',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('MySQL',default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # RPAD()
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10) generated always as (rpad(a,4,'??')) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('He',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # RTRIM();
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10) generated always as (rtrim(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('Hello  ',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # SOUNDEX()
+
+# set sql_warnings = 1;
+# create table t1 (a varchar(10), b varchar(20) generated always as (soundex(a)) virtual) charset latin1;
+# show create table t1;
+# 
+# # Allow out-of-range errors
+# --error 0,1264,1690,3020
+# insert into t1 values ('Hello',default);
+# 
+# 
+# 
+# 
+# --sorted_result
+# select * from t1;
+# drop table t1;
+# set sql_warnings = 0;
+
+--echo # SOUNDS LIKE
+
+# set sql_warnings = 1;
+# create table t1 (a varchar(10), b varchar(10), c bool generated always as (a sounds like b) virtual) charset latin1;
+# show create table t1;
+# 
+# # Allow out-of-range errors
+# --error 0,1264,1690,3020
+# insert into t1 values ('Hello','Hello',default);
+# 
+# 
+# --error 0,1292,1690,3020
+# insert into t1 values ('Hello','MySQL',default);
+# 
+# 
+# --error 0,1690,3020
+# insert into t1 values ('Hello','hello',default);
+# 
+# 
+# --sorted_result
+# select * from t1;
+# drop table t1;
+# set sql_warnings = 0;
+
+--echo # SPACE()
+
+set sql_warnings = 1;
+create table t1 (a varchar(5), b varchar(10) generated always as (concat(a,space(5))) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('Hello', default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # STRCMP()
+
+set sql_warnings = 1;
+create table t1 (a varchar(9), b varchar(9), c tinyint(1) generated always as (strcmp(a,b)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('Hello','Hello', default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('Hello','Hello1', default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # SUBSTR()
+
+set sql_warnings = 1;
+create table t1 (a varchar(5), b varchar(10) generated always as (substr(a,2)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('Hello',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # SUBSTRING_INDEX()
+
+set sql_warnings = 1;
+create table t1 (a varchar(15), b varchar(10) generated always as (substring_index(a,'.',2)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('www.mysql.com',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # SUBSTRING()
+
+set sql_warnings = 1;
+create table t1 (a varchar(5), b varchar(10) generated always as (substring(a from 2 for 2)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('Hello',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # TRIM()
+
+set sql_warnings = 1;
+create table t1 (a varchar(15), b varchar(10) generated always as (trim(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (' aa ',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # UCASE()
+
+set sql_warnings = 1;
+create table t1 (a varchar(5), b varchar(10) generated always as (ucase(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('MySQL',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # UNHEX()
+
+set sql_warnings = 1;
+create table t1 (a varchar(15), b varchar(10) generated always as (unhex(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('4D7953514C',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # UPPER()
+
+set sql_warnings = 1;
+create table t1 (a varchar(5), b varchar(10) generated always as (upper(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('MySQL',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # WEIGHT_STRING()
+
+# set sql_warnings = 1;
+# create table t1 (a varchar(5), b varchar(10) generated always as (weight_string(a as char(4))) virtual) charset latin1;
+# show create table t1;
+# 
+# # Allow out-of-range errors
+# --error 0,1264,1690,3020
+# insert into t1 values ('MySQL',default);
+# 
+# 
+# 
+# 
+# --sorted_result
+# select * from t1;
+# drop table t1;
+# set sql_warnings = 0;
+
+--echo #
+--echo # CONTROL FLOW FUNCTIONS
+--echo #
+
+--echo # CASE
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(16) generated always as (case a when NULL then 'asd' when 'b' then 'B' else a end) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (NULL,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('b',default);
+
+
+--error 0,1690,3020
+insert into t1 values ('c',default);
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # IF
+
+set sql_warnings = 1;
+create table t1 (a int, b int, c int generated always as (if(a=1,a,b)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1,2,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (3,4,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # IFNULL
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10), c varchar(10) generated always as (ifnull(a,'DEFAULT')) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (NULL,'adf',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('a','adf',default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # NULLIF
+
+# set sql_warnings = 1;
+# create table t1 (a varchar(10), b varchar(10) generated always as (nullif(a,'DEFAULT')) virtual) charset latin1;
+# show create table t1;
+# 
+# # Allow out-of-range errors
+# --error 0,1264,1690,3020
+# insert into t1 values ('DEFAULT',default);
+# 
+# 
+# --error 0,1292,1690,3020
+# insert into t1 values ('a',default);
+# 
+# 
+# 
+# --sorted_result
+# select * from t1;
+# drop table t1;
+# set sql_warnings = 0;
+
+--echo #
+--echo # OPERATORS
+--echo #
+
+--echo # AND, && 
+
+set sql_warnings = 1;
+create table t1 (a int, b bool generated always as (a>0 && a<2) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (-1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (1,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # BETWEEN ... AND ... 
+
+set sql_warnings = 1;
+create table t1 (a int, b bool generated always as (a between 0 and 2) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (-1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (1,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # BINARY
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varbinary(10) generated always as (binary a) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('11',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (1,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # &
+
+set sql_warnings = 1;
+create table t1 (a int, b int generated always as (a & 5) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (0,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # ~
+#set sql_warnings = 1;
+#create table t1 (a int, b int generated always as (~a) virtual) charset latin1;
+#show create table t1;
+
+# Allow out-of-range errors
+#--error 0,1264,1690,3020
+#insert into t1 values (1,default);
+
+
+
+
+#--sorted_result
+#select * from t1;
+#drop table t1;
+#set sql_warnings = 0;
+
+--echo # |
+
+set sql_warnings = 1;
+create table t1 (a int, b int generated always as (a | 5) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (0,default);
+
+
+--error 0,1690,3020
+insert into t1 values (2,default);
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # ^
+
+set sql_warnings = 1;
+create table t1 (a int, b int generated always as (a ^ 5) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (0,default);
+
+
+--error 0,1690,3020
+insert into t1 values (2,default);
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # DIV
+
+set sql_warnings = 1;
+create table t1 (a int, b int generated always as (a div 5) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (7,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # <=>
+
+set sql_warnings = 1;
+create table t1 (a int, b int, c bool generated always as (a <=> b) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1,1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (NULL,NULL,default);
+
+
+--error 0,1690,3020
+insert into t1 values (1,NULL,default);
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # =
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10), c bool generated always as (a=b) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('a','b',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('a','a',default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # >=
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10), c bool generated always as (a >= b) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('a','b',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('a','a',default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # >
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10), c bool generated always as (a > b) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('a','b',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('a','a',default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # IS NOT NULL
+
+set sql_warnings = 1;
+create table t1 (a int, b bool generated always as (a is not null) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (NULL,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # IS NULL
+
+set sql_warnings = 1;
+create table t1 (a int, b bool generated always as (a is null) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (NULL,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # <<
+
+set sql_warnings = 1;
+create table t1 (a int, b int generated always as (a << 2) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (3,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # <=
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10), c bool generated always as (a <= b) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('b','a',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('b','b',default);
+
+
+--error 0,1690,3020
+insert into t1 values ('b','c',default);
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # <
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10), c bool generated always as (a < b) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('b','a',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('b','b',default);
+
+
+--error 0,1690,3020
+insert into t1 values ('b','c',default);
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # NOT BETWEEN ... AND ...
+
+set sql_warnings = 1;
+create table t1 (a int, b bool generated always as (a not between 0 and 2) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (-1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (1,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # <>
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10), c bool generated always as (a <> b) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('b','a',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('b','b',default);
+
+
+--error 0,1690,3020
+insert into t1 values ('b','c',default);
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # !=
+
+set sql_warnings = 1;
+create table t1 (a varchar(10), b varchar(10), c bool generated always as (a != b) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('b','a',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('b','b',default);
+
+
+--error 0,1690,3020
+insert into t1 values ('b','c',default);
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # ||, OR
+
+set sql_warnings = 1;
+create table t1 (a int, b int generated always as (a>5 || a<3) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (4,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # >>
+
+set sql_warnings = 1;
+create table t1 (a int, b int generated always as (a >> 2) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (8,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (3,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # XOR
+
+set sql_warnings = 1;
+create table t1 (a int, b int generated always as (a xor 5) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (0,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (1,default);
+
+
+--error 0,1690,3020
+insert into t1 values (2,default);
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo #
+--echo # DATE AND TIME FUNCTIONS
+--echo #
+
+--echo # ADDDATE()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b datetime generated always as (adddate(a,interval 1 month)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # ADDTIME()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b datetime generated always as (addtime(a,'02:00:00')) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # CONVERT_TZ()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b datetime generated always as (convert_tz(a,'MET','UTC')) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # DATE_ADD()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b datetime generated always as (date_add(a,interval 1 month)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # DATE_FORMAT()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b varchar(64) generated always as (date_format(a,'%W %M %D')) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # DATE_SUB()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b datetime generated always as (date_sub(a,interval 1 month)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # DATE()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b datetime generated always as (date(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31 02:00:00',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # DATEDIFF()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b bigint generated always as (datediff(a,'2000-01-01')) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # DAY()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b int generated always as (day(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # DAYNAME()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b varchar(10) generated always as (dayname(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # DAYOFMONTH()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b int generated always as (dayofmonth(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # DAYOFWEEK()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b int generated always as (dayofweek(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # DAYOFYEAR()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b int generated always as (dayofyear(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # EXTRACT
+
+set sql_warnings = 1;
+create table t1 (a datetime, b int generated always as (extract(year from a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # FROM_DAYS()
+
+set sql_warnings = 1;
+create table t1 (a bigint, b datetime generated always as (from_days(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (730669,default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # FROM_UNIXTIME()
+
+set sql_warnings = 1;
+create table t1 (a bigint, b datetime generated always as (from_unixtime(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1196440219,default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # GET_FORMAT()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b varchar(32) generated always as (date_format(a,get_format(DATE,'EUR'))) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # HOUR()
+
+set sql_warnings = 1;
+create table t1 (a time, b bigint generated always as (hour(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('10:05:03',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # LAST_DAY()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b datetime generated always as (last_day(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2003-02-05',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('2003-02-32',default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # MAKEDATE()
+
+set sql_warnings = 1;
+create table t1 (a int, b datetime generated always as (makedate(a,1)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (2001,default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # MAKETIME()
+
+set sql_warnings = 1;
+create table t1 (a int, b time generated always as (maketime(a,1,3)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (12,default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # MICROSECOND()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b bigint generated always as (microsecond(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2009-12-31 12:00:00.123456',default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values ('2009-12-31 23:59:59.000010',default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # MINUTE()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b int generated always as (minute(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2009-12-31 23:59:59.000010',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # MONTH()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b int generated always as (month(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2009-12-31 23:59:59.000010',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # MONTHNAME()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b varchar(16) generated always as (monthname(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2009-12-31 23:59:59.000010',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # PERIOD_ADD()
+
+set sql_warnings = 1;
+create table t1 (a int, b int generated always as (period_add(a,2)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (200801,default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # PERIOD_DIFF()
+
+set sql_warnings = 1;
+create table t1 (a int, b int, c int generated always as (period_diff(a,b)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (200802,200703,default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # QUARTER()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b int generated always as (quarter(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # SEC_TO_TIME()
+
+set sql_warnings = 1;
+create table t1 (a bigint, b time generated always as (sec_to_time(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (2378,default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # SECOND()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b int generated always as (second(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('10:05:03',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # STR_TO_DATE()
+
+set sql_warnings = 1;
+create table t1 (a varchar(64), b datetime generated always as (str_to_date(a,'%m/%d/%Y')) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('04/30/2004',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # SUBDATE()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b datetime generated always as (subdate(a,interval 1 month)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # SUBTIME()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b datetime generated always as (subtime(a,'02:00:00')) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # TIME_FORMAT()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b varchar(32) generated always as (time_format(a,'%r')) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31 02:03:04',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # TIME_TO_SEC()
+
+set sql_warnings = 1;
+create table t1 (a time, b bigint generated always as (time_to_sec(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('22:23:00',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # TIME()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b time generated always as (time(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-08-31 02:03:04',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # TIMEDIFF()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b datetime, c time generated always as (timediff(a,b)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-12-31 23:59:59.000001','2008-12-30 01:01:01.000002',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # TIMESTAMP()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b timestamp generated always as (timestamp(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-12-31',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # TIMESTAMPADD()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b timestamp generated always as (timestampadd(minute,1,a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2003-01-02',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # TIMESTAMPDIFF()
+
+set sql_warnings = 1;
+create table t1 (a timestamp, c bigint generated always as (timestampdiff(MONTH, a, a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2003-02-01',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # TO_DAYS()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b bigint generated always as (to_days(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2007-10-07',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # WEEK()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b int generated always as (week(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-09-01',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # WEEKDAY()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b int generated always as (weekday(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-09-01',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # WEEKOFYEAR()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b int generated always as (weekofyear(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-09-01',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # YEAR()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b int generated always as (year(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-09-01',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # YEARWEEK()
+
+set sql_warnings = 1;
+create table t1 (a datetime, b int generated always as (yearweek(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('2008-09-01',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo #
+--echo # FULL TEXT SEARCH FUNCTIONS
+--echo #
+--echo # None.
+
+--echo #
+--echo # CAST FUNCTIONS AND OPERATORS
+--echo #
+
+--echo # CAST()
+
+set sql_warnings = 1;
+create table t1 (a int, b bigint unsigned generated always as (cast(a as unsigned)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (-1,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # Convert()
+
+set sql_warnings = 1;
+create table t1 (a int, b bigint unsigned generated always as (convert(a,unsigned)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (1,default);
+
+
+--error 0,1292,1690,3020
+insert into t1 values (-1,default);
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo #
+--echo # XML FUNCTIONS
+--echo #
+--echo # ExtractValue()
+
+# set sql_warnings = 1;
+# create table t1 (a varchar(1024), b varchar(1024) generated always as (ExtractValue(a,'/b')) virtual) charset latin1;
+# show create table t1;
+# 
+# # Allow out-of-range errors
+# --error 0,1264,1690,3020
+# insert into t1 values ('<b>text</b>',default);
+# 
+# 
+# 
+# 
+# --sorted_result
+# select * from t1;
+# drop table t1;
+# set sql_warnings = 0;
+
+--echo # None.
+
+--echo #
+--echo # JSON functions
+--echo #
+
+--echo # JSON_PRETTY()
+
+# set sql_warnings = 1;
+# create table t1 (a varchar(1024), b varchar(1024) generated always as (JSON_PRETTY(a)) virtual) charset latin1;
+# show create table t1;
+# 
+# # Allow out-of-range errors
+# --error 0,1264,1690,3020
+# insert into t1 values ('{}', default);
+# 
+# 
+# 
+# 
+# --sorted_result
+# select * from t1;
+# drop table t1;
+# set sql_warnings = 0;
+
+--echo # JSON_STORAGE_SIZE()
+
+# set sql_warnings = 1;
+# create table t1 (a varchar(1024), b varchar(1024) generated always as (JSON_STORAGE_SIZE(a)) virtual) charset latin1;
+# show create table t1;
+# 
+# # Allow out-of-range errors
+# --error 0,1264,1690,3020
+# insert into t1 values ('{}', default);
+# 
+# 
+# 
+# 
+# --sorted_result
+# select * from t1;
+# drop table t1;
+# set sql_warnings = 0;
+
+--echo #
+--echo # OTHER FUNCTIONS
+--echo #
+
+--echo # AES_DECRYPT(), AES_ENCRYPT()
+
+set sql_warnings = 1;
+create table t1 (a varchar(1024), b varchar(1024) generated always as (aes_encrypt(aes_decrypt(a,'adf'),'adf')) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('MySQL',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # BIT_COUNT()
+
+set sql_warnings = 1;
+create table t1 (a int, b int generated always as (bit_count(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values (5,default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # CHARSET()
+
+# set sql_warnings = 1;
+# create table t1 (a varchar(1024), b varchar(1024) generated always as (charset(a)) virtual) charset latin1;
+# show create table t1;
+# 
+# # Allow out-of-range errors
+# --error 0,1264,1690,3020
+# insert into t1 values ('abc',default);
+# 
+# 
+# 
+# 
+# --sorted_result
+# select * from t1;
+# drop table t1;
+# set sql_warnings = 0;
+
+--echo # COERCIBILITY()
+
+# set sql_warnings = 1;
+# create table t1 (a varchar(1024), b int generated always as (coercibility(a)) virtual) charset latin1;
+# show create table t1;
+# 
+# # Allow out-of-range errors
+# --error 0,1264,1690,3020
+# insert into t1 values ('abc',default);
+# 
+# 
+# 
+# 
+# --sorted_result
+# select * from t1;
+# drop table t1;
+# set sql_warnings = 0;
+
+--echo # COLLATION()
+
+# set sql_warnings = 1;
+# create table t1 (a varchar(1024), b varchar(1024) generated always as (collation(a)) virtual) charset latin1;
+# show create table t1;
+# 
+# # Allow out-of-range errors
+# --error 0,1264,1690,3020
+# insert into t1 values ('abc',default);
+# 
+# 
+# 
+# 
+# --sorted_result
+# select * from t1;
+# drop table t1;
+# set sql_warnings = 0;
+
+--echo # COMPRESS(), UNCOMPRESS()
+
+set sql_warnings = 1;
+create table t1 (a varchar(1024), b varchar(1024) generated always as (uncompress(compress(a))) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('MySQL',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # ENCODE(), DECODE()
+
+set sql_warnings = 1;
+create table t1 (a varchar(1024), b varchar(1024) generated always as (decode(encode(a,'abc'),'abc')) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('MySQL',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # DEFAULT()
+
+# set sql_warnings = 1;
+# create table t1 (a varchar(1024) default 'aaa', b varchar(1024) generated always as (ifnull(a,default(a))) virtual) charset latin1;
+# show create table t1;
+# 
+# # Allow out-of-range errors
+# --error 0,1264,1690,3020
+# insert into t1 values ('any value',default);
+# 
+# 
+# 
+# 
+# --sorted_result
+# select * from t1;
+# drop table t1;
+# set sql_warnings = 0;
+# 
+# --echo # DES_ENCRYPT(), DES_DECRYPT()
+# --source include/have_ssl_crypto_functs.inc
+# --disable_warnings
+# eval create table t1 ($cols);
+# show create table t1;
+# --enable_warnings
+# eval insert into t1 values ($values1);
+# select * from t1;
+# drop table t1;
+
+--echo # INET_ATON(), INET_NTOA()
+
+set sql_warnings = 1;
+create table t1 (a varchar(1024), b varchar(1024) generated always as (inet_ntoa(inet_aton(a))) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('127.0.0.1',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # MD5()
+
+set sql_warnings = 1;
+create table t1 (a varchar(1024), b varbinary(32) generated always as (md5(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('testing',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # PASSWORD()
+
+set sql_warnings = 1;
+create table t1 (a varchar(1024), b varchar(1024) generated always as (password(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('badpwd',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # SHA1()
+
+set sql_warnings = 1;
+create table t1 (a varchar(1024), b varchar(1024) generated always as (sha1(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('abc',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # SHA()
+
+set sql_warnings = 1;
+create table t1 (a varchar(1024), b varchar(1024) generated always as (sha(a)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('abc',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # SHA2()
+
+set sql_warnings = 1;
+create table t1 (a varchar(1024), b varchar(1024) generated always as (sha2(a,224)) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('abc',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+
+--echo # UNCOMPRESSED_LENGTH()
+
+set sql_warnings = 1;
+create table t1 (a char, b varchar(1024) generated always as (uncompressed_length(compress(repeat(a,30)))) virtual) charset latin1;
+show create table t1;
+
+# Allow out-of-range errors
+--error 0,1264,1690,3020
+insert into t1 values ('a',default);
+
+
+
+
+--sorted_result
+select * from t1;
+drop table t1;
+set sql_warnings = 0;
+

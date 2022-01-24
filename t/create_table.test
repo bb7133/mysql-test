@@ -1,0 +1,101 @@
+DROP TABLE IF EXISTS t;
+
+# create table
+CREATE TABLE t (c1 int, c2 integer, c3 int, c4 int, primary key(c1));
+
+# insert data
+INSERT INTO t (c1, c2, c3) VALUES(11, 22, 33);
+
+SELECT * FROM t;
+
+--disable_query_log
+SELECT c1, c2, c3, c4 FROM t;
+
+--enable_query_log
+SELECT c1, c2, c4 FROM t;
+
+# following insert must return duplicated key error,
+# if not, we will terminate this test
+--error ER_DUP_KEY
+INSERT INTO t (c1) VALUES(11);
+
+INSERT INTO t (c1) VALUES(111);
+
+SET @a = 1;
+
+
+# Test for bug in Column.ColumnDefToCol(), pass constraints as parameter but can not get the correct value
+DROP TABLE IF EXISTS t;
+
+# create table
+CREATE TABLE t (c1 int PRIMARY KEY, c2 int, c3 double, c4 double precision);
+
+# insert data
+INSERT INTO t (c1, c2, c3) VALUES(11, 22, 33);
+
+SELECT * FROM t;
+
+--disable_query_log
+SELECT c1, c2, c3, c4 FROM t;
+
+--enable_query_log
+SELECT c1, c2, c4 FROM t;
+
+# following insert must return duplicated key error,
+# if not, we will terminate this test
+--error ER_DUP_KEY
+INSERT INTO t (c1) VALUES(11);
+
+INSERT INTO t (c1) VALUES(111);
+
+SET @a = 1;
+
+
+# Support default charset in create table statement 
+DROP TABLE IF EXISTS t;
+CREATE TABLE t (c1 int PRIMARY KEY, c2 int, c3 int, c4 TEXT) DEFAULT CHARSET utf8mb4;
+DROP TABLE IF EXISTS t;
+CREATE TABLE t (c1 int PRIMARY KEY, c2 int, c3 int, c4 TEXT) CHARSET utf8mb4;
+DROP TABLE IF EXISTS t;
+CREATE TABLE t (c1 int PRIMARY KEY, c2 int, c3 int, c4 TEXT) DEFAULT CHARSET=utf8mb4;
+
+# Create with float field and float length 
+drop table if exists warehouse;
+create table warehouse (tax decimal(4,2));
+
+#create table with smallint and mediumint
+drop table if exists warehouse;
+create table warehouse (
+w_idtiny tinyint not null,
+w_idmedium mediumint not null,
+w_id int not null,
+w_idsmall smallint not null,
+w_idbig bigint not null,
+w_name varchar(10), 
+w_street_1 varchar(20), 
+w_street_2 varchar(20), 
+w_city varchar(20), 
+w_zip char(9),
+w_zip_bin binary(9));
+
+DROP TABLE IF EXISTS t;
+CREATE TABLE t (c int not null);
+--error ER_BAD_NULL_ERROR
+INSERT INTO t values (NULL);
+SELECT * from t;
+
+DROP TABLE IF EXISTS t;
+CREATE TABLE t (c int null);
+INSERT INTO t values (NULL);
+SELECT * from t;
+
+# Parse default charset and collate
+DROP TABLE IF EXISTS t;
+DROP TABLE IF EXISTS t1;
+CREATE TABLE t (c TEXT) default CHARACTER SET utf8, default COLLATE utf8_general_ci;
+CREATE TABLE t1 (c TEXT) CHARACTER SET = utf8, COLLATE = utf8_general_ci, AUTO_INCREMENT = 11;
+
+DROP TABLE t;
+--disable_warnings
+CREATE TABLE t (a varchar(100), fulltext key idx_a (a(10)));
+--enable_warnings

@@ -1,0 +1,28 @@
+drop table if exists t1;
+create table t1 (a char(16), b date, c datetime);
+insert into t1 SET a='test 2000-01-01', b='2000-01-01', c='2000-01-01';
+select a from t1;
+a
+test 2000-01-01
+drop table if exists t1;
+drop table if exists t;
+create table t (c1 int, c2 int);
+insert into t set c1 = 1, c2 = 1;
+select * from t;
+c1	c2
+1	1
+insert into t set c1 = 1, c2 = 1, c1 = 2, c2 =2;
+Error 1110: Column 'c1' specified twice
+select * from t;
+c1	c2
+1	1
+insert into t (c1,c2,c1,c2) values(1,1,2,2);
+Error 1110: Column 'c1' specified twice
+select * from t;
+c1	c2
+1	1
+insert into t values(1,1,2,2);
+Error 1136: Column count doesn't match value count at row 1
+select * from t;
+c1	c2
+1	1

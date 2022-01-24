@@ -1,0 +1,127 @@
+# Generated virtual columns can be added. (adding stored columns is not permitted currently in tidb)
+drop table if exists t;
+create table t(a double, b double);
+alter table t add column c_implicit_virtual double as (sqrt(a * a + b * b));
+alter table t add column c_virtual double as (sqrt(a * a + b * b)) virtual;
+-- error ER_UNSUPPORTED_ACTION_ON_GENERATED_COLUMN
+alter table t add column c_stored double as (sqrt(a * a + b * b)) stored;
+show create table t;
+
+# The data type and expression of virtual columns can be modified.
+drop table if exists t;
+create table t (c1 tinyint, c2 tinyint generated always as (c1 + 1) virtual);
+alter table t modify column c2 int generated always as (c1 + 5) virtual;
+
+# Generated columns can be renamed or dropped, if no other column refers to them.
+drop table if exists t;
+create table t (c1 int, c2 int generated always as (c1 + 1) stored, c3 int as (c2 * 2), c4 int as (c2 + 2));
+alter table t change c3 c5 int generated always as (c2 * 3);
+alter table t drop c4;
+-- error 
+alter table t drop c2;
+-- error
+alter table t change c2 c6 int generated always as (c1 + 1) stored;
+
+# In TiDB, altering STORED status of generated columns has some limit:
+
+# |      =>      | nongenerated | virtual | stored |
+# |:------------:|:------------:|:-------:|:------:|
+# | nongenerated |       ─      |    ✕    |    ✕   |
+# |    virtual   |       ✕      |    ✓    |    ✕   |
+# |    stored    |       ✓      |    ✕    |    ✕   |
+
+# 1. nongenerated column => generated column
+drop table if exists t;
+create table t (a int, b int, c int, index(c));
+--error
+alter table t modify column b int generated always as (a + 1) virtual;
+--error
+alter table t modify column b int generated always as (a + 1) stored;
+--error
+alter table t change column b b1 int generated always as (a + 1) virtual;
+--error
+alter table t change column b b1 int generated always as (a + 1) stored;
+--error
+alter table t modify column c int generated always as (a + 1) virtual;
+--error
+alter table t modify column c int generated always as (a + 1) stored;
+--error
+alter table t change column c c1 int generated always as (a + 1) virtual;
+--error
+alter table t change column c c1 int generated always as (a + 1) stored;
+
+# 2. virtual column => others
+drop table if exists t;
+create table t (
+	a int,
+	b int generated always as (a + 1) virtual,
+	c int generated always as (a + 1) virtual,
+	d int generated always as (a + 1) virtual,
+	e int generated always as (a + 1) virtual
+);
+alter table t add index (c);
+alter table t add index (e);
+--error
+alter table t modify column b int;
+--error
+alter table t modify column c int;
+--error
+alter table t change column b b1 int;
+--error
+alter table t change column c c1 int;
+alter table t modify column b int generated always as (a + 10) virtual;
+show create table t;
+--error
+alter table t modify column c int generated always as (a + 10) virtual;
+alter table t change column b b1 int generated always as (a + 100) virtual;
+show create table t;
+# disallow modify expression of indexed virtual columns.
+--error
+alter table t change column c c1 int generated always as (a + 100) virtual;
+--error
+alter table t modify column d int generated always as (a + 10) stored;
+--error
+alter table t modify column e int generated always as (a + 10) stored;
+--error
+alter table t change column d d1 int generated always as (a + 10) stored;
+--error
+alter table t change column e e1 int generated always as (a + 10) stored;
+
+# 3. stored column => others
+drop table if exists t;
+create table t (
+	a int,
+	b int generated always as (a + 1) stored,
+	c int generated always as (a + 1) stored,
+	d int generated always as (a + 1) stored,
+	e int generated always as (a + 1) stored
+);
+alter table t add index (c);
+alter table t add index (e);
+alter table t modify column b int;
+alter table t modify column c int;
+alter table t change column d d1 int;
+alter table t change column e e1 int;
+show create table t;
+drop table if exists t;
+create table t (a int,
+	b int generated always as (a + 1) stored,
+	c int generated always as (a + 1) stored,
+	index(c)
+);
+--error
+alter table t modify column b int generated always as (a + 10) virtual;
+--error
+alter table t modify column c int generated always as (a + 10) virtual;
+--error
+alter table t change column b b1 int generated always as (a + 10) virtual;
+--error
+alter table t change column c c1 int generated always as (a + 10) virtual;
+--error
+alter table t modify column b int generated always as (a + 10) stored;
+--error
+alter table t modify column c int generated always as (a + 10) stored;
+--error
+alter table t change column b b1 int generated always as (a + 10) stored;
+--error
+alter table t change column c c1 int generated always as (a + 10) stored;

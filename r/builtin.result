@@ -1,0 +1,244 @@
+DROP TABLE IF EXISTS t;
+CREATE TABLE t (
+c1 int,
+c2 int,
+c3 int
+);
+INSERT INTO t (c1, c2) VALUES (11, 21);
+INSERT INTO t (c1, c3) VALUES (12, 22);
+INSERT INTO t (c2, c3) VALUES (23, 33);
+INSERT INTO t (c3) VALUES (34);
+SELECT * from t;
+c1	c2	c3
+11	21	NULL
+12	NULL	22
+NULL	23	33
+NULL	NULL	34
+SELECT COALESCE(c1, c2, c3) from t;
+COALESCE(c1, c2, c3)
+11
+12
+23
+34
+SELECT CoAlEsCe(c1, c2, c3) from t;
+CoAlEsCe(c1, c2, c3)
+11
+12
+23
+34
+DROP TABLE IF EXISTS t;
+CREATE TABLE t (
+c1 decimal(10,1),
+c2 int,
+c3 int
+);
+INSERT INTO t (c1, c2) VALUES (11.5, 21);
+INSERT INTO t (c1, c3) VALUES (12.5, 22);
+SELECT * from t;
+c1	c2	c3
+11.5	21	NULL
+12.5	NULL	22
+SELECT sum(c1) from t;
+sum(c1)
+24.0
+SELECT 1, CAST(1 AS CHAR);
+1	CAST(1 AS CHAR)
+1	1
+SELECT 1, CAST(1234 AS CHAR(3));
+1	CAST(1234 AS CHAR(3))
+1	123
+SELECT 1, CAST("-1234" AS SIGNED);
+1	CAST("-1234" AS SIGNED)
+1	-1234
+SELECT 1, CAST("-1234" AS UNSIGNED);
+1	CAST("-1234" AS UNSIGNED)
+1	18446744073709550382
+SELECT cast("2011-11-20" as DATE);
+cast("2011-11-20" as DATE)
+2011-11-20
+SELECT cast("00:00:00.1" as TIME(1));
+cast("00:00:00.1" as TIME(1))
+00:00:00.1
+SELECT 1, CAST(1234 AS CHAR(0));
+1	CAST(1234 AS CHAR(0))
+1	
+SELECT cast('2011-11-20 00:00:00' as DATE);
+cast('2011-11-20 00:00:00' as DATE)
+2011-11-20
+SELECT cast(null AS UNSIGNED);
+cast(null AS UNSIGNED)
+NULL
+SELECT cast(null AS CHAR(0));
+cast(null AS CHAR(0))
+NULL
+SELECT cast(123 AS DECIMAL), cast(123.001 AS DECIMAL);
+cast(123 AS DECIMAL)	cast(123.001 AS DECIMAL)
+123	123
+SELECT abs(cast("20150817015609" as DATETIME));
+abs(cast("20150817015609" as DATETIME))
+20150817015609
+SELECT cast(3.1 as SIGNED) as a, cast(3.9 as SIGNED) as b, cast(-3.1 as SIGNED) as c, cast(-3.9 as SIGNED) as d;
+a	b	c	d
+3	4	-3	-4
+select CAST( - 2 - - ( 52 ) / ( 24 * + 25 + + 91 ) AS SIGNED );
+CAST( - 2 - - ( 52 ) / ( 24 * + 25 + + 91 ) AS SIGNED )
+-2
+select cast("11:11:11.123457" as time(5));
+cast("11:11:11.123457" as time(5))
+11:11:11.12346
+select cast("11:11:11.888888" as time(5));
+cast("11:11:11.888888" as time(5))
+11:11:11.88889
+select cast(cast("11:11:11.888888" as time(5)) as time(6));
+cast(cast("11:11:11.888888" as time(5)) as time(6))
+11:11:11.888890
+select cast(cast("11:11:11.1234547" as time(6)) as time(5));
+cast(cast("11:11:11.1234547" as time(6)) as time(5))
+11:11:11.12346
+select cast("2010-11-11 11:11:11.888888" as datetime);
+cast("2010-11-11 11:11:11.888888" as datetime)
+2010-11-11 11:11:12
+select cast(cast("2010-11-11 11:11:11.888888" as datetime) as time(6));
+cast(cast("2010-11-11 11:11:11.888888" as datetime) as time(6))
+11:11:12.000000
+select cast(cast("2010-11-11 11:11:11.123456" as datetime(4)) as time(6));
+cast(cast("2010-11-11 11:11:11.123456" as datetime(4)) as time(6))
+11:11:11.123500
+select cast(cast("11:11:11.888888" as time(6)) as unsigned), cast(cast("11:11:11.188888" as time(6)) as unsigned);
+cast(cast("11:11:11.888888" as time(6)) as unsigned)	cast(cast("11:11:11.188888" as time(6)) as unsigned)
+111112	111111
+select cast(cast("2011-10-10 11:11:11.888888" as datetime(6)) as unsigned);
+cast(cast("2011-10-10 11:11:11.888888" as datetime(6)) as unsigned)
+20111010111112
+SELECT REPEAT('b',10);
+REPEAT('b',10)
+bbbbbbbbbb
+SELECT REPEAT(1,10);
+REPEAT(1,10)
+1111111111
+SELECT REPEAT(1,0);
+REPEAT(1,0)
+
+SELECT REPEAT(1,-1);
+REPEAT(1,-1)
+
+select if(1 > 2, 2, 3), if(1 < 2, 'yes', 'no'), if(null, 1, 2);
+if(1 > 2, 2, 3)	if(1 < 2, 'yes', 'no')	if(null, 1, 2)
+3	yes	2
+select ifnull(1, 0), ifnull(null, 10), ifnull(1/0, 10);
+ifnull(1, 0)	ifnull(null, 10)	ifnull(1/0, 10)
+1	10	10
+select nullif(1, 1), nullif(1, 2), nullif(null, null), nullif(1, null);
+nullif(1, 1)	nullif(1, 2)	nullif(null, null)	nullif(1, null)
+NULL	1	NULL	1
+SELECT LEFT('foobarbar', 5);
+LEFT('foobarbar', 5)
+fooba
+SELECT LEFT('12345', 10);
+LEFT('12345', 10)
+12345
+SELECT LEFT('12345', -1);
+LEFT('12345', -1)
+
+SELECT CONVERT("ABCD" USING ASCII);
+CONVERT("ABCD" USING ASCII)
+ABCD
+SELECT DAYOFMONTH('2007-02-03');
+DAYOFMONTH('2007-02-03')
+3
+SELECT SUBSTRING('Quadratically',5);
+SUBSTRING('Quadratically',5)
+ratically
+SELECT SUBSTRING('foobarbar' FROM 4);
+SUBSTRING('foobarbar' FROM 4)
+barbar
+SELECT SUBSTRING('Quadratically',5,6);
+SUBSTRING('Quadratically',5,6)
+ratica
+SELECT SUBSTRING('Sakila', -3);
+SUBSTRING('Sakila', -3)
+ila
+SELECT SUBSTRING('Sakila', -5, 3);
+SUBSTRING('Sakila', -5, 3)
+aki
+SELECT SUBSTRING('Sakila' FROM -4 FOR 2);
+SUBSTRING('Sakila' FROM -4 FOR 2)
+ki
+select year("2000-01-01"), month("2000-01-01"), day("2000-01-01"), dayofmonth("2000-01-01");
+year("2000-01-01")	month("2000-01-01")	day("2000-01-01")	dayofmonth("2000-01-01")
+2000	1	1	1
+select hour("10:11:12"), minute("10:11:12"), second("10:11:12"), microsecond("10:11:12.123456");
+hour("10:11:12")	minute("10:11:12")	second("10:11:12")	microsecond("10:11:12.123456")
+10	11	12	123456
+select dayofweek("2015-09-01"), weekday("2015-09-01"), yearweek("2015-09-01"), weekofyear("2015-09-01"), week("2015-09-01");
+dayofweek("2015-09-01")	weekday("2015-09-01")	yearweek("2015-09-01")	weekofyear("2015-09-01")	week("2015-09-01")
+3	1	201535	36	35
+SELECT 1, CONVERT(1, CHAR);
+1	CONVERT(1, CHAR)
+1	1
+SELECT 1, CONVERT(1234, CHAR(3));
+1	CONVERT(1234, CHAR(3))
+1	123
+SELECT 1, CONVERT("-1234", SIGNED);
+1	CONVERT("-1234", SIGNED)
+1	-1234
+select extract(microsecond from "2011-11-11 10:10:10.123456");
+extract(microsecond from "2011-11-11 10:10:10.123456")
+123456
+select extract(second from "2011-11-11 10:10:10.123456");
+extract(second from "2011-11-11 10:10:10.123456")
+10
+select extract(minute from "2011-11-11 10:10:10.123456");
+extract(minute from "2011-11-11 10:10:10.123456")
+10
+select extract(hour from "2011-11-11 10:10:10.123456");
+extract(hour from "2011-11-11 10:10:10.123456")
+10
+select extract(day from "2011-11-11 10:10:10.123456");
+extract(day from "2011-11-11 10:10:10.123456")
+11
+select extract(week from "2011-11-11 10:10:10.123456");
+extract(week from "2011-11-11 10:10:10.123456")
+45
+select extract(month from "2011-11-11 10:10:10.123456");
+extract(month from "2011-11-11 10:10:10.123456")
+11
+select extract(quarter from "2011-11-11 10:10:10.123456");
+extract(quarter from "2011-11-11 10:10:10.123456")
+4
+select extract(year from "2011-11-11 10:10:10.123456");
+extract(year from "2011-11-11 10:10:10.123456")
+2011
+select extract(second_microsecond from "2011-11-11 10:10:10.123456");
+extract(second_microsecond from "2011-11-11 10:10:10.123456")
+10123456
+select extract(minute_microsecond from "2011-11-11 10:10:10.123456");
+extract(minute_microsecond from "2011-11-11 10:10:10.123456")
+1010123456
+select extract(minute_second from "2011-11-11 10:10:10.123456");
+extract(minute_second from "2011-11-11 10:10:10.123456")
+1010
+select extract(hour_microsecond from "2011-11-11 10:10:10.123456");
+extract(hour_microsecond from "2011-11-11 10:10:10.123456")
+101010123456
+select extract(hour_second from "2011-11-11 10:10:10.123456");
+extract(hour_second from "2011-11-11 10:10:10.123456")
+101010
+select extract(hour_minute from "2011-11-11 10:10:10.123456");
+extract(hour_minute from "2011-11-11 10:10:10.123456")
+1010
+select extract(day_microsecond from "2011-11-11 10:10:10.123456");
+extract(day_microsecond from "2011-11-11 10:10:10.123456")
+11101010123456
+select extract(day_second from "2011-11-11 10:10:10.123456");
+extract(day_second from "2011-11-11 10:10:10.123456")
+11101010
+select extract(day_minute from "2011-11-11 10:10:10.123456");
+extract(day_minute from "2011-11-11 10:10:10.123456")
+111010
+select extract(day_hour from "2011-11-11 10:10:10.123456");
+extract(day_hour from "2011-11-11 10:10:10.123456")
+1110
+select extract(year_month from "2011-11-11 10:10:10.123456");
+extract(year_month from "2011-11-11 10:10:10.123456")
+201111

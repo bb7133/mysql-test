@@ -1,0 +1,275 @@
+set session sql_mode='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
+drop table if exists t;
+
+create table t (id int, c1 timestamp not null default CURRENT_TIMESTAMP);
+select * from t;
+
+set TIMESTAMP = 1234;
+select @@timestamp;
+
+insert t (id) values (1);
+select * from t;
+
+set TIMESTAMP = 1235;
+insert t (id) values (2);
+select * from t;
+
+insert t (id, c1) values (3, '2015-08-04 00:00:00');
+select * from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp);
+set TIMESTAMP = 1236;
+select @@timestamp;
+
+insert t (id) values (1);
+select * from t;
+
+insert t (id, c1) values (2, '2015-08-04 00:00:00');
+select * from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp default CURRENT_TIMESTAMP);
+set TIMESTAMP = 1237;
+select @@timestamp;
+
+insert t (id) values (1);
+select * from t;
+
+insert t (id, c1) values (2, '2015-08-04 00:00:00');
+select * from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp default '2015-08-04 12:00:00');
+set TIMESTAMP = 1238;
+select @@timestamp;
+
+insert t (id) values (1);
+select * from t;
+
+insert t (id, c1) values (2, '2015-08-04 00:00:00');
+select * from t;
+
+drop table if exists t;
+--error ER_DEFAULT_VALUE
+create table t (id int, c1 timestamp default '12345678');
+set TIMESTAMP = 1239;
+select @@timestamp;
+
+drop table if exists t;
+create table t (id int, c1 timestamp default 20101010111111);
+set TIMESTAMP = 1240;
+select @@timestamp;
+
+insert t (id) values (1);
+select * from t;
+
+drop table if exists t;
+--error ER_DEFAULT_VALUE
+create table t (id int, c1 timestamp default 2010101011111);
+set TIMESTAMP = 1241;
+select @@timestamp;
+
+drop table if exists t;
+create table t (id int, c1 timestamp default 201010101111);
+set TIMESTAMP = 1242;
+select @@timestamp;
+
+insert t (id) values (1);
+select * from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp default 20101010111);
+set TIMESTAMP = 1243;
+select @@timestamp;
+
+insert t (id) values (1);
+select * from t;
+
+drop table if exists t;
+--error ER_DEFAULT_VALUE
+create table t (id int, c1 timestamp default 2010101011);
+set TIMESTAMP = 1244;
+select @@timestamp;
+
+drop table if exists t;
+create table t (id int, c1 timestamp default 201010101);
+set TIMESTAMP = 1245;
+select @@timestamp;
+
+insert t (id) values (1);
+select * from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp default 20101010);
+set TIMESTAMP = 1246;
+select @@timestamp;
+
+insert t (id) values (1);
+select * from t;
+
+drop table if exists t;
+--error ER_DEFAULT_VALUE
+create table t (id int, c1 timestamp default 2010101);
+set TIMESTAMP = 1247;
+select @@timestamp;
+
+drop table if exists t;
+create table t (id int, c1 timestamp default 201010);
+set TIMESTAMP = 1248;
+select @@timestamp;
+
+insert t (id) values (1);
+select * from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp default 20101);
+set TIMESTAMP = 1249;
+select @@timestamp;
+
+insert t (id) values (1);
+select * from t;
+
+drop table if exists t;
+--error ER_DEFAULT_VALUE
+create table t (id int, c1 timestamp default 2010);
+set TIMESTAMP = 1250;
+select @@timestamp;
+
+drop table if exists t;
+create table t (id int, c1 timestamp default 201);
+set TIMESTAMP = 1251;
+select @@timestamp;
+
+insert t (id) values (1);
+select * from t;
+
+drop table if exists t;
+--error ER_DEFAULT_VALUE
+create table t (id int, c1 timestamp default 20);
+set TIMESTAMP = 1252;
+select @@timestamp;
+
+drop table if exists t;
+--error ER_DEFAULT_VALUE
+create table t (id int, c1 timestamp default 2);
+set TIMESTAMP = 1253;
+select @@timestamp;
+
+drop table if exists t;
+create table t (id int, c1 timestamp default 0);
+set TIMESTAMP = 1254;
+select @@timestamp;
+
+insert t (id) values (1);
+select * from t;
+
+drop table if exists t;
+--error ER_DEFAULT_VALUE
+create table t (id int, c1 timestamp default -1);
+set TIMESTAMP = 1255;
+select @@timestamp;
+
+drop table if exists t;
+--error ER_DEFAULT_VALUE
+create table t (id int, c1 timestamp default 99999999999999);
+set TIMESTAMP = 1256;
+select @@timestamp;
+
+drop table if exists t;
+--error ER_DEFAULT_VALUE
+create table t (id int, c1 timestamp default 100000000000000);
+set TIMESTAMP = 1257;
+select @@timestamp;
+
+drop table if exists t;
+--error ER_DEFAULT_VALUE
+create table t (id int, c1 timestamp default 10000101000000);
+set TIMESTAMP = 1258;
+select @@timestamp;
+
+drop table if exists t;
+--error ER_DEFAULT_VALUE
+create table t (id int, c1 timestamp default null);
+set TIMESTAMP = 1259;
+select @@timestamp;
+
+drop table if exists t;
+--error ER_DEFAULT_VALUE
+create table t (id int, c1 timestamp not null default null);
+set TIMESTAMP = 1260;
+select @@timestamp;
+
+drop table if exists t;
+create table t (id int, c1 timestamp null default null);
+set TIMESTAMP = 1261;
+select @@timestamp;
+
+insert t (id) values (1);
+select * from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp not null);
+set TIMESTAMP = 1262;
+select @@timestamp;
+
+insert t (id, c1) values (1, '2015-08-04 00:00:00');
+select * from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp null);
+set TIMESTAMP = 1263;
+select @@timestamp;
+
+insert t (id) values (1);
+select * from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp null default 0);
+set TIMESTAMP = 1264;
+select @@timestamp;
+
+insert t (id) values (1);
+select * from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp not null default 0);
+set TIMESTAMP = 1265;
+select @@timestamp;
+
+insert t (id) values (1);
+select * from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp not null);
+set TIMESTAMP = 1266;
+select @@timestamp;
+
+insert t (id, c1) values (1, '2015-08-04 00:00:00');
+select * from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp default 20150804);
+set TIMESTAMP = 1267;
+select @@timestamp;
+
+insert t (id) values (1);
+select * from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp);
+set TIMESTAMP = 1268;
+select @@timestamp;
+
+insert t (id) values (1);
+select * from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp null default null);
+set TIMESTAMP = 1269;
+select @@timestamp;
+
+insert t values (1, null);
+select * from t;
+set session sql_mode='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
+

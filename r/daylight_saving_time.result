@@ -1,0 +1,38 @@
+drop table if exists t;
+set time_zone = '+00:00';
+create table t(a timestamp);
+insert into t value('1991-05-06 04:59:28');
+set time_zone='Asia/Shanghai';
+select * from t;
+a
+1991-05-06 13:59:28
+set time_zone = '+08:00';
+select * from t;
+a
+1991-05-06 12:59:28
+set time_zone = 'America/Los_Angeles';
+insert into t value('2011-03-13 02:00:00');
+Error 1292: Incorrect timestamp value: '2011-03-13 02:00:00' for column 'a' at row 1
+drop table if exists t;
+set time_zone = '+00:00';
+create table t(a timestamp);
+insert into t value('1988-09-10 15:59:59');
+set time_zone='Asia/Shanghai';
+select * from t;
+a
+1988-09-11 00:59:59
+drop table if exists t;
+set time_zone = '+00:00';
+create table t(a timestamp);
+insert into t value('1988-09-10 15:00:00');
+set time_zone='Asia/Shanghai';
+select * from t;
+a
+1988-09-11 00:00:00
+drop table if exists t;
+set time_zone='Asia/Shanghai';
+create table t(a timestamp);
+insert into t value('1988-09-10 23:59:59');
+select * from t;
+a
+1988-09-10 23:59:59

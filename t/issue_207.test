@@ -1,0 +1,25 @@
+drop table if exists t;
+create table t (begin int);
+insert into t values (1);
+select * from t;
+
+drop table if exists t;
+create table t (BEGIN int);
+insert into t values (1);
+select * from t;
+
+drop table if exists t;
+create table t (value int);
+insert into t values (1);
+select * from t;
+
+drop table if exists t;
+create table t (time int);
+insert into t values (1);
+select * from t;
+
+# TODO: add some reserved keyword testcase and check error
+#drop table if exists t;
+#create table t (values int);
+#insert into t values (1);
+#select * from t;

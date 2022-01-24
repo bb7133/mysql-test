@@ -1,0 +1,9 @@
+drop table if exists t1;
+create table t1(id INT, md5int DOUBLE);
+insert into `t1` values (1, -1.7976931348623157e308),(2, -1.7976931348623157e308);
+select sum(md5int) from t1;
+
+drop table if exists t2;
+create table t2(id INT, md5int DOUBLE);
+insert into `t2` values (1, 1.7976931348623157e308),(2, 1.7976931348623157e308);
+select sum(md5int) from t2;

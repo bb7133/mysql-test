@@ -1,0 +1,297 @@
+# RAND()
+create table t1 (b double generated always as (rand()) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# LOAD_FILE()
+create table t1 (a varchar(64), b varchar(1024) generated always as (load_file(a)) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# CURDATE()
+create table t1 (a datetime generated always as (curdate()) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+drop table if exists t1;
+# CURRENT_DATE(), CURRENT_DATE
+create table t1 (a datetime generated always as (current_date) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+create table t1 (a datetime generated always as (current_date()) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+drop table if exists t1;
+# CURRENT_TIME(), CURRENT_TIME
+create table t1 (a datetime generated always as (current_time) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+create table t1 (a datetime generated always as (current_time()) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+drop table if exists t1;
+# CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP
+create table t1 (a datetime generated always as (current_timestamp()) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+create table t1 (a datetime generated always as (current_timestamp) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+drop table if exists t1;
+# CURTIME()
+create table t1 (a datetime generated always as (curtime()) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+drop table if exists t1;
+# LOCALTIME(), LOCALTIME
+create table t1 (a datetime, b varchar(10) generated always as (localtime()) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+create table t1 (a datetime, b varchar(10) generated always as (localtime) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# LOCALTIMESTAMP, LOCALTIMESTAMP()(v4.0.6)
+create table t1 (a datetime, b varchar(10) generated always as (localtimestamp()) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+create table t1 (a datetime, b varchar(10) generated always as (localtimestamp) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# NOW()
+create table t1 (a datetime, b varchar(10) generated always as (now()) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# STATEMENT_DIGEST
+create table t1 (a int, b int generated always as (statement_digest(a)) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# STATEMENT_DIGEST_TEXT
+create table t1 (a int, b int generated always as (statement_digest_text(a)) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# SYSDATE()
+create table t1 (a int, b varchar(10) generated always as (sysdate()) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# UNIX_TIMESTAMP()
+create table t1 (a datetime, b datetime generated always as (unix_timestamp()) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# UTC_DATE()
+create table t1 (a datetime, b datetime generated always as (utc_date()) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# UTC_TIME()
+create table t1 (a datetime, b datetime generated always as (utc_time()) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# UTC_TIMESTAMP()
+create table t1 (a datetime, b datetime generated always as (utc_timestamp()) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# MATCH()
+create table t1 (a varchar(32), b bool generated always as (match a against ('sample text')) virtual);
+[parser:1064]You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 67 near "a against ('sample text')) virtual);" 
+drop table if exists t1;
+# BENCHMARK()
+create table t1 (a varchar(1024), b varchar(1024) generated always as (benchmark(a,3)) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# CONNECTION_ID()
+create table t1 (a int generated always as (connection_id()) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+drop table if exists t1;
+# CURRENT_USER(), CURRENT_USER
+create table t1 (a varchar(32) generated always as (current_user()) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+create table t1 (a varchar(32) generated always as (current_user) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+drop table if exists t1;
+# DATABASE()
+create table t1 (a varchar(1024), b varchar(1024) generated always as (database()) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# FOUND_ROWS()
+create table t1 (a varchar(1024), b varchar(1024) generated always as (found_rows()) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# GET_LOCK()
+create table t1 (a varchar(1024), b varchar(1024) generated always as (get_lock(a,10)) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# IS_FREE_LOCK()
+create table t1 (a varchar(1024), b varchar(1024) generated always as (is_free_lock(a)) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# IS_USED_LOCK()
+create table t1 (a varchar(1024), b varchar(1024) generated always as (is_used_lock(a)) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# LAST_INSERT_ID()
+create table t1 (a int generated always as (last_insert_id()) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+drop table if exists t1;
+# MASTER_POS_WAIT()
+create table t1 (a varchar(32), b int generated always as (master_pos_wait(a,0,2)) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# NAME_CONST()
+create table t1 (a varchar(32) generated always as (name_const('test',1)) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+drop table if exists t1;
+# RELEASE_LOCK()
+create table t1 (a varchar(32), b int generated always as (release_lock(a)) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# ROW_COUNT()
+create table t1 (a int generated always as (row_count()) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+drop table if exists t1;
+# SCHEMA()
+create table t1 (a varchar(32) generated always as (schema()) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+drop table if exists t1;
+# SESSION_USER()
+create table t1 (a varchar(32) generated always as (session_user()) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+drop table if exists t1;
+# SLEEP()
+create table t1 (a int, b int generated always as (sleep(a)) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# SYSTEM_USER()
+create table t1 (a varchar(32) generated always as (system_user()) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+drop table if exists t1;
+# USER()
+create table t1 (a varchar(1024), b varchar(1024) generated always as (user()) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# UUID_SHORT()
+create table t1 (a varchar(1024) generated always as (uuid_short()) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+drop table if exists t1;
+# UUID()
+create table t1 (a varchar(1024) generated always as (uuid()) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+drop table if exists t1;
+# VALUES()
+create table t1 (a varchar(1024), b varchar(1024) generated always as (values(a)) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# VERSION()
+create table t1 (a varchar(1024), b varchar(1024) generated always as (version()) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# ENCRYPT()
+create table t1 (a varchar(1024), b varchar(1024) generated always as (encrypt(a)) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+# Stored procedures
+# Unknown functions
+create table t1 (a int generated always as (f1()) virtual);
+Error 3102: Expression of generated column 'a' contains a disallowed function.
+drop table if exists t1;
+#
+# GROUP BY FUNCTIONS
+#
+# AVG()
+create table t1 (a int, b int generated always as (avg(a)) virtual);
+Error 1111: Invalid use of group function
+drop table if exists t1;
+# BIT_AND()
+create table t1 (a int, b int generated always as (bit_and(a)) virtual);
+Error 1111: Invalid use of group function
+drop table if exists t1;
+# BIT_OR()
+create table t1 (a int, b int generated always as (bit_or(a)) virtual);
+Error 1111: Invalid use of group function
+drop table if exists t1;
+# BIT_XOR()
+create table t1 (a int, b int generated always as (bit_xor(a)) virtual);
+Error 1111: Invalid use of group function
+drop table if exists t1;
+# COUNT(DISTINCT)
+create table t1 (a int, b int generated always as (count(distinct a)) virtual);
+Error 1111: Invalid use of group function
+drop table if exists t1;
+# COUNT()
+create table t1 (a int, b int generated always as (count(a)) virtual);
+Error 1111: Invalid use of group function
+drop table if exists t1;
+# GROUP_CONCAT()
+create table t1 (a varchar(32), b int generated always as (group_concat(a,'')) virtual);
+Error 1111: Invalid use of group function
+drop table if exists t1;
+# MAX()
+create table t1 (a int, b int generated always as (max(a)) virtual);
+Error 1111: Invalid use of group function
+drop table if exists t1;
+# MIN()
+create table t1 (a int, b int generated always as (min(a)) virtual);
+Error 1111: Invalid use of group function
+drop table if exists t1;
+# STD()
+create table t1 (a int, b int generated always as (std(a)) virtual);
+Error 1111: Invalid use of group function
+drop table if exists t1;
+# STDDEV_POP()
+create table t1 (a int, b int generated always as (stddev_pop(a)) virtual);
+Error 1111: Invalid use of group function
+drop table if exists t1;
+# STDDEV_SAMP()
+create table t1 (a int, b int generated always as (stddev_samp(a)) virtual);
+Error 1111: Invalid use of group function
+drop table if exists t1;
+# STDDEV()
+create table t1 (a int, b int generated always as (stddev(a)) virtual);
+Error 1111: Invalid use of group function
+drop table if exists t1;
+# SUM()
+create table t1 (a int, b int generated always as (sum(a)) virtual);
+Error 1111: Invalid use of group function
+drop table if exists t1;
+# VAR_POP()
+create table t1 (a int, b int generated always as (var_pop(a)) virtual);
+Error 1111: Invalid use of group function
+drop table if exists t1;
+# VAR_SAMP()
+create table t1 (a int, b int generated always as (var_samp(a)) virtual);
+Error 1111: Invalid use of group function
+drop table if exists t1;
+# VARIANCE()
+create table t1 (a int, b int generated always as (variance(a)) virtual);
+Error 1111: Invalid use of group function
+drop table if exists t1;
+#
+# XML FUNCTIONS
+#
+# UpdateXML()
+create table t1 (a varchar(1024), b varchar(1024) generated always as (UpdateXML(a,'/a','<e>fff</e>')) virtual);
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+drop table if exists t1;
+#
+# Sub-selects
+#
+create table t1 (a int);
+create table t2 (a int, b int generated always as (select count(*) virtual from t1));
+[parser:1064]You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 57 near "select count(*) virtual from t1));" 
+drop table t1;
+#
+# Long expression
+create table t1 (a int, b varchar(300) generated always as (concat(a,'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')) virtual);
+drop table t1;
+create table t1 (a int, b varchar(300) generated always as (concat(a,'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')) virtual);
+drop table t1;
+#
+# Constant expression
+create table t1 (a int generated always as (PI()) virtual);
+drop table t1;
+# bug#21098119: GCOL WITH MATCH/AGAINST -->
+# ASSERTION FAILED: TR && TR->TABLE->FILE
+#
+create table t1 (a int);
+alter table t1 add column r blob generated always
+as (match(a) against ('' in boolean mode)) virtual;
+drop table t1;
+#
+# Bug#26279884 : VIRTUAL COLUMNS ALLOW DEPRECATED FUNCTION TO BE USED
+#
+# JSON_MERGE()
+CREATE TABLE t2(a JSON, b JSON, c JSON  GENERATED ALWAYS AS  (JSON_MERGE(a,b)));
+Error 3102: Expression of generated column 'c' contains a disallowed function.
+drop table if exists t2;
+#
+# Bug#29342245 ASSERTION WHEN CREATING A FUNCTIONAL INDEX ON A SUBQUERY WITH UNION
+#
+CREATE TABLE t1 (x INT);
+CREATE TABLE t2 (y INT, z INT AS ((SELECT 1 FROM t1 UNION SELECT 1 FROM t1)));
+Error 3102: Expression of generated column 'z' contains a disallowed function.
+DROP TABLE t1;

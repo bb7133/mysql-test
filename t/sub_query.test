@@ -1,0 +1,103 @@
+DROP TABLE IF EXISTS t;
+
+CREATE TABLE t (
+    c1 int,
+    c2 int,
+    c3 int,
+    PRIMARY KEY (c1)
+);
+
+INSERT INTO t VALUES (11,21,31);
+INSERT INTO t VALUES (12,22,32);
+
+DROP TABLE IF EXISTS t1;
+
+CREATE TABLE t1 (c11 TEXT);
+INSERT INTO t1 VALUES ("c11");
+
+SELECT *, (SELECT c11 FROM t1) FROM t;
+
+# row subquery
+drop table if exists t;
+create table t (c int);
+
+select row(1, 1) > row(1,1), row(1, 1) = row(1, 1), row(1, 1) < row(1,1);
+select (1, 1) > (1,1), (1, 1) = row(1, 1), row(1, 1) < (1,1);
+--error ErrOperandColumns
+select row(1, 1) + row(1, 1);
+--error ErrOperandColumns
+select row(1, 1) > row(1, 1, 1);
+--error ErrOperandColumns
+select row(1, 1) > null;
+--error ErrOperandColumns
+select row(1, 1) is null;
+--error ErrOperandColumns
+select row(1, 1) is true;
+--error ErrOperandColumns
+select row(1, 1);
+--error ErrOperandColumns
+select * from t group by row(c, 1);
+--error ErrOperandColumns
+select * from t order by row(c, 1);
+--error ErrOperandColumns
+select * from t having row(c, 1);
+
+# any/some/all subquery
+drop table if exists t;
+create table t(c int);
+insert t values (1),(2),(3);
+select * from t;
+select 0 > any (select c from t);
+select 2 > any (select c from t);
+select null > any (select c from t);
+select 0 > some (select c from t);
+select 2 > some (select c from t);
+select null > some (select c from t);
+select 0 > all (select c from t);
+select 2 > all (select c from t);
+select 10 > all (select c from t);
+insert t values (null);
+select 0 > any (select c from t);
+select 2 > any (select c from t);
+select null > any (select c from t);
+select 0 > all (select c from t);
+select 2 > all (select c from t);
+select 10 > all (select c from t);
+select null > all (select c from t);
+drop table if exists t1;
+create table t1(c1 int, c2 int);
+insert t1 (c1) values (1),(2),(3);
+--error ErrOperandColumns
+select 0 > any (select * from t1);
+--error ErrOperandColumns
+select 0 > any (select c1, c2 from t1);
+
+# exists subquery
+select exists (select 1);
+select + exists (select 1);
+select - exists (select 1);
+select not exists (select 1);
+select exists (select null);
+select not exists (select null);
+drop table if exists t;
+create table t(c int);
+select c from t where exists (select * from t);
+select c from t where not exists (select * from t);
+insert t values (1), (2);
+select c from t where exists (select * from t);
+select c from t where not exists (select * from t);
+truncate table t;
+insert t values (null),(null);
+select c from t where exists (select * from t);
+select c from t where not exists (select * from t);
+
+# agg as outer child of apply and receives empty input(https://github.com/pingcap/tidb/issues/13749)
+drop table if exists t1, t2;
+create table t1(a int);
+create table t2(a int);
+insert into t1 values(1);
+insert into t2 values(1);
+select count(1), (select count(1) from t2 where t2.a > t1.a) as field from t1 where t1.a = 100;
+select /*+ agg_to_cop() */ count(1), (select count(1) from t2 where t2.a > t1.a) as field from t1 where t1.a = 100;
+select count(1), (select count(1) from t2 where t2.a > t1.a) as field from t1 where t1.a = 1;
+select /*+ agg_to_cop() */ count(1), (select count(1) from t2 where t2.a > t1.a) as field from t1 where t1.a = 1;

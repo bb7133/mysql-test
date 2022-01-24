@@ -1,0 +1,836 @@
+drop table if exists t1,t2;
+drop database if exists alter1_test;
+SET sql_mode = 'NO_ENGINE_SUBSTITUTION,NO_AUTO_CREATE_USER';
+create table t1 (
+col1 int not null auto_increment primary key,
+col2 varchar(30) not null,
+col3 varchar (20) not null,
+col4 varchar(4) not null,
+col5 enum('PENDING', 'ACTIVE', 'DISABLED') not null,
+col6 int not null, to_be_deleted int);
+insert into t1 values (2,4,3,5,"PENDING",1,7);
+alter table t1 add column col4_5 varchar(20) not null after col4;
+alter table t1 add column col7 varchar(30) not null after col5;
+alter table t1 add column col8 datetime not null;
+alter table t1 drop column to_be_deleted;
+alter table t1 change column col2 fourth varchar(30) not null after col3;
+alter table t1 modify column col6 int not null first;
+select * from t1;
+col6	col1	col3	fourth	col4	col4_5	col5	col7	col8
+1	2	3	4	5		PENDING		0000-00-00 00:00:00
+drop table t1;
+CREATE TABLE t1 (
+GROUP_ID int(10) unsigned DEFAULT '0' NOT NULL,
+LANG_ID smallint(5) unsigned DEFAULT '0' NOT NULL,
+NAME varchar(80) DEFAULT '' NOT NULL,
+PRIMARY KEY (GROUP_ID,LANG_ID),
+KEY NAME (NAME));
+ALTER TABLE t1 CHANGE NAME NAME CHAR(80) not null;
+SHOW FULL COLUMNS FROM t1;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+GROUP_ID	int(10) unsigned	NULL	NO	PRI	0		#	
+LANG_ID	smallint(5) unsigned	NULL	NO	PRI	0		#	
+NAME	char(80)	utf8mb4_bin	NO	MUL	NULL		#	
+DROP TABLE t1;
+CREATE TABLE t1 (AnamneseId int(10) unsigned NOT NULL auto_increment,B BLOB,PRIMARY KEY (AnamneseId)) engine=myisam;
+insert into t1 values (null,"hello");
+LOCK TABLES t1 WRITE;
+ALTER TABLE t1 ADD Column new_col int not null;
+UNLOCK TABLES;
+DROP TABLE t1;
+create table t1 (name char(15));
+insert into t1 (name) values ("current");
+create database alter1_test;
+create table alter1_test.t1 (name char(15));
+insert into alter1_test.t1 (name) values ("test");
+select * from t1;
+name
+current
+select * from alter1_test.t1;
+name
+test
+alter table t1 rename alter1_test.t1;
+Error 1050: Table 'alter1_test.t1' already exists
+select * from t1;
+name
+current
+select * from alter1_test.t1;
+name
+test
+drop table t1;
+drop database alter1_test;
+create table t1 (i int unsigned not null auto_increment primary key);
+alter table t1 rename t2;
+alter table t2 rename t1;
+alter table t1 add c char(10);
+alter table t1 comment "no comment";
+show columns from t1;
+Field	Type	Null	Key	Default	Extra
+i	int(10) unsigned	NO	PRI	NULL	auto_increment
+c	char(10)	YES		NULL	
+drop table t1;
+create table t1 (a int);
+alter table t1 rename to ``;
+Error 1103: Incorrect table name ''
+rename table t1 to ``;
+Error 1103: Incorrect table name ''
+drop table t1;
+create table t1 (a int, b int, key(a));
+insert into t1 values (1,1), (2,2);
+alter table t1 drop key no_such_key;
+Error 1091: index no_such_key doesn't exist
+alter table t1 drop key a;
+drop table t1;
+create table t1 ( a timestamp );
+alter table t1 add unique ( a(1) );
+Error 1089: Incorrect prefix key; the used key part isn't a string, the used length is longer than the key part, or the storage engine doesn't support unique prefix keys
+drop table t1;
+CREATE TABLE t1 (f1 TIMESTAMP NULL DEFAULT NULL, f2 INT(11) DEFAULT NULL) ENGINE=MYISAM DEFAULT CHARSET=utf8;
+INSERT INTO t1 VALUES (NULL, NULL), ("2009-10-09 11:46:19", 2);
+ALTER TABLE t1 CHANGE COLUMN f1 f1_no_real_change TIMESTAMP NULL DEFAULT NULL;
+DROP TABLE t1;
+"Now will test with one unique index"
+create table t1(a int, b char(10), unique(a));
+show indexes from t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	0	a	1	a	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+alter table t1 disable keys;
+show indexes from t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	0	a	1	a	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+alter table t1 enable keys;
+"If no copy on noop change, this won't touch the data file"
+"Unique index, no change"
+alter table t1 modify a int;
+alter table t1 disable keys;
+show indexes from t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	0	a	1	a	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+"Change the type implying data copy"
+"Unique index, no change"
+alter table t1 modify a bigint;
+alter table t1 disable keys;
+show indexes from t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	0	a	1	a	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+alter table t1 modify a bigint;
+show indexes from t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	0	a	1	a	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+drop table t1;
+"Now will test with one unique and one non-unique index"
+create table t1(a int, b char(10), unique(a), key(b));
+show indexes from t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	0	a	1	a	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+t1	1	b	1	b	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+alter table t1 disable keys;
+show indexes from t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	0	a	1	a	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+t1	1	b	1	b	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+alter table t1 enable keys;
+"If no copy on noop change, this won't touch the data file"
+"The non-unique index will be disabled"
+alter table t1 modify a int;
+alter table t1 disable keys;
+show indexes from t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	0	a	1	a	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+t1	1	b	1	b	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+alter table t1 enable keys;
+show indexes from t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	0	a	1	a	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+t1	1	b	1	b	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+"Change the type implying data copy"
+"The non-unique index will be disabled"
+alter table t1 modify a bigint;
+alter table t1 disable keys;
+show indexes from t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	0	a	1	a	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+t1	1	b	1	b	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+drop table t1;
+create database alter1_test;
+create table t1 (c1 int);
+alter table t1 rename alter1_test.t1;
+drop table t1;
+Error 1051: Unknown table 'alter_table1.t1'
+alter table alter1_test.t1 rename t1;
+drop table t1;
+create table t1 (c1 int);
+use alter1_test;
+drop database alter1_test;
+alter table alter_table1.t1 rename t1;
+Error 1046: No database selected
+alter table alter_table1.t1 rename alter_table1.t1;
+use alter_table1;
+drop table t1;
+CREATE TABLE t1(a INT) ROW_FORMAT=FIXED;
+CREATE INDEX i1 ON t1(a);
+SHOW CREATE TABLE t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `a` int(11) DEFAULT NULL,
+  KEY `i1` (`a`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+DROP INDEX i1 ON t1;
+SHOW CREATE TABLE t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `a` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+DROP TABLE t1;
+DROP TABLE IF EXISTS bug24219;
+DROP TABLE IF EXISTS bug24219_2;
+CREATE TABLE bug24219 (a INT, INDEX(a));
+SHOW INDEX FROM bug24219;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+bug24219	1	a	1	a	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+ALTER TABLE bug24219 RENAME TO bug24219_2;
+ALTER TABLE bug24219_2 DISABLE KEYS;
+SHOW INDEX FROM bug24219_2;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+bug24219_2	1	a	1	a	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+DROP TABLE bug24219_2;
+create table t1 (mycol int(10) not null);
+alter table t1 alter column mycol set default 0;
+desc t1;
+Field	Type	Null	Key	Default	Extra
+mycol	int(10)	NO		0	
+drop table t1;
+create table t1(id int(8) primary key auto_increment) engine=heap;
+insert into t1 values (null);
+insert into t1 values (null);
+select * from t1;
+id
+1
+2
+alter table t1 auto_increment = 50;
+alter table t1 engine = myisam;
+insert into t1 values (null);
+select count(id) from t1 where id > 50;
+count(id)
+1
+alter table t1 engine = heap;
+insert into t1 values (null);
+select count(id) from t1 where id > 50;
+count(id)
+2
+drop table t1;
+create table t1 (t varchar(255) default null, key t (t(80)))
+engine=myisam default CHARSET=utf8mb4;
+alter table t1 change t t text;
+drop table t1;
+CREATE TABLE t1 (s CHAR(8) BINARY);
+INSERT INTO t1 VALUES ('test');
+SELECT LENGTH(s) FROM t1;
+LENGTH(s)
+4
+ALTER TABLE t1 MODIFY s CHAR(10) BINARY;
+SELECT LENGTH(s) FROM t1;
+LENGTH(s)
+4
+DROP TABLE t1;
+CREATE TABLE t1 (s BINARY(8));
+INSERT INTO t1 VALUES ('test');
+SELECT LENGTH(s) FROM t1;
+LENGTH(s)
+8
+SELECT HEX(s) FROM t1;
+HEX(s)
+7465737400000000
+ALTER TABLE t1 MODIFY s BINARY(10);
+SELECT HEX(s) FROM t1;
+HEX(s)
+74657374000000000000
+SELECT LENGTH(s) FROM t1;
+LENGTH(s)
+10
+DROP TABLE t1;
+CREATE TABLE t1 (v VARCHAR(3), b INT);
+INSERT INTO t1 VALUES ('abc', 5);
+SELECT * FROM t1;
+v	b
+abc	5
+ALTER TABLE t1 MODIFY COLUMN v VARCHAR(4);
+SELECT * FROM t1;
+v	b
+abc	5
+DROP TABLE t1;
+DROP TABLE IF EXISTS t1;
+DROP TABLE IF EXISTS t2;
+CREATE TABLE t1 (
+int_field INTEGER UNSIGNED NOT NULL,
+char_field CHAR(10),
+INDEX(`int_field`)
+);
+DESCRIBE t1;
+Field	Type	Null	Key	Default	Extra
+int_field	int(10) unsigned	NO	MUL	NULL	
+char_field	char(10)	YES		NULL	
+SHOW INDEXES FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	1	int_field	1	int_field	A	0	NULL	NULL		BTREE			YES	NULL	NO
+INSERT INTO t1 VALUES (1, "edno"), (1, "edno"), (2, "dve"), (3, "tri"), (5, "pet");
+"Non-copy data change - new frm, but old data and index files"
+ALTER TABLE t1 CHANGE int_field unsigned_int_field INTEGER UNSIGNED NOT NULL;
+ALTER TABLE t1 RENAME t2;
+SELECT * FROM t1 ORDER BY int_field;
+Error 1146: Table 'alter_table1.t1' doesn't exist
+SELECT * FROM t2 ORDER BY unsigned_int_field;
+unsigned_int_field	char_field
+1	edno
+1	edno
+2	dve
+3	tri
+5	pet
+DESCRIBE t2;
+Field	Type	Null	Key	Default	Extra
+unsigned_int_field	int(10) unsigned	NO	MUL	NULL	
+char_field	char(10)	YES		NULL	
+DESCRIBE t2;
+Field	Type	Null	Key	Default	Extra
+unsigned_int_field	int(10) unsigned	NO	MUL	NULL	
+char_field	char(10)	YES		NULL	
+ALTER TABLE t2 MODIFY unsigned_int_field BIGINT UNSIGNED NOT NULL;
+DESCRIBE t2;
+Field	Type	Null	Key	Default	Extra
+unsigned_int_field	bigint(20) unsigned	NO	MUL	NULL	
+char_field	char(10)	YES		NULL	
+DROP TABLE t2;
+CREATE TABLE t1 (f1 INT, f2 INT, f3 INT);
+INSERT INTO t1 VALUES (1, 2, NULL);
+SELECT * FROM t1;
+f1	f2	f3
+1	2	NULL
+ALTER TABLE t1 MODIFY COLUMN f3 INT AFTER f1;
+SELECT * FROM t1;
+f1	f3	f2
+1	NULL	2
+ALTER TABLE t1 MODIFY COLUMN f3 INT AFTER f2;
+SELECT * FROM t1;
+f1	f2	f3
+1	2	NULL
+DROP TABLE t1;
+create table t1 (c char(10) default "Two");
+lock table t1 write;
+insert into t1 values ();
+alter table t1 modify c char(10) default "Three";
+unlock tables;
+select * from t1;
+c
+Two
+admin check table t1;
+
+drop table t1;
+#
+# Bug #31145: ALTER TABLE DROP COLUMN, ADD COLUMN crashes (linux)
+#   or freezes (win) the server
+#
+CREATE TABLE t1 (a TEXT, id INT, b INT);
+ALTER TABLE t1 DROP COLUMN a;
+ALTER TABLE t1 ADD COLUMN c TEXT FIRST;
+DROP TABLE t1;
+#
+# Test for bug #12652385 - "61493: REORDERING COLUMNS TO POSITION
+#                           FIRST CAN CAUSE DATA TO BE CORRUPTED".
+#
+drop table if exists t1;
+# Use MyISAM engine as the fact that InnoDB doesn't support
+# in-place ALTER TABLE in cases when columns are being renamed
+# hides some bugs.
+create table t1 (i int, j int) engine=myisam;
+insert into t1 value (1, 2);
+# First, test for original problem described in the bug report.
+select * from t1;
+i	j
+1	2
+# Change of column order by the below ALTER TABLE statement should
+# affect both column names and column contents.
+alter table t1 modify column j int first;
+select * from t1;
+j	i
+2	1
+# Now test for similar problem with the same root.
+# The below ALTER TABLE should change not only the name but
+# also the value for the last column of the table.
+alter table t1 drop column i;
+alter table t1 add column k int default 0;
+select * from t1;
+j	k
+2	0
+# Clean-up.
+drop table t1;
+End of 5.1 tests
+CREATE TABLE t1(c CHAR(10),
+i INT UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY);
+INSERT INTO t1 VALUES('a',2),('b',4),('c',6);
+ALTER TABLE t1 AUTO_INCREMENT = 1;
+DROP TABLE t1;
+CREATE TABLE t1 (a CHAR(1), PRIMARY KEY (a(255)));
+Error 1089: Incorrect prefix key; the used key part isn't a string, the used length is longer than the key part, or the storage engine doesn't support unique prefix keys
+CREATE TABLE t1 (a CHAR(1));
+ALTER TABLE t1 ADD KEY (a(20));
+Error 1089: Incorrect prefix key; the used key part isn't a string, the used length is longer than the key part, or the storage engine doesn't support unique prefix keys
+CREATE UNIQUE INDEX i1 ON t1 (a(20));
+Error 1089: Incorrect prefix key; the used key part isn't a string, the used length is longer than the key part, or the storage engine doesn't support unique prefix keys
+CREATE INDEX i2 ON t1 (a(20));
+Error 1089: Incorrect prefix key; the used key part isn't a string, the used length is longer than the key part, or the storage engine doesn't support unique prefix keys
+DROP TABLE t1;
+CREATE TABLE t1 (id int);
+INSERT INTO t1 VALUES (1), (2);
+ALTER TABLE t1 ADD COLUMN (f1 INT);
+ALTER TABLE t1 ADD COLUMN (f2 INT);
+ALTER TABLE t1 ADD KEY f2k(f2);
+DROP TABLE t1;
+#
+# Test for bug #53820 "ALTER a MEDIUMINT column table causes full
+#                      table copy".
+#
+DROP TABLE IF EXISTS t1;
+CREATE TABLE t1 (a INT, b MEDIUMINT);
+INSERT INTO t1 VALUES (1, 1), (2, 2);
+# The below ALTER should not copy table and so no rows should
+# be shown as affected.
+ALTER TABLE t1 CHANGE a id INT;
+DROP TABLE t1;
+# Additional coverage for refactoring which is made as part
+# of fix for bug #27480 "Extend CREATE TEMPORARY TABLES privilege
+# to allow temp table operations".
+#
+# At some point the below test case failed on assertion.
+DROP TABLE IF EXISTS t1;
+#
+# WL#5534 Online ALTER, Phase 1
+#
+# Single thread tests.
+# See innodb_mysql_sync.test for multi thread tests.
+DROP TABLE IF EXISTS t1;
+CREATE TABLE t1(a INT PRIMARY KEY, b INT) engine=InnoDB;
+CREATE TABLE m1(a INT PRIMARY KEY, b INT) engine=MyISAM;
+INSERT INTO t1 VALUES (1,1), (2,2);
+INSERT INTO m1 VALUES (1,1), (2,2);
+#
+# 1: Test ALGORITHM keyword
+#
+# --enable_info allows us to see how many rows were updated
+# by ALTER TABLE. in-place will show 0 rows, while copy > 0.
+ALTER TABLE t1 ADD INDEX i1(b);
+ALTER TABLE t1 ADD INDEX i2(b), ALGORITHM= DEFAULT;
+ALTER TABLE t1 ADD INDEX i3(b), ALGORITHM= COPY;
+ALTER TABLE t1 ADD INDEX i4(b), ALGORITHM= INPLACE;
+ALTER TABLE m1 ENABLE KEYS;
+ALTER TABLE m1 ENABLE KEYS, ALGORITHM= DEFAULT;
+ALTER TABLE m1 ENABLE KEYS, ALGORITHM= COPY;
+ALTER TABLE m1 ENABLE KEYS, ALGORITHM= INPLACE;
+ALTER TABLE t1 DROP INDEX i1;
+ALTER TABLE t1 DROP INDEX i2;
+ALTER TABLE t1 DROP INDEX i3;
+ALTER TABLE t1 DROP INDEX i4;
+#
+# 2: Test ALGORITHM + old_alter_table
+#
+SET SESSION old_alter_table= 1;
+ALTER TABLE t1 ADD INDEX i1(b);
+ALTER TABLE t1 ADD INDEX i2(b), ALGORITHM= DEFAULT;
+ALTER TABLE t1 ADD INDEX i3(b), ALGORITHM= COPY;
+ALTER TABLE t1 ADD INDEX i4(b), ALGORITHM= INPLACE;
+ALTER TABLE t1 ADD INDEX i5(b), ALGORITHM= INSTANT;
+Error 1846: ALGORITHM=INSTANT is not supported. Reason: Cannot alter table by INSTANT. Try ALGORITHM=INPLACE.
+SET SESSION old_alter_table= 0;
+ALTER TABLE t1 DROP INDEX i1;
+ALTER TABLE t1 DROP INDEX i2;
+ALTER TABLE t1 DROP INDEX i3;
+ALTER TABLE t1 DROP INDEX i4;
+#
+# 3: Test in-place operation
+#
+ALTER TABLE t1 ADD COLUMN (c1 INT);
+ALTER TABLE t1 ADD COLUMN (c2 INT), ALGORITHM= DEFAULT;
+ALTER TABLE t1 ADD COLUMN (c3 INT), ALGORITHM= COPY;
+ALTER TABLE t1 ADD COLUMN (c4 INT), ALGORITHM= INPLACE;
+ALTER TABLE t1 ADD COLUMN (c5 INT), ALGORITHM= INSTANT;
+ALTER TABLE t1 DROP COLUMN c1;
+ALTER TABLE t1 DROP COLUMN c2;
+ALTER TABLE t1 DROP COLUMN c3;
+ALTER TABLE t1 DROP COLUMN c4;
+#
+# 4: Test LOCK keyword
+#
+ALTER TABLE t1 ADD INDEX i1(b), LOCK= DEFAULT;
+ALTER TABLE t1 ADD INDEX i2(b), LOCK= NONE;
+ALTER TABLE t1 ADD INDEX i3(b), LOCK= SHARED;
+ALTER TABLE t1 ADD INDEX i4(b), LOCK= EXCLUSIVE;
+ALTER TABLE m1 ENABLE KEYS, LOCK= DEFAULT;
+ALTER TABLE m1 ENABLE KEYS, LOCK= NONE;
+ALTER TABLE m1 ENABLE KEYS, LOCK= SHARED;
+ALTER TABLE m1 ENABLE KEYS, LOCK= EXCLUSIVE;
+ALTER TABLE t1 DROP INDEX i1;
+ALTER TABLE t1 DROP INDEX i2;
+ALTER TABLE t1 DROP INDEX i3;
+ALTER TABLE t1 DROP INDEX i4;
+#
+# 5: Test ALGORITHM + LOCK
+#
+ALTER TABLE t1 ADD INDEX i1(b), ALGORITHM= INPLACE, LOCK= NONE;
+ALTER TABLE t1 ADD INDEX i2(b), ALGORITHM= INPLACE, LOCK= SHARED;
+ALTER TABLE t1 ADD INDEX i3(b), ALGORITHM= INPLACE, LOCK= EXCLUSIVE;
+ALTER TABLE t1 ADD INDEX i4(b), ALGORITHM= COPY, LOCK= NONE;
+ALTER TABLE t1 ADD INDEX i5(b), ALGORITHM= COPY, LOCK= SHARED;
+ALTER TABLE t1 ADD INDEX i6(b), ALGORITHM= COPY, LOCK= EXCLUSIVE;
+ALTER TABLE m1 ENABLE KEYS, ALGORITHM= INPLACE, LOCK= NONE;
+ALTER TABLE m1 ENABLE KEYS, ALGORITHM= INPLACE, LOCK= SHARED;
+ALTER TABLE m1 ENABLE KEYS, ALGORITHM= INPLACE, LOCK= EXCLUSIVE;
+ALTER TABLE m1 ENABLE KEYS, ALGORITHM= COPY, LOCK= NONE;
+ALTER TABLE m1 ENABLE KEYS, ALGORITHM= COPY, LOCK= SHARED;
+ALTER TABLE m1 ENABLE KEYS, ALGORITHM= COPY, LOCK= EXCLUSIVE;
+DROP TABLE t1, m1;
+#
+# 6: Possible deadlock involving thr_lock.c
+#
+CREATE TABLE t1(a INT PRIMARY KEY, b INT);
+INSERT INTO t1 VALUES (1,1), (2,2);
+START TRANSACTION;
+INSERT INTO t1 VALUES (3,3);
+# Connection con1
+# Sending:
+# Connection default
+# Waiting until ALTER TABLE is blocked.
+UPDATE t1 SET b = 4;
+COMMIT;
+# Connection con1
+# Reaping: ALTER TABLE t1 DISABLE KEYS
+# Connection default
+DROP TABLE t1;
+#
+# 7: Which operations require copy and which can be done in-place?
+#
+# Test which ALTER TABLE operations are done in-place and
+# which operations are done using temporary table copy.
+#
+# --enable_info allows us to see how many rows were updated
+# by ALTER TABLE. in-place will show 0 rows, while copy > 0.
+#
+DROP TABLE IF EXISTS ti1, ti2, ti3, tm1, tm2, tm3;
+# Single operation tests
+CREATE TABLE ti1(a INT NOT NULL, b INT, c INT) engine=InnoDB;
+CREATE TABLE tm1(a INT NOT NULL, b INT, c INT) engine=MyISAM;
+CREATE TABLE ti2(a INT PRIMARY KEY AUTO_INCREMENT, b INT, c INT) engine=InnoDB;
+CREATE TABLE tm2(a INT PRIMARY KEY AUTO_INCREMENT, b INT, c INT) engine=MyISAM;
+INSERT INTO ti1 VALUES (1,1,1), (2,2,2);
+INSERT INTO ti2 VALUES (1,1,1), (2,2,2);
+INSERT INTO tm1 VALUES (1,1,1), (2,2,2);
+INSERT INTO tm2 VALUES (1,1,1), (2,2,2);
+ALTER TABLE ti1;
+ALTER TABLE tm1;
+ALTER TABLE ti1 ADD COLUMN d VARCHAR(200);
+ALTER TABLE tm1 ADD COLUMN d VARCHAR(200);
+ALTER TABLE ti1 ADD COLUMN d2 VARCHAR(200);
+ALTER TABLE tm1 ADD COLUMN d2 VARCHAR(200);
+ALTER TABLE ti1 ADD COLUMN e ENUM('a', 'b') FIRST;
+ALTER TABLE tm1 ADD COLUMN e ENUM('a', 'b') FIRST;
+ALTER TABLE ti1 ADD COLUMN f INT AFTER a;
+ALTER TABLE tm1 ADD COLUMN f INT AFTER a;
+ALTER TABLE ti1 ADD INDEX ii1(b);
+ALTER TABLE tm1 ADD INDEX im1(b);
+ALTER TABLE ti1 ADD UNIQUE INDEX ii2 (c);
+ALTER TABLE tm1 ADD UNIQUE INDEX im2 (c);
+ALTER TABLE ti1 ADD FULLTEXT INDEX ii3 (d);
+ALTER TABLE tm1 ADD FULLTEXT INDEX im3 (d);
+ALTER TABLE ti1 ADD FULLTEXT INDEX ii4 (d2);
+ALTER TABLE tm1 ADD FULLTEXT INDEX im4 (d2);
+ALTER TABLE ti1 DROP COLUMN d2;
+ALTER TABLE tm1 DROP COLUMN d2;
+ALTER TABLE ti1 ADD CONSTRAINT fi1 FOREIGN KEY (b) REFERENCES ti2(a);
+ALTER TABLE tm1 ADD CONSTRAINT fm1 FOREIGN KEY (b) REFERENCES tm2(a);
+ALTER TABLE ti1 ALTER COLUMN b SET DEFAULT 1;
+ALTER TABLE tm1 ALTER COLUMN b SET DEFAULT 1;
+ALTER TABLE ti1 ALTER COLUMN b DROP DEFAULT;
+ALTER TABLE tm1 ALTER COLUMN b DROP DEFAULT;
+ALTER TABLE ti1 CHANGE COLUMN f g INT;
+ALTER TABLE tm1 CHANGE COLUMN f g INT;
+ALTER TABLE ti1 DROP INDEX ii2;
+ALTER TABLE tm1 DROP INDEX im2;
+ALTER TABLE ti1 DROP FOREIGN KEY fi1;
+ALTER TABLE tm1 DROP FOREIGN KEY fm1;
+ALTER TABLE ti1 RENAME TO ti3;
+ALTER TABLE tm1 RENAME TO tm3;
+ALTER TABLE ti3 RENAME TO ti1;
+ALTER TABLE tm3 RENAME TO tm1;
+ALTER TABLE ti1 DEFAULT CHARACTER SET utf8mb4;
+ALTER TABLE tm1 DEFAULT CHARACTER SET utf8mb4;
+ALTER TABLE ti1 AVG_ROW_LENGTH 10;
+Error 8200: This type of ALTER TABLE is currently unsupported
+ALTER TABLE tm1 AVG_ROW_LENGTH 10;
+Error 8200: This type of ALTER TABLE is currently unsupported
+ALTER TABLE ti1 CHECKSUM 1;
+Error 8200: This type of ALTER TABLE is currently unsupported
+ALTER TABLE tm1 CHECKSUM 1;
+Error 8200: This type of ALTER TABLE is currently unsupported
+ALTER TABLE ti1 COMMENT 'test';
+ALTER TABLE tm1 COMMENT 'test';
+ALTER TABLE ti1 MAX_ROWS 100;
+Error 8200: This type of ALTER TABLE is currently unsupported
+ALTER TABLE tm1 MAX_ROWS 100;
+Error 8200: This type of ALTER TABLE is currently unsupported
+ALTER TABLE ti1 MIN_ROWS 1;
+Error 8200: This type of ALTER TABLE is currently unsupported
+ALTER TABLE tm1 MIN_ROWS 1;
+Error 8200: This type of ALTER TABLE is currently unsupported
+ALTER TABLE ti1 PACK_KEYS 1;
+Error 8200: This type of ALTER TABLE is currently unsupported
+ALTER TABLE tm1 PACK_KEYS 1;
+Error 8200: This type of ALTER TABLE is currently unsupported
+DROP TABLE ti1, ti2, tm1, tm2;
+# Tests of >1 operation (InnoDB)
+CREATE TABLE ti1(a INT PRIMARY KEY AUTO_INCREMENT, b INT) engine=InnoDB;
+INSERT INTO ti1(b) VALUES (1), (2);
+ALTER TABLE ti1 RENAME TO ti3;
+ALTER TABLE ti3 ADD INDEX ii1(b);
+ALTER TABLE ti3 DROP INDEX ii1;
+ALTER TABLE ti3 AUTO_INCREMENT = 5;
+INSERT INTO ti3(b) VALUES (5);
+ALTER TABLE ti3 ADD INDEX ii1(b);
+ALTER TABLE ti3 AUTO_INCREMENT = 7;
+INSERT INTO ti3(b) VALUES (7);
+SELECT count(a) FROM ti3 WHERE a > 7;
+count(a)
+2
+DROP TABLE ti3;
+#
+# 8: Scenario in which ALTER TABLE was returning an unwarranted
+#    ER_ILLEGAL_HA error at some point during work on this WL.
+#
+CREATE TABLE tm1(i INT DEFAULT 1) engine=MyISAM;
+ALTER TABLE tm1 ADD INDEX ii1(i);
+ALTER TABLE tm1 ALTER COLUMN i DROP DEFAULT;
+DROP TABLE tm1;
+#
+# Bug#11815557 60269: MYSQL SHOULD REJECT ATTEMPTS TO CREATE SYSTEM
+#                     TABLES IN INCORRECT ENGINE
+#
+# Note: This test assumes that only MyISAM and InnoDB supports system tables.
+#       If other engines are made to support system tables,
+#       then this test needs to be updated
+#
+use mysql;
+ALTER TABLE db ENGINE=innodb;
+ALTER TABLE user ENGINE=memory;
+ALTER TABLE proc ENGINE=heap;
+Error 1146: Table 'mysql.proc' doesn't exist
+ALTER TABLE func ENGINE=csv;
+Error 1146: Table 'mysql.func' doesn't exist
+ALTER TABLE event ENGINE=merge;
+Error 1146: Table 'mysql.event' doesn't exist
+ALTER TABLE servers ENGINE=merge;
+Error 1146: Table 'mysql.servers' doesn't exist
+ALTER TABLE procs_priv ENGINE=memory;
+Error 1146: Table 'mysql.procs_priv' doesn't exist
+ALTER TABLE tables_priv ENGINE=heap;
+ALTER TABLE columns_priv ENGINE=csv;
+ALTER TABLE time_zone ENGINE=merge;
+Error 1146: Table 'mysql.time_zone' doesn't exist
+ALTER TABLE help_topic ENGINE=merge;
+CREATE TABLE db (dummy int) ENGINE=innodb;
+Error 1050: Table 'mysql.db' already exists
+CREATE TABLE user (dummy int) ENGINE=memory;
+Error 1050: Table 'mysql.user' already exists
+CREATE TABLE proc (dummy int) ENGINE=heap;
+CREATE TABLE func (dummy int) ENGINE=csv;
+CREATE TABLE event (dummy int) ENGINE=merge;
+CREATE TABLE servers (dummy int) ENGINE=merge;
+CREATE TABLE procs_priv (dummy int) ENGINE=memory;
+CREATE TABLE tables_priv (dummy int) ENGINE=heap;
+Error 1050: Table 'mysql.tables_priv' already exists
+CREATE TABLE columns_priv (dummy int) ENGINE=csv;
+Error 1050: Table 'mysql.columns_priv' already exists
+CREATE TABLE time_zone (dummy int) ENGINE=merge;
+CREATE TABLE help_topic (dummy int) ENGINE=merge;
+Error 1050: Table 'mysql.help_topic' already exists
+use alter_table1;
+# End of Bug#11815557
+#
+# The below ALTER TABLE statement should either drop and recreate key
+# under new name, or simply rename it. It should not bring .FRM and
+# InnoDB data-dictionary out of sync thus causing asserts.
+#
+create table t1 (i int, key x(i)) engine=InnoDB;
+alter table t1 drop key x;
+alter table t1 add key X(i);
+alter table t1 alter column i set default 10;
+drop table t1;
+#
+# BUG 19779365: INDEX COMMENT IN ADD INDEX IS IGNORED.
+#
+# After the patch, the alter table reflects the new
+# index comment or the lack of comment for the indexes.
+CREATE TABLE t1(fld1 int, key key1(fld1));
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	1	key1	1	fld1	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+ALTER TABLE t1 DROP INDEX key1;
+ALTER TABLE t1 ADD INDEX key1(fld1) COMMENT 'test';
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	1	key1	1	fld1	A	0	NULL	NULL	YES	BTREE		test	YES	NULL	NO
+DROP TABLE t1;
+CREATE TABLE t1(fld1 int, key key1(fld1) COMMENT 'test');
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	1	key1	1	fld1	A	0	NULL	NULL	YES	BTREE		test	YES	NULL	NO
+ALTER TABLE t1 DROP INDEX key1;
+ALTER TABLE t1 ADD INDEX key1(fld1);
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	1	key1	1	fld1	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+DROP TABLE t1;
+CREATE TABLE t1(fld1 int, key key1(fld1) COMMENT 'test');
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	1	key1	1	fld1	A	0	NULL	NULL	YES	BTREE		test	YES	NULL	NO
+ALTER TABLE t1 DROP INDEX key1;
+ALTER TABLE t1 ADD INDEX key1(fld1) COMMENT 'success';
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	1	key1	1	fld1	A	0	NULL	NULL	YES	BTREE		success	YES	NULL	NO
+DROP TABLE t1;
+CREATE TABLE t1(fld1 int, key key1(fld1) COMMENT 'old comment');
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	1	key1	1	fld1	A	0	NULL	NULL	YES	BTREE		old comment	YES	NULL	NO
+ALTER TABLE t1 DROP INDEX key1;
+ALTER TABLE t1 ADD INDEX key1(fld1) COMMENT 'new comment';
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	1	key1	1	fld1	A	0	NULL	NULL	YES	BTREE		new comment	YES	NULL	NO
+DROP TABLE t1;
+#
+# BUG#16886196 - ALTER TABLE FAILS TO CONVERT TO PREFIX INDEX IN
+#                ALTER_COLUMN_EQUAL_PACK_LENGTH
+SET @orig_sql_mode = @@sql_mode;
+SET sql_mode= '';
+# Test with '767' as index size limit.
+SET GLOBAL innodb_large_prefix=OFF;
+CREATE TABLE t1(fld1 VARCHAR(767), KEY a(fld1)) ENGINE= INNODB;
+INSERT INTO t1 VALUES('a');
+ALTER TABLE t1 CHANGE fld1 fld1 VARCHAR(768), ALGORITHM= INSTANT;
+# Without patch, the below statement will assert in a debug build.
+SELECT COUNT(*) FROM t1 WHERE fld1= 'a';
+COUNT(*)
+1
+# Cleanup.
+DROP TABLE t1;
+SET GLOBAL innodb_large_prefix=default;
+# Test with innodb large prefix indexes(Upto 3072).
+CREATE TABLE t1(fld1 VARCHAR(3072), KEY a(fld1)) CHARSET=ascii ENGINE= INNODB
+ROW_FORMAT= DYNAMIC;
+INSERT INTO t1 VALUES('a');
+ALTER TABLE t1 CHANGE fld1 fld1 VARCHAR(3073), ALGORITHM= INPLACE;
+Error 1071: Specified key was too long; max key length is 3072 bytes
+ALTER TABLE t1 CHANGE fld1 fld1 VARCHAR(3073), ALGORITHM= INSTANT;
+Error 1071: Specified key was too long; max key length is 3072 bytes
+# Without patch, the below statement will assert in a debug build.
+SELECT COUNT(*) FROM t1 WHERE fld1= 'a';
+COUNT(*)
+1
+# Cleanup.
+DROP TABLE t1;
+#Test cases with the session variable 'show_old_temporals'
+#enabled.
+#
+#BUG#20106553: ALTER TABLE WHICH CHANGES INDEX COMMENT IS NOT
+#              LONGER INPLACE/FAST OPERATION.
+#Without the patch, the ALTER TABLE to change the index
+#comment using INPLACE algorithm reports an error.
+CREATE TABLE t1(fld1 int, key key1(fld1)) ENGINE= INNODB;
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	1	key1	1	fld1	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+ALTER TABLE t1 DROP INDEX key1;
+ALTER TABLE t1 ADD INDEX key1(fld1) COMMENT 'test', ALGORITHM= INPLACE;
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	1	key1	1	fld1	A	0	NULL	NULL	YES	BTREE		test	YES	NULL	NO
+DROP TABLE t1;
+CREATE TABLE t1(fld1 int, key key1(fld1) COMMENT 'test') ENGINE= MyISAM;
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	1	key1	1	fld1	A	0	NULL	NULL	YES	BTREE		test	YES	NULL	NO
+ALTER TABLE t1 DROP INDEX key1;
+ALTER TABLE t1 ADD INDEX key1(fld1), ALGORITHM=INPLACE;
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	1	key1	1	fld1	A	0	NULL	NULL	YES	BTREE			YES	NULL	NO
+DROP TABLE t1;
+CREATE TABLE t1(fld1 int, key key1(fld1) COMMENT 'test') ENGINE= INNODB;
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	1	key1	1	fld1	A	0	NULL	NULL	YES	BTREE		test	YES	NULL	NO
+ALTER TABLE t1 DROP INDEX key1;
+ALTER TABLE t1 ADD INDEX key1(fld1) COMMENT 'success', ALGORITHM= INPLACE;
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	1	key1	1	fld1	A	0	NULL	NULL	YES	BTREE		success	YES	NULL	NO
+DROP TABLE t1;
+CREATE TABLE t1(fld1 int, key key1(fld1) COMMENT 'old comment') ENGINE=MyISAM;
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	1	key1	1	fld1	A	0	NULL	NULL	YES	BTREE		old comment	YES	NULL	NO
+ALTER TABLE t1 DROP INDEX key1;
+ALTER TABLE t1 ADD INDEX key1(fld1) COMMENT 'new comment', ALGORITHM= INPLACE;
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	1	key1	1	fld1	A	0	NULL	NULL	YES	BTREE		new comment	YES	NULL	NO
+DROP TABLE t1;
+CREATE TABLE t1(id INT PRIMARY KEY,
+name TEXT,
+KEY nameloc (name(64))
+) DEFAULT CHARSET=utf8mb4;
+ALTER TABLE t1 MODIFY COLUMN name TINYTEXT;
+DROP TABLE t1;
+#
+# BUG#16888677: OUT OF RANGE VALUE ACCEPTED FOR DATETIME COLUMN IN
+#               ALTER TABLE...ADD COLUMN
+SET @saved_sql_mode = @@session.sql_mode;
+# Test case with no SQL_MODE enabled.
+SET SESSION sql_mode= '';
+CREATE TABLE t1(fld1 DATE NOT NULL) ENGINE= INNODB;
+INSERT INTO t1 VALUES('2000-01-01');
+# No warnings or error is reported
+ALTER TABLE t1 ADD COLUMN fld2 DATETIME NOT NULL, ALGORITHM=INPLACE;
+ALTER TABLE t1 ADD COLUMN fld3 DATETIME NOT NULL, ALGORITHM=INSTANT;
+ALTER TABLE t1 ADD COLUMN fld4 DATETIME NOT NULL, ALGORITHM=COPY;
+DROP TABLE t1;
+# Test case with strict mode enabled.
+SET SESSION sql_mode= 'STRICT_ALL_TABLES';
+CREATE TABLE t1(fld1 DATE NOT NULL) ENGINE= INNODB;
+INSERT INTO t1 VALUES('2000-01-01');
+# No warnings or error is reported
+ALTER TABLE t1 ADD COLUMN fld2 DATETIME NOT NULL, ALGORITHM=INPLACE;
+ALTER TABLE t1 ADD COLUMN fld3 DATETIME NOT NULL, ALGORITHM=INSTANT;
+ALTER TABLE t1 ADD COLUMN fld4 DATETIME NOT NULL, ALGORITHM=COPY;
+DROP TABLE t1;
+# Test case with 'NO_ZERO_DATE' enabled.
+SET SESSION sql_mode= 'NO_ZERO_DATE';
+CREATE TABLE t1(fld1 DATE NOT NULL) ENGINE= INNODB;
+INSERT INTO t1 VALUES('2000-01-01');
+# Warnings are reported after patch.
+ALTER TABLE t1 ADD COLUMN fld2 DATETIME NOT NULL, ALGORITHM=INPLACE;
+ALTER TABLE t1 ADD COLUMN fld3 DATETIME NOT NULL, ALGORITHM=INSTANT;
+ALTER TABLE t1 ADD COLUMN fld4 DATETIME NOT NULL, ALGORITHM=COPY;
+DROP TABLE t1;
+# Test case with both 'NO_ZERO_DATE and strict mode' enabled.
+SET SESSION sql_mode= @saved_sql_mode;
+CREATE TABLE t1(fld1 DATE NOT NULL) ENGINE= INNODB;
+INSERT INTO t1 VALUES('2000-01-01');
+# Without patch, the following statement succeeds.
+ALTER TABLE t1 ADD COLUMN fld2 DATETIME NOT NULL, ALGORITHM=INPLACE;
+ALTER TABLE t1 ADD COLUMN fld3 DATETIME NOT NULL, ALGORITHM=INSTANT;
+ALTER TABLE t1 ADD COLUMN fld4 DATETIME NOT NULL, ALGORITHM=COPY;
+TRUNCATE TABLE t1;
+# Operation below succeeds in TiDB no matter if the table has record.
+ALTER TABLE t1 ADD COLUMN fld5 DATETIME NOT NULL, ALGORITHM=INPLACE;
+ALTER TABLE t1 ADD COLUMN fld6 DATETIME NOT NULL, ALGORITHM=INSTANT;
+DROP TABLE t1;

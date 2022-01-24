@@ -1,0 +1,132 @@
+drop table if exists t;
+create table t (id int, c1 datetime not null on update current_timestamp);
+set TIMESTAMP = 1234;
+select @@timestamp;
+@@timestamp
+1234
+insert t values (1, "2015-06-06 00:00:00");
+select * from t;
+id	c1
+1	2015-06-06 00:00:00
+update t set id = 2 where id = 1;
+select * from t;
+id	c1
+2	1970-01-01 08:20:34
+drop table if exists t;
+create table t (id int, c1 datetime null on update current_timestamp);
+set TIMESTAMP = 1235;
+select @@timestamp;
+@@timestamp
+1235
+insert t (id) values (1);
+select * from t;
+id	c1
+1	NULL
+update t set id = 2 where id = 1;
+select * from t;
+id	c1
+2	1970-01-01 08:20:35
+drop table if exists t;
+create table t (id int, c1 datetime on update current_timestamp);
+set TIMESTAMP = 1236;
+select @@timestamp;
+@@timestamp
+1236
+insert t (id) values (1);
+select * from t;
+id	c1
+1	NULL
+update t set id = 2 where id = 1;
+select * from t;
+id	c1
+2	1970-01-01 08:20:36
+drop table if exists t;
+create table t (id int, c1 datetime null default null on update current_timestamp);
+set TIMESTAMP = 1237;
+select @@timestamp;
+@@timestamp
+1237
+insert t (id) values (1);
+select * from t;
+id	c1
+1	NULL
+update t set id = 2 where id = 1;
+select * from t;
+id	c1
+2	1970-01-01 08:20:37
+drop table if exists t;
+create table t (id int, c1 datetime null default 20150606 on update current_timestamp);
+set TIMESTAMP = 1238;
+select @@timestamp;
+@@timestamp
+1238
+insert t (id) values (1);
+select * from t;
+id	c1
+1	2015-06-06 00:00:00
+update t set id = 2 where id = 1;
+select * from t;
+id	c1
+2	1970-01-01 08:20:38
+drop table if exists t;
+create table t (id int, c1 datetime not null default 20150606 on update current_timestamp);
+set TIMESTAMP = 1239;
+select @@timestamp;
+@@timestamp
+1239
+insert t (id) values (1);
+select * from t;
+id	c1
+1	2015-06-06 00:00:00
+update t set id = 2 where id = 1;
+select * from t;
+id	c1
+2	1970-01-01 08:20:39
+drop table if exists t;
+create table t (id int, c1 datetime default 20150606 on update current_timestamp);
+set TIMESTAMP = 1240;
+select @@timestamp;
+@@timestamp
+1240
+insert t (id) values (1);
+select * from t;
+id	c1
+1	2015-06-06 00:00:00
+update t set id = 2 where id = 1;
+select * from t;
+id	c1
+2	1970-01-01 08:20:40
+drop table if exists t;
+create table t (id int, c1 datetime default current_timestamp on update current_timestamp, c2 datetime default 20150606 on update current_timestamp);
+set TIMESTAMP = 1241;
+select @@timestamp;
+@@timestamp
+1241
+insert t set id = 1;
+select * from t;
+id	c1	c2
+1	1970-01-01 08:20:41	2015-06-06 00:00:00
+set TIMESTAMP = 1242;
+select @@timestamp;
+@@timestamp
+1242
+update t set c1 = "2015-06-07 12:12:12" where id = 1;
+select * from t;
+id	c1	c2
+1	2015-06-07 12:12:12	1970-01-01 08:20:42
+set TIMESTAMP = 1243;
+select @@timestamp;
+@@timestamp
+1243
+update t set c2 = "2015-06-08 12:12:12" where c1 = "2015-06-07 12:12:12";
+select * from t;
+id	c1	c2
+1	1970-01-01 08:20:43	2015-06-08 12:12:12
+set TIMESTAMP = 1244;
+select @@timestamp;
+@@timestamp
+1244
+update t set id = 2 where id = 1;
+select * from t;
+id	c1	c2
+2	1970-01-01 08:20:44	1970-01-01 08:20:44

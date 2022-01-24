@@ -1,0 +1,325 @@
+#
+# Bug25303916 WL8131:FLUSH DOES NOT UPDATE THE GRANT STATUS IN
+# mysql.global_grants
+#
+CREATE USER 'u1'@'localhost' IDENTIFIED BY '123';
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO u1@localhost;
+SHOW GRANTS FOR u1@localhost;
+Grants for u1@localhost
+GRANT USAGE ON *.* TO 'u1'@'localhost'
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO 'u1'@'localhost'
+SELECT * FROM mysql.global_grants ORDER BY USER, PRIV, WITH_GRANT_OPTION;
+USER	HOST	PRIV	WITH_GRANT_OPTION
+u1	localhost	SYSTEM_VARIABLES_ADMIN	N
+-------------------------------------------------------------------------
+
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO u1@localhost WITH GRANT OPTION;
+SHOW GRANTS FOR u1@localhost;
+Grants for u1@localhost
+GRANT USAGE ON *.* TO 'u1'@'localhost'
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO 'u1'@'localhost' WITH GRANT OPTION
+SELECT * FROM mysql.global_grants ORDER BY USER, PRIV, WITH_GRANT_OPTION;
+USER	HOST	PRIV	WITH_GRANT_OPTION
+u1	localhost	SYSTEM_VARIABLES_ADMIN	Y
+
+FLUSH PRIVILEGES;
+SHOW GRANTS FOR u1@localhost;
+Grants for u1@localhost
+GRANT USAGE ON *.* TO 'u1'@'localhost'
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO 'u1'@'localhost' WITH GRANT OPTION
+SELECT * FROM mysql.global_grants ORDER BY USER, PRIV, WITH_GRANT_OPTION;
+USER	HOST	PRIV	WITH_GRANT_OPTION
+u1	localhost	SYSTEM_VARIABLES_ADMIN	Y
+
+** Try granting multiple times.This shouldn't result in duplicate entries
+** in either table.
+
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO u1@localhost WITH GRANT OPTION;
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO u1@localhost;
+** Make sure GRANT OPTION is cumulative
+SHOW GRANTS FOR u1@localhost;
+Grants for u1@localhost
+GRANT USAGE ON *.* TO 'u1'@'localhost'
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO 'u1'@'localhost'
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO u1@localhost WITH GRANT OPTION;
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO u1@localhost WITH GRANT OPTION;
+** Only one entry
+SHOW GRANTS FOR u1@localhost;
+Grants for u1@localhost
+GRANT USAGE ON *.* TO 'u1'@'localhost'
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO 'u1'@'localhost' WITH GRANT OPTION
+** Only one dynamic entry
+SELECT * FROM mysql.global_grants ORDER BY USER, PRIV, WITH_GRANT_OPTION;
+USER	HOST	PRIV	WITH_GRANT_OPTION
+u1	localhost	SYSTEM_VARIABLES_ADMIN	Y
+** Only one dynamic entry
+SELECT * FROM information_schema.user_privileges WHERE GRANTEE LIKE '%u1%'
+ORDER BY GRANTEE, PRIVILEGE_TYPE, IS_GRANTABLE;
+GRANTEE	TABLE_CATALOG	PRIVILEGE_TYPE	IS_GRANTABLE
+'u1'@'localhost'	def	SYSTEM_VARIABLES_ADMIN	YES
+'u1'@'localhost'	def	USAGE	NO
+FLUSH PRIVILEGES;
+SHOW GRANTS FOR u1@localhost;
+Grants for u1@localhost
+GRANT USAGE ON *.* TO 'u1'@'localhost'
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO 'u1'@'localhost' WITH GRANT OPTION
+SELECT * FROM mysql.global_grants ORDER BY USER, PRIV, WITH_GRANT_OPTION;
+USER	HOST	PRIV	WITH_GRANT_OPTION
+u1	localhost	SYSTEM_VARIABLES_ADMIN	Y
+
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO u1@localhost;
+SHOW GRANTS FOR u1@localhost;
+Grants for u1@localhost
+GRANT USAGE ON *.* TO 'u1'@'localhost'
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO 'u1'@'localhost'
+SELECT * FROM mysql.global_grants ORDER BY USER, PRIV, WITH_GRANT_OPTION;
+USER	HOST	PRIV	WITH_GRANT_OPTION
+u1	localhost	SYSTEM_VARIABLES_ADMIN	N
+
+REVOKE SYSTEM_VARIABLES_ADMIN ON *.* FROM u1@localhost;
+REVOKE SYSTEM_VARIABLES_ADMIN ON *.* FROM u1@localhost;
+SHOW GRANTS FOR u1@localhost;
+Grants for u1@localhost
+GRANT USAGE ON *.* TO 'u1'@'localhost'
+REVOKE ALL ON *.* FROM u1@localhost;
+SHOW GRANTS FOR u1@localhost;
+Grants for u1@localhost
+GRANT USAGE ON *.* TO 'u1'@'localhost'
+SELECT * FROM information_schema.user_privileges WHERE GRANTEE
+LIKE '%u1%' ORDER BY GRANTEE, PRIVILEGE_TYPE, IS_GRANTABLE;
+GRANTEE	TABLE_CATALOG	PRIVILEGE_TYPE	IS_GRANTABLE
+'u1'@'localhost'	def	USAGE	NO
+INSERT INTO mysql.global_grants VALUES ('u1','localhost','RUBBISH','N');
+FLUSH PRIVILEGES;
+SHOW GRANTS FOR u1@localhost;
+Grants for u1@localhost
+GRANT USAGE ON *.* TO 'u1'@'localhost'
+GRANT RUBBISH ON *.* TO 'u1'@'localhost'
+INSERT INTO mysql.global_grants VALUES ('u1','localhost','RUBBISH','Y');
+Error 1062: Duplicate entry 'u1-localhost-RUBBISH' for key 'PRIMARY'
+INSERT INTO mysql.global_grants VALUES ('u1','localhoster','RUBBISH','N');
+FLUSH PRIVILEGES;
+SHOW GRANTS FOR u1@localhost;
+Grants for u1@localhost
+GRANT USAGE ON *.* TO 'u1'@'localhost'
+GRANT RUBBISH ON *.* TO 'u1'@'localhost'
+DROP USER u1@localhost;
+SELECT * FROM mysql.global_grants ORDER BY USER, PRIV, WITH_GRANT_OPTION;
+USER	HOST	PRIV	WITH_GRANT_OPTION
+u1	localhoster	RUBBISH	N
+SELECT * FROM information_schema.user_privileges WHERE GRANTEE LIKE '%u1%'
+ORDER BY GRANTEE, PRIVILEGE_TYPE, IS_GRANTABLE;
+GRANTEE	TABLE_CATALOG	PRIVILEGE_TYPE	IS_GRANTABLE
+'u1'@'localhoster'	def	RUBBISH	NO
+#
+# Granting both static and dynamic privilege with GRANT OPTION
+# will set both the GRANT OPTION attribut for dynamic privilege grants
+# and the global privilege level GRANT_ACL.
+#
+CREATE USER u1@localhost IDENTIFIED BY 'foo';
+GRANT SYSTEM_VARIABLES_ADMIN, SELECT ON *.* TO u1@localhost WITH GRANT OPTION;
+SHOW GRANTS FOR u1@localhost;
+Grants for u1@localhost
+GRANT SELECT ON *.* TO 'u1'@'localhost' WITH GRANT OPTION
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO 'u1'@'localhost' WITH GRANT OPTION
+SELECT * FROM mysql.global_grants ORDER BY USER, PRIV, WITH_GRANT_OPTION;
+USER	HOST	PRIV	WITH_GRANT_OPTION
+u1	localhoster	RUBBISH	N
+u1	localhost	SYSTEM_VARIABLES_ADMIN	Y
+SELECT * FROM information_schema.user_privileges WHERE GRANTEE LIKE '%u1%'
+ORDER BY GRANTEE, PRIVILEGE_TYPE, IS_GRANTABLE;
+GRANTEE	TABLE_CATALOG	PRIVILEGE_TYPE	IS_GRANTABLE
+'u1'@'localhost'	def	SELECT	YES
+'u1'@'localhost'	def	SYSTEM_VARIABLES_ADMIN	YES
+'u1'@'localhoster'	def	RUBBISH	NO
+#
+# Granting global privileges on a lower privilege level is illegal
+#
+CREATE TABLE t1 (c1 int);
+GRANT SYSTEM_VARIABLES_ADMIN ON t1.* TO u1@localhost;
+Error 3619: Illegal privilege level specified for SYSTEM_VARIABLES_ADMIN
+DROP USER u1@localhost;
+DROP USER IF EXISTS u1;
+DROP TABLE t1;
+#
+# Bug25548133 MYSQL.GLOBAL_GRANTS ACCEPT INVALID PRIVILEGES
+#
+# Insert valid privilege ID with an unknown user ID
+INSERT INTO mysql.global_grants VALUES('u1', '%', 'ROUTINE_GRANT', 'Y');
+FLUSH PRIVILEGES;
+SHOW GRANTS FOR `u1`@`%`;
+Grants for u1@%
+GRANT ROUTINE_GRANT ON *.* TO 'u1'@'%' WITH GRANT OPTION
+# Insert invalid privilege ID with an unknown user ID
+INSERT INTO mysql.global_grants VALUES('u1_non', '%', 'HELLOWORLD', 'Y');
+FLUSH PRIVILEGES;
+SHOW GRANTS FOR `u1`@`%`;
+Grants for u1@%
+GRANT ROUTINE_GRANT ON *.* TO 'u1'@'%' WITH GRANT OPTION
+# Insert invalid privilege ID with an known user ID
+CREATE USER u1@localhost;
+INSERT INTO mysql.global_grants VALUES('u1', 'localhost', 'HelloWorld', 'Y');
+FLUSH PRIVILEGES;
+SHOW GRANTS FOR `u1`@`localhost`;
+Grants for u1@localhost
+GRANT USAGE ON *.* TO 'u1'@'localhost'
+GRANT HELLOWORLD ON *.* TO 'u1'@'localhost' WITH GRANT OPTION
+DROP USER u1@localhost;
+SHOW GRANTS FOR `u1`@`localhost`;
+Error 1141: There is no such grant defined for user 'u1' on host 'localhost'
+DELETE FROM mysql.global_grants;
+FLUSH PRIVILEGES;
+#
+# Bug25555019 DYNAMIC PRIVILEGES CAN BE GRANTED AT TABLE LEVEL
+#
+CREATE USER u1@localhost IDENTIFIED BY 'foo';
+GRANT ROLE_ADMIN ON mysql.user TO u1@localhost;
+Error 3619: Illegal privilege level specified for ROLE_ADMIN
+# * := <current_db>.*
+GRANT ROLE_ADMIN ON * TO u1@localhost;
+Error 3619: Illegal privilege level specified for ROLE_ADMIN
+DROP USER u1@localhost;
+#
+# Bug25573809 MANUALLY INSERTED DYNAMIC PRIVILEGE ON
+# MYSQL.GLOBAL_GRANTS DOES NOT TAKE AFFECT
+#
+CREATE USER u1@localhost IDENTIFIED BY 'foo';
+CREATE USER u2@localhost IDENTIFIED BY 'foo';
+INSERT INTO mysql.global_grants VALUES('u1', 'localhost', 'ROLE_ADMIN', 'Y');
+INSERT INTO mysql.global_grants
+VALUES('u1', 'localhost', 'SYSTEM_VARIABLES_ADMIN', 'N');
+FLUSH PRIVILEGES;
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO u2@localhost;
+SHOW GRANTS FOR CURRENT_USER();
+Grants for u1@localhost
+GRANT USAGE ON *.* TO 'u1'@'localhost'
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO 'u1'@'localhost'
+GRANT ROLE_ADMIN ON *.* TO 'u1'@'localhost' WITH GRANT OPTION
+GRANT ROLE_ADMIN ON *.* TO u2@localhost;
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO u2@localhost;
+Error 1227: Access denied; you need (at least one of) the GRANT OPTION privilege(s) for this operation
+DROP USER u1@localhost;
+DROP USER u2@localhost;
+#
+# Bug25583949 GRANTING DYNAMIC PRIVILEGE TO SELF
+# DOWNGRADES THE "WITH GRANT" OPTION
+#
+DROP USER IF EXISTS u1, r1;
+CREATE USER u1@localhost IDENTIFIED BY 'foo';
+CREATE ROLE r1;
+GRANT ROLE_ADMIN ON *.* to r1 WITH GRANT OPTION;
+GRANT r1 to u1@localhost;
+SET ROLE r1;
+GRANT ROLE_ADMIN ON *.* to u1@localhost;
+GRANT ROLE_ADMIN ON *.* to u1@localhost;
+SHOW GRANTS FOR CURRENT_USER();
+Grants for u1@localhost
+GRANT USAGE ON *.* TO 'u1'@'localhost'
+GRANT 'r1'@'%' TO 'u1'@'localhost'
+GRANT ROLE_ADMIN ON *.* TO 'u1'@'localhost' WITH GRANT OPTION
+DROP USER u1@localhost;
+DROP ROLE r1;
+#
+# Bug25583949 GRANTING DYNAMIC PRIVILEGE TO SELF
+# DOWNGRADES THE "WITH GRANT" OPTION
+#
+DROP USER IF EXISTS u1;
+CREATE USER u1, u1@localhost;
+GRANT ROLE_ADMIN ON *.* TO u1;
+INSERT INTO mysql.global_grants VALUES('u1', '%', 'non_documented_privilege',
+'Y');
+INSERT INTO mysql.global_grants VALUES('u1', 'localhost',
+'non_documented_privilege', 'Y');
+FLUSH PRIVILEGES;
+# This will show "non_documented_privilege" as granted privilege to u1:
+SHOW GRANTS FOR u1;
+Grants for u1@%
+GRANT USAGE ON *.* TO 'u1'@'%'
+GRANT ROLE_ADMIN ON *.* TO 'u1'@'%'
+GRANT NON_DOCUMENTED_PRIVILEGE ON *.* TO 'u1'@'%' WITH GRANT OPTION
+SHOW GRANTS FOR u1@localhost;
+Grants for u1@localhost
+GRANT USAGE ON *.* TO 'u1'@'localhost'
+GRANT NON_DOCUMENTED_PRIVILEGE ON *.* TO 'u1'@'localhost' WITH GRANT OPTION
+#
+REVOKE ALL ON *.* FROM u1;
+REVOKE ALL ON *.* FROM u1@localhost;
+SELECT * FROM mysql.global_grants;
+USER	HOST	PRIV	WITH_GRANT_OPTION
+# All privileges are revoked, only usage is seen as granted.
+# This is expected.
+SHOW GRANTS FOR u1;
+Grants for u1@%
+GRANT USAGE ON *.* TO 'u1'@'%'
+FLUSH PRIVILEGES;
+# "non_documented_privilege" should not be seen again
+SHOW GRANTS FOR u1;
+Grants for u1@%
+GRANT USAGE ON *.* TO 'u1'@'%'
+SELECT * FROM mysql.global_grants;
+USER	HOST	PRIV	WITH_GRANT_OPTION
+# Test for CONNECTON_ADMIN
+#
+DROP USER IF EXISTS 'u1'@'localhost';
+DROP TABLE IF EXISTS test.t1;
+CREATE TABLE test.t1(a int);
+CREATE USER 'u1'@'localhost' IDENTIFIED BY 'pwd';
+GRANT ALL ON test.t1 TO 'u1'@'localhost';
+GRANT CONNECTION_ADMIN, SYSTEM_VARIABLES_ADMIN, SELECT ON *.* TO u1@localhost;
+# Tests for mixed grant of static and dynamc privileges through auth ids
+DROP USER IF EXISTS u1, r1, r2;
+CREATE USER u1, r1, r2;
+GRANT ROLE_ADMIN, CREATE on *.* to r1;
+GRANT ROLE_ADMIN, ALTER,
+RELOAD on *.* to r2;
+GRANT SYSTEM_VARIABLES_ADMIN, SELECT ON *.* to u1;
+GRANT r1, r2 TO u1;
+SHOW GRANTS FOR u1 using r1;
+Grants for u1@%
+GRANT SELECT,CREATE ON *.* TO 'u1'@'%'
+GRANT 'r1'@'%', 'r2'@'%' TO 'u1'@'%'
+GRANT ROLE_ADMIN,SYSTEM_VARIABLES_ADMIN ON *.* TO 'u1'@'%'
+SHOW GRANTS FOR u1 using r2;
+Grants for u1@%
+GRANT SELECT,ALTER,RELOAD ON *.* TO 'u1'@'%'
+GRANT 'r1'@'%', 'r2'@'%' TO 'u1'@'%'
+GRANT ROLE_ADMIN,SYSTEM_VARIABLES_ADMIN ON *.* TO 'u1'@'%'
+DROP ROLE r1;
+SHOW GRANTS FOR u1 using r1;
+Error 3530: `r1`@`%` is not granted to u1@%
+SHOW GRANTS FOR u1;
+Grants for u1@%
+GRANT SELECT ON *.* TO 'u1'@'%'
+GRANT 'r2'@'%' TO 'u1'@'%'
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO 'u1'@'%'
+GRANT ALL ON *.* to u1;
+SHOW GRANTS FOR u1;
+Grants for u1@%
+GRANT ALL PRIVILEGES ON *.* TO 'u1'@'%'
+GRANT 'r2'@'%' TO 'u1'@'%'
+GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO 'u1'@'%'
+# Boundary value test for privilege_id
+INSERT INTO mysql.global_grants VALUES('u1', '%',
+'length_32_abcdefghijklmnopqrstux', 'Y');
+FLUSH PRIVILEGES;
+INSERT INTO mysql.global_grants VALUES('u1', '%',
+'length_33_abcdefghijklmnopqrstuvw', 'Y');
+Error 1406: Data too long for column 'PRIV' at row 1
+TRUNCATE TABLE mysql.global_grants;
+FLUSH PRIVILEGES;
+#
+# Bad privilege- or auth identifiers shouldn't crash the server
+#
+REVOKE 'C' @c06 ON c02.`z1` FROM 'C' @c03;
+[parser:1064]You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use can't convert to PrivElem, type *auth.RoleIdentity
+GRANT '' @c05 ON TABLE *.* TO ''@'' IDENTIFIED WITH c06 BY '' REQUIRE X509;
+[parser:1064]You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use can't convert to PrivElem, type *auth.RoleIdentity
+GRANT '' @c05 ON TABLE * TO CURRENT_USER()IDENTIFIED WITH c07 REQUIRE X509 WITH  MAX_QUERIES_PER_HOUR 0x2e3;
+[parser:1064]You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 107 near "0x2e3;" 
+GRANT WRAPPER @c04 ON FUNCTION c02.* TO CURRENT_USER IDENTIFIED WITH '' BY '?'  REQUIRE SSL;
+[parser:1064]You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use can't convert to PrivElem, type *auth.RoleIdentity
+GRANT '' @c03 ON c05.* TO '' @ '';
+[parser:1064]You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 33 near "'';" 
+# Cleanup
+DROP USER u1@localhost, u1, r2;
+DROP TABLE test.t1;

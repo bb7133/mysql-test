@@ -1,0 +1,341 @@
+set session sql_mode='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
+drop table if exists t;
+create table t (id int, c1 timestamp not null default CURRENT_TIMESTAMP);
+select * from t;
+id	c1
+set TIMESTAMP = 1234;
+select @@timestamp;
+@@timestamp
+1234
+insert t (id) values (1);
+select * from t;
+id	c1
+1	1970-01-01 08:20:34
+set TIMESTAMP = 1235;
+insert t (id) values (2);
+select * from t;
+id	c1
+1	1970-01-01 08:20:34
+2	1970-01-01 08:20:35
+insert t (id, c1) values (3, '2015-08-04 00:00:00');
+select * from t;
+id	c1
+1	1970-01-01 08:20:34
+2	1970-01-01 08:20:35
+3	2015-08-04 00:00:00
+drop table if exists t;
+create table t (id int, c1 timestamp);
+set TIMESTAMP = 1236;
+select @@timestamp;
+@@timestamp
+1236
+insert t (id) values (1);
+select * from t;
+id	c1
+1	NULL
+insert t (id, c1) values (2, '2015-08-04 00:00:00');
+select * from t;
+id	c1
+1	NULL
+2	2015-08-04 00:00:00
+drop table if exists t;
+create table t (id int, c1 timestamp default CURRENT_TIMESTAMP);
+set TIMESTAMP = 1237;
+select @@timestamp;
+@@timestamp
+1237
+insert t (id) values (1);
+select * from t;
+id	c1
+1	1970-01-01 08:20:37
+insert t (id, c1) values (2, '2015-08-04 00:00:00');
+select * from t;
+id	c1
+1	1970-01-01 08:20:37
+2	2015-08-04 00:00:00
+drop table if exists t;
+create table t (id int, c1 timestamp default '2015-08-04 12:00:00');
+set TIMESTAMP = 1238;
+select @@timestamp;
+@@timestamp
+1238
+insert t (id) values (1);
+select * from t;
+id	c1
+1	2015-08-04 12:00:00
+insert t (id, c1) values (2, '2015-08-04 00:00:00');
+select * from t;
+id	c1
+1	2015-08-04 12:00:00
+2	2015-08-04 00:00:00
+drop table if exists t;
+create table t (id int, c1 timestamp default '12345678');
+Error 1067: Invalid default value for 'c1'
+set TIMESTAMP = 1239;
+select @@timestamp;
+@@timestamp
+1239
+drop table if exists t;
+create table t (id int, c1 timestamp default 20101010111111);
+set TIMESTAMP = 1240;
+select @@timestamp;
+@@timestamp
+1240
+insert t (id) values (1);
+select * from t;
+id	c1
+1	2010-10-10 11:11:11
+drop table if exists t;
+create table t (id int, c1 timestamp default 2010101011111);
+Error 1067: Invalid default value for 'c1'
+set TIMESTAMP = 1241;
+select @@timestamp;
+@@timestamp
+1241
+drop table if exists t;
+create table t (id int, c1 timestamp default 201010101111);
+set TIMESTAMP = 1242;
+select @@timestamp;
+@@timestamp
+1242
+insert t (id) values (1);
+select * from t;
+id	c1
+1	2020-10-10 10:11:11
+drop table if exists t;
+create table t (id int, c1 timestamp default 20101010111);
+set TIMESTAMP = 1243;
+select @@timestamp;
+@@timestamp
+1243
+insert t (id) values (1);
+select * from t;
+id	c1
+1	2002-01-01 01:01:11
+drop table if exists t;
+create table t (id int, c1 timestamp default 2010101011);
+Error 1067: Invalid default value for 'c1'
+set TIMESTAMP = 1244;
+select @@timestamp;
+@@timestamp
+1244
+drop table if exists t;
+create table t (id int, c1 timestamp default 201010101);
+set TIMESTAMP = 1245;
+select @@timestamp;
+@@timestamp
+1245
+insert t (id) values (1);
+select * from t;
+id	c1
+1	2000-02-01 01:01:01
+drop table if exists t;
+create table t (id int, c1 timestamp default 20101010);
+set TIMESTAMP = 1246;
+select @@timestamp;
+@@timestamp
+1246
+insert t (id) values (1);
+select * from t;
+id	c1
+1	2010-10-10 00:00:00
+drop table if exists t;
+create table t (id int, c1 timestamp default 2010101);
+Error 1067: Invalid default value for 'c1'
+set TIMESTAMP = 1247;
+select @@timestamp;
+@@timestamp
+1247
+drop table if exists t;
+create table t (id int, c1 timestamp default 201010);
+set TIMESTAMP = 1248;
+select @@timestamp;
+@@timestamp
+1248
+insert t (id) values (1);
+select * from t;
+id	c1
+1	2020-10-10 00:00:00
+drop table if exists t;
+create table t (id int, c1 timestamp default 20101);
+set TIMESTAMP = 1249;
+select @@timestamp;
+@@timestamp
+1249
+insert t (id) values (1);
+select * from t;
+id	c1
+1	2002-01-01 00:00:00
+drop table if exists t;
+create table t (id int, c1 timestamp default 2010);
+Error 1067: Invalid default value for 'c1'
+set TIMESTAMP = 1250;
+select @@timestamp;
+@@timestamp
+1250
+drop table if exists t;
+create table t (id int, c1 timestamp default 201);
+set TIMESTAMP = 1251;
+select @@timestamp;
+@@timestamp
+1251
+insert t (id) values (1);
+select * from t;
+id	c1
+1	2000-02-01 00:00:00
+drop table if exists t;
+create table t (id int, c1 timestamp default 20);
+Error 1067: Invalid default value for 'c1'
+set TIMESTAMP = 1252;
+select @@timestamp;
+@@timestamp
+1252
+drop table if exists t;
+create table t (id int, c1 timestamp default 2);
+Error 1067: Invalid default value for 'c1'
+set TIMESTAMP = 1253;
+select @@timestamp;
+@@timestamp
+1253
+drop table if exists t;
+create table t (id int, c1 timestamp default 0);
+set TIMESTAMP = 1254;
+select @@timestamp;
+@@timestamp
+1254
+insert t (id) values (1);
+select * from t;
+id	c1
+1	0000-00-00 00:00:00
+drop table if exists t;
+create table t (id int, c1 timestamp default -1);
+Error 1067: Invalid default value for 'c1'
+set TIMESTAMP = 1255;
+select @@timestamp;
+@@timestamp
+1255
+drop table if exists t;
+create table t (id int, c1 timestamp default 99999999999999);
+Error 1067: Invalid default value for 'c1'
+set TIMESTAMP = 1256;
+select @@timestamp;
+@@timestamp
+1256
+drop table if exists t;
+create table t (id int, c1 timestamp default 100000000000000);
+Error 1067: Invalid default value for 'c1'
+set TIMESTAMP = 1257;
+select @@timestamp;
+@@timestamp
+1257
+drop table if exists t;
+create table t (id int, c1 timestamp default 10000101000000);
+Error 1067: Invalid default value for 'c1'
+set TIMESTAMP = 1258;
+select @@timestamp;
+@@timestamp
+1258
+drop table if exists t;
+create table t (id int, c1 timestamp default null);
+set TIMESTAMP = 1259;
+select @@timestamp;
+@@timestamp
+1259
+drop table if exists t;
+create table t (id int, c1 timestamp not null default null);
+Error 1067: Invalid default value for 'c1'
+set TIMESTAMP = 1260;
+select @@timestamp;
+@@timestamp
+1260
+drop table if exists t;
+create table t (id int, c1 timestamp null default null);
+set TIMESTAMP = 1261;
+select @@timestamp;
+@@timestamp
+1261
+insert t (id) values (1);
+select * from t;
+id	c1
+1	NULL
+drop table if exists t;
+create table t (id int, c1 timestamp not null);
+set TIMESTAMP = 1262;
+select @@timestamp;
+@@timestamp
+1262
+insert t (id, c1) values (1, '2015-08-04 00:00:00');
+select * from t;
+id	c1
+1	2015-08-04 00:00:00
+drop table if exists t;
+create table t (id int, c1 timestamp null);
+set TIMESTAMP = 1263;
+select @@timestamp;
+@@timestamp
+1263
+insert t (id) values (1);
+select * from t;
+id	c1
+1	NULL
+drop table if exists t;
+create table t (id int, c1 timestamp null default 0);
+set TIMESTAMP = 1264;
+select @@timestamp;
+@@timestamp
+1264
+insert t (id) values (1);
+select * from t;
+id	c1
+1	0000-00-00 00:00:00
+drop table if exists t;
+create table t (id int, c1 timestamp not null default 0);
+set TIMESTAMP = 1265;
+select @@timestamp;
+@@timestamp
+1265
+insert t (id) values (1);
+select * from t;
+id	c1
+1	0000-00-00 00:00:00
+drop table if exists t;
+create table t (id int, c1 timestamp not null);
+set TIMESTAMP = 1266;
+select @@timestamp;
+@@timestamp
+1266
+insert t (id, c1) values (1, '2015-08-04 00:00:00');
+select * from t;
+id	c1
+1	2015-08-04 00:00:00
+drop table if exists t;
+create table t (id int, c1 timestamp default 20150804);
+set TIMESTAMP = 1267;
+select @@timestamp;
+@@timestamp
+1267
+insert t (id) values (1);
+select * from t;
+id	c1
+1	2015-08-04 00:00:00
+drop table if exists t;
+create table t (id int, c1 timestamp);
+set TIMESTAMP = 1268;
+select @@timestamp;
+@@timestamp
+1268
+insert t (id) values (1);
+select * from t;
+id	c1
+1	NULL
+drop table if exists t;
+create table t (id int, c1 timestamp null default null);
+set TIMESTAMP = 1269;
+select @@timestamp;
+@@timestamp
+1269
+insert t values (1, null);
+select * from t;
+id	c1
+1	NULL
+set session sql_mode='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';

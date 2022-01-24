@@ -1,0 +1,352 @@
+################################################################################
+# inc/gcol_blocked_sql_funcs_main.inc                                          #
+#                                                                              #
+# Purpose:                                                                     #
+#  Tests around sql functions                                                  #
+#                                                                              #
+#                                                                              #
+#------------------------------------------------------------------------------#
+# Original Author: Andrey Zhakov                                               #
+# Original Date: 2008-08-31                                                    #
+# Change Author:                                                               #
+# Change Date:                                                                 #
+# Change:                                                                      #
+################################################################################
+
+#
+# NOTE:  All SQL functions should be rejected, otherwise BUG.
+#
+
+--echo # RAND()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (b double generated always as (rand()) virtual);
+drop table if exists t1;
+--echo # LOAD_FILE()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(64), b varchar(1024) generated always as (load_file(a)) virtual);
+drop table if exists t1;
+--echo # CURDATE()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a datetime generated always as (curdate()) virtual);
+drop table if exists t1;
+--echo # CURRENT_DATE(), CURRENT_DATE
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a datetime generated always as (current_date) virtual);
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a datetime generated always as (current_date()) virtual);
+drop table if exists t1;
+--echo # CURRENT_TIME(), CURRENT_TIME
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a datetime generated always as (current_time) virtual);
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a datetime generated always as (current_time()) virtual);
+drop table if exists t1;
+--echo # CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a datetime generated always as (current_timestamp()) virtual);
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a datetime generated always as (current_timestamp) virtual);
+drop table if exists t1;
+--echo # CURTIME()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a datetime generated always as (curtime()) virtual);
+drop table if exists t1;
+--echo # LOCALTIME(), LOCALTIME
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a datetime, b varchar(10) generated always as (localtime()) virtual);
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a datetime, b varchar(10) generated always as (localtime) virtual);
+drop table if exists t1;
+--echo # LOCALTIMESTAMP, LOCALTIMESTAMP()(v4.0.6)
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a datetime, b varchar(10) generated always as (localtimestamp()) virtual);
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a datetime, b varchar(10) generated always as (localtimestamp) virtual);
+drop table if exists t1;
+--echo # NOW()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a datetime, b varchar(10) generated always as (now()) virtual);
+drop table if exists t1;
+--echo # STATEMENT_DIGEST
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a int, b int generated always as (statement_digest(a)) virtual);
+drop table if exists t1;
+--echo # STATEMENT_DIGEST_TEXT
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a int, b int generated always as (statement_digest_text(a)) virtual);
+drop table if exists t1;
+--echo # SYSDATE()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a int, b varchar(10) generated always as (sysdate()) virtual);
+drop table if exists t1;
+--echo # UNIX_TIMESTAMP()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a datetime, b datetime generated always as (unix_timestamp()) virtual);
+drop table if exists t1;
+--echo # UTC_DATE()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a datetime, b datetime generated always as (utc_date()) virtual);
+drop table if exists t1;
+--echo # UTC_TIME()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a datetime, b datetime generated always as (utc_time()) virtual);
+drop table if exists t1;
+--echo # UTC_TIMESTAMP()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a datetime, b datetime generated always as (utc_timestamp()) virtual);
+drop table if exists t1;
+--echo # MATCH()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED,ER_PARSE_ERROR
+create table t1 (a varchar(32), b bool generated always as (match a against ('sample text')) virtual);
+drop table if exists t1;
+--echo # BENCHMARK()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(1024), b varchar(1024) generated always as (benchmark(a,3)) virtual);
+drop table if exists t1;
+--echo # CONNECTION_ID()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a int generated always as (connection_id()) virtual);
+drop table if exists t1;
+--echo # CURRENT_USER(), CURRENT_USER
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(32) generated always as (current_user()) virtual);
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(32) generated always as (current_user) virtual);
+drop table if exists t1;
+--echo # DATABASE()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(1024), b varchar(1024) generated always as (database()) virtual);
+drop table if exists t1;
+--echo # FOUND_ROWS()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(1024), b varchar(1024) generated always as (found_rows()) virtual);
+drop table if exists t1;
+--echo # GET_LOCK()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(1024), b varchar(1024) generated always as (get_lock(a,10)) virtual);
+drop table if exists t1;
+--echo # IS_FREE_LOCK()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(1024), b varchar(1024) generated always as (is_free_lock(a)) virtual);
+drop table if exists t1;
+--echo # IS_USED_LOCK()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(1024), b varchar(1024) generated always as (is_used_lock(a)) virtual);
+drop table if exists t1;
+--echo # LAST_INSERT_ID()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a int generated always as (last_insert_id()) virtual);
+drop table if exists t1;
+--echo # MASTER_POS_WAIT()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(32), b int generated always as (master_pos_wait(a,0,2)) virtual);
+drop table if exists t1;
+--echo # NAME_CONST()
+-- error ER_GENERATED_COLUMN_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(32) generated always as (name_const('test',1)) virtual);
+drop table if exists t1;
+--echo # RELEASE_LOCK()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(32), b int generated always as (release_lock(a)) virtual);
+drop table if exists t1;
+--echo # ROW_COUNT()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a int generated always as (row_count()) virtual);
+drop table if exists t1;
+--echo # SCHEMA()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(32) generated always as (schema()) virtual);
+drop table if exists t1;
+--echo # SESSION_USER()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(32) generated always as (session_user()) virtual);
+drop table if exists t1;
+--echo # SLEEP()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a int, b int generated always as (sleep(a)) virtual);
+drop table if exists t1;
+--echo # SYSTEM_USER()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(32) generated always as (system_user()) virtual);
+drop table if exists t1;
+--echo # USER()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(1024), b varchar(1024) generated always as (user()) virtual);
+drop table if exists t1;
+--echo # UUID_SHORT()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(1024) generated always as (uuid_short()) virtual);
+drop table if exists t1;
+--echo # UUID()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(1024) generated always as (uuid()) virtual);
+drop table if exists t1;
+--echo # VALUES()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(1024), b varchar(1024) generated always as (values(a)) virtual);
+drop table if exists t1;
+--echo # VERSION()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(1024), b varchar(1024) generated always as (version()) virtual);
+drop table if exists t1;
+--echo # ENCRYPT()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(1024), b varchar(1024) generated always as (encrypt(a)) virtual);
+drop table if exists t1;
+--echo # Stored procedures
+
+# delimiter //;
+# create procedure p1()
+# begin
+#   select current_user();
+# end //
+# 
+# create function f1()
+# returns int
+# begin
+#  return 1;
+# end //
+# 
+# delimiter ;//
+# 
+# -- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+# create table t1 (a int generated always as (p1()) virtual);
+# -- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+# create table t1 (a int generated always as (f1()) virtual);
+# 
+# drop procedure p1;
+# drop function f1;
+
+--echo # Unknown functions
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a int generated always as (f1()) virtual);
+drop table if exists t1;
+--echo #
+--echo # GROUP BY FUNCTIONS
+--echo #
+
+--echo # AVG()
+-- error 1111
+create table t1 (a int, b int generated always as (avg(a)) virtual);
+drop table if exists t1;
+--echo # BIT_AND()
+-- error 1111
+create table t1 (a int, b int generated always as (bit_and(a)) virtual);
+drop table if exists t1;
+--echo # BIT_OR()
+-- error 1111
+create table t1 (a int, b int generated always as (bit_or(a)) virtual);
+drop table if exists t1;
+--echo # BIT_XOR()
+-- error 1111
+create table t1 (a int, b int generated always as (bit_xor(a)) virtual);
+drop table if exists t1;
+--echo # COUNT(DISTINCT)
+-- error 1111
+create table t1 (a int, b int generated always as (count(distinct a)) virtual);
+drop table if exists t1;
+--echo # COUNT()
+-- error 1111
+create table t1 (a int, b int generated always as (count(a)) virtual);
+drop table if exists t1;
+--echo # GROUP_CONCAT()
+-- error 1111
+create table t1 (a varchar(32), b int generated always as (group_concat(a,'')) virtual);
+drop table if exists t1;
+--echo # MAX()
+-- error 1111
+create table t1 (a int, b int generated always as (max(a)) virtual);
+drop table if exists t1;
+--echo # MIN()
+-- error 1111
+create table t1 (a int, b int generated always as (min(a)) virtual);
+drop table if exists t1;
+--echo # STD()
+-- error 1111
+create table t1 (a int, b int generated always as (std(a)) virtual);
+drop table if exists t1;
+--echo # STDDEV_POP()
+-- error 1111
+create table t1 (a int, b int generated always as (stddev_pop(a)) virtual);
+drop table if exists t1;
+--echo # STDDEV_SAMP()
+-- error 1111
+create table t1 (a int, b int generated always as (stddev_samp(a)) virtual);
+drop table if exists t1;
+--echo # STDDEV()
+-- error 1111
+create table t1 (a int, b int generated always as (stddev(a)) virtual);
+drop table if exists t1;
+--echo # SUM()
+-- error 1111
+create table t1 (a int, b int generated always as (sum(a)) virtual);
+drop table if exists t1;
+--echo # VAR_POP()
+-- error 1111
+create table t1 (a int, b int generated always as (var_pop(a)) virtual);
+drop table if exists t1;
+--echo # VAR_SAMP()
+-- error 1111
+create table t1 (a int, b int generated always as (var_samp(a)) virtual);
+drop table if exists t1;
+--echo # VARIANCE()
+-- error 1111
+create table t1 (a int, b int generated always as (variance(a)) virtual);
+drop table if exists t1;
+--echo #
+--echo # XML FUNCTIONS
+--echo #
+
+--echo # UpdateXML()
+-- error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+create table t1 (a varchar(1024), b varchar(1024) generated always as (UpdateXML(a,'/a','<e>fff</e>')) virtual);
+drop table if exists t1;
+--echo #
+--echo # Sub-selects
+--echo #
+
+create table t1 (a int);
+-- error 1064,ER_PARSE_ERROR
+create table t2 (a int, b int generated always as (select count(*) virtual from t1));
+drop table t1;
+
+--echo #
+--echo # Long expression
+
+create table t1 (a int, b varchar(300) generated always as (concat(a,'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')) virtual);
+drop table t1;
+# Limit is lifted to 64K. TODO write a test for it.
+# --error 1470
+create table t1 (a int, b varchar(300) generated always as (concat(a,'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')) virtual);
+drop table t1;
+
+--echo #
+--echo # Constant expression
+create table t1 (a int generated always as (PI()) virtual);
+drop table t1;
+
+--echo # bug#21098119: GCOL WITH MATCH/AGAINST -->
+--echo # ASSERTION FAILED: TR && TR->TABLE->FILE
+--echo #
+create table t1 (a int);
+--error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED,ER_PARSE_ERROR
+alter table t1 add column r blob generated always
+as (match(a) against ('' in boolean mode)) virtual;
+drop table t1;
+
+# Deprecated functions are not allowed in generation expressions
+--echo #
+--echo # Bug#26279884 : VIRTUAL COLUMNS ALLOW DEPRECATED FUNCTION TO BE USED
+--echo #
+
+--echo # JSON_MERGE()
+--error ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED
+CREATE TABLE t2(a JSON, b JSON, c JSON  GENERATED ALWAYS AS  (JSON_MERGE(a,b)));
+drop table if exists t2;
+--echo #
+--echo # Bug#29342245 ASSERTION WHEN CREATING A FUNCTIONAL INDEX ON A SUBQUERY WITH UNION
+--echo #
+CREATE TABLE t1 (x INT);
+--error ER_GENERATED_COLUMN_FUNCTION_IS_NOT_ALLOWED
+CREATE TABLE t2 (y INT, z INT AS ((SELECT 1 FROM t1 UNION SELECT 1 FROM t1)));
+DROP TABLE t1;

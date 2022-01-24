@@ -1,0 +1,87 @@
+SET @SAVE_sql_mode = @@sql_mode ;
+SET @@sql_mode = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION';
+drop table if exists t;
+create table t (c1 int, c2 int);
+insert into t SET c1=1, c2=1;
+insert into t SET c1=2, c2=2;
+
+select * from t;
+select *, c1, c2 from t;
+
+--error ER_WILDCARD_NO_ONCE
+select *, * from t;
+
+select t.* from t;
+select t.*, c2, c1 from t;
+select t.*, t.* from t;
+select t.c1 as d1, t.c2 as d2 from t;
+select t.c1 c1, t.c2 c2 from t;
+select t.c1, t.c2 from t;
+select a.c1, a.c2 from t a;
+--error ER_WILDCARD_NO_ONCE
+SELECT 10, * FROM t;
+SELECT 10, t.* FROM t;
+SELECT 10, a.* FROM t a;
+
+drop table if exists t1;
+drop table if exists t2;
+create table t1(c1 int, c2 int);
+create table t2 (d1 int, d2 int);
+insert into t1 SET c1=1, c2=1;
+insert into t2 SET d1=2, d2=2;
+
+select * from t1, t2;
+select * from t1 a, t2;
+select * from t1 a, t2 b ;
+select * from t1 as a, t2 as b;
+
+--error ER_NO_COLUMN
+select t1.c1 from t1 as a, t2 as b;
+
+select a.c1, a.* from t1 as a, t2 as b;
+select t1.c1, t1.c2, t2.d1, t2.d2 from t1, t2;
+
+select * from (select * from t1, t2) a;
+select * from (select * from t1, t2) a;
+
+select a.* from (select * from t1) a;
+select a.* from (select * from t1, t2) a;
+
+select * from t1 where c1 > 0;
+select * from t1 where t1.c1 > 0;
+select * from t1 a where a.c1 > 0;
+
+--error ER_AMBIGUOUS_FIELD
+select c1 from t, t1;
+
+--error ER_AMBIGUOUS_FIELD
+select c1 from t a, t1 b;
+
+--error ER_NO_COLUMN
+select t.c1 from t a, t1 b;
+
+select a.c1 from t a, t1 b;
+
+insert into t1 SET c1=3, c2=3;
+
+select c1, d1 from t1, t2 where d1=2;
+
+select t1.*, d1 from t1 left join t2 on t1.c1 = t2.d1 where d2 = 2; 
+
+select t1.*, d1 from t1 right join t2 on t1.c1 = t2.d1 where d2 = 2; 
+
+select t1.*, d1 from t1 join t2 on t1.c1 = t2.d1 where d2 = 2;
+
+select c1 from t group by c2 order by c1;
+
+select c1 as a from t where c2=2 ORDER BY a;
+select c1 from t where t.c2 = 2 order by c1;
+
+select * from t, t1 where t.c1 = t1.c1;
+select * from t left join t1 on t.c1 = t1.c1 where t.c1 = t1.c1;
+select * from t right join t1 on t.c1 = t1.c1 where t.c1 = t1.c1;
+select * from t join t1 on t.c1 = t1.c1 where t.c1 = t1.c1;
+
+select * from t group by c2 order by c1;
+select c1 from t group by c2 order by c1;
+SET @@sql_mode = @SAVE_sql_mode;

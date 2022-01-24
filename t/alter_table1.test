@@ -1,0 +1,1088 @@
+# The include statement below is a temp one for tests that are yet to
+#be ported to run with InnoDB,
+#but needs to be kept for tests that would need MyISAM in future.
+--source include/force_myisam_default.inc
+
+#
+# Test of alter table
+#
+--disable_warnings
+drop table if exists t1,t2;
+drop database if exists alter1_test;
+--enable_warnings
+
+SET sql_mode = 'NO_ENGINE_SUBSTITUTION,NO_AUTO_CREATE_USER';
+
+create table t1 (
+col1 int not null auto_increment primary key,
+col2 varchar(30) not null,
+col3 varchar (20) not null,
+col4 varchar(4) not null,
+col5 enum('PENDING', 'ACTIVE', 'DISABLED') not null,
+col6 int not null, to_be_deleted int);
+insert into t1 values (2,4,3,5,"PENDING",1,7);
+alter table t1 add column col4_5 varchar(20) not null after col4;
+alter table t1 add column col7 varchar(30) not null after col5;
+alter table t1 add column col8 datetime not null;
+alter table t1 drop column to_be_deleted;
+alter table t1 change column col2 fourth varchar(30) not null after col3;
+alter table t1 modify column col6 int not null first;
+select * from t1;
+drop table t1;
+
+# Check that pack_keys and dynamic length rows are not forced. 
+
+CREATE TABLE t1 (
+GROUP_ID int(10) unsigned DEFAULT '0' NOT NULL,
+LANG_ID smallint(5) unsigned DEFAULT '0' NOT NULL,
+NAME varchar(80) DEFAULT '' NOT NULL,
+PRIMARY KEY (GROUP_ID,LANG_ID),
+KEY NAME (NAME));
+#show table status like "t1";
+--error 8200
+ALTER TABLE t1 CHANGE NAME NAME CHAR(80) not null;
+--replace_column 8 #
+SHOW FULL COLUMNS FROM t1;
+DROP TABLE t1;
+
+#
+# The following combination found a hang-bug in MyISAM
+#
+
+CREATE TABLE t1 (AnamneseId int(10) unsigned NOT NULL auto_increment,B BLOB,PRIMARY KEY (AnamneseId)) engine=myisam;
+insert into t1 values (null,"hello");
+LOCK TABLES t1 WRITE;
+ALTER TABLE t1 ADD Column new_col int not null;
+UNLOCK TABLES;
+DROP TABLE t1;
+
+#
+# Bug #2628: 'alter table t1 rename alter1_test.t1' silently drops alter1_test.t1 
+# if it exists
+#
+create table t1 (name char(15));
+insert into t1 (name) values ("current");
+create database alter1_test;
+create table alter1_test.t1 (name char(15));
+insert into alter1_test.t1 (name) values ("test");
+select * from t1;
+select * from alter1_test.t1;
+--error ER_TABLE_EXISTS_ERROR
+alter table t1 rename alter1_test.t1;
+select * from t1;
+select * from alter1_test.t1;
+drop table t1;
+drop database alter1_test;
+
+
+#
+# Alter table and rename
+#
+
+create table t1 (i int unsigned not null auto_increment primary key);
+alter table t1 rename t2;
+alter table t2 rename t1;
+alter table t1 add c char(10); 
+alter table t1 comment "no comment";
+show columns from t1;
+drop table t1;
+
+#
+# BUG#4717 - check for valid table names
+#
+create table t1 (a int);
+--error ER_WRONG_TABLE_NAME
+alter table t1 rename to ``;
+--error ER_WRONG_TABLE_NAME
+rename table t1 to ``;
+drop table t1;
+
+
+# BUG#3899
+create table t1 (a int, b int, key(a));
+insert into t1 values (1,1), (2,2);
+--error ER_CANT_DROP_FIELD_OR_KEY
+alter table t1 drop key no_such_key;
+alter table t1 drop key a;
+drop table t1;
+
+#
+# Test for bug #7884 "Able to add invalid unique index on TIMESTAMP prefix"
+# MySQL should not think that packed field with non-zero decimals is
+# geometry field and allow to create prefix index which is
+# shorter than packed field length.
+#
+create table t1 ( a timestamp );
+--error ER_WRONG_SUB_KEY
+alter table t1 add unique ( a(1) );
+drop table t1;
+
+CREATE TABLE t1 (f1 TIMESTAMP NULL DEFAULT NULL, f2 INT(11) DEFAULT NULL) ENGINE=MYISAM DEFAULT CHARSET=utf8;
+INSERT INTO t1 VALUES (NULL, NULL), ("2009-10-09 11:46:19", 2);
+ALTER TABLE t1 CHANGE COLUMN f1 f1_no_real_change TIMESTAMP NULL DEFAULT NULL;
+DROP TABLE t1;
+
+--echo "Now will test with one unique index"
+create table t1(a int, b char(10), unique(a));
+show indexes from t1;
+alter table t1 disable keys;
+show indexes from t1;
+alter table t1 enable keys;
+
+--echo "If no copy on noop change, this won't touch the data file"
+--echo "Unique index, no change"
+alter table t1 modify a int;
+alter table t1 disable keys;
+show indexes from t1;
+
+--echo "Change the type implying data copy"
+--echo "Unique index, no change"
+alter table t1 modify a bigint;
+alter table t1 disable keys;
+show indexes from t1;
+
+alter table t1 modify a bigint;
+show indexes from t1;
+
+drop table t1;
+
+--echo "Now will test with one unique and one non-unique index"
+create table t1(a int, b char(10), unique(a), key(b));
+show indexes from t1;
+alter table t1 disable keys;
+show indexes from t1;
+alter table t1 enable keys;
+
+
+--echo "If no copy on noop change, this won't touch the data file"
+--echo "The non-unique index will be disabled"
+alter table t1 modify a int;
+alter table t1 disable keys;
+show indexes from t1;
+alter table t1 enable keys;
+show indexes from t1;
+
+--echo "Change the type implying data copy"
+--echo "The non-unique index will be disabled"
+alter table t1 modify a bigint;
+alter table t1 disable keys;
+show indexes from t1;
+drop table t1;
+
+
+#
+# Bug#11493 - Alter table rename to default database does not work without
+#             db name qualifying
+#
+create database alter1_test;
+create table t1 (c1 int);
+# Move table to other database.
+alter table t1 rename alter1_test.t1;
+# Assure that it has moved.
+--error ER_BAD_TABLE_ERROR
+drop table t1;
+# Move table back.
+alter table alter1_test.t1 rename t1;
+# Assure that it is back.
+drop table t1;
+# Now test for correct message if no database is selected.
+# Create t1 in 'alter_table1'.
+create table t1 (c1 int);
+# Change to other db.
+use alter1_test;
+# Drop the current db. This de-selects any db.
+drop database alter1_test;
+# Now test for correct message.
+--error ER_NO_DB_ERROR
+alter table alter_table1.t1 rename t1;
+# Check that explicit qualifying works even with no selected db.
+alter table alter_table1.t1 rename alter_table1.t1;
+# Go back to standard 'alter_table1' db.
+use alter_table1;
+drop table t1;
+
+#
+# BUG#23404 - ROW_FORMAT=FIXED option is lost is an index is added to the
+# table
+#
+CREATE TABLE t1(a INT) ROW_FORMAT=FIXED;
+CREATE INDEX i1 ON t1(a);
+SHOW CREATE TABLE t1;
+DROP INDEX i1 ON t1;
+SHOW CREATE TABLE t1;
+DROP TABLE t1;
+
+#
+# Bug#24219 - ALTER TABLE ... RENAME TO ... , DISABLE KEYS leads to crash
+#
+--disable_warnings
+DROP TABLE IF EXISTS bug24219;
+DROP TABLE IF EXISTS bug24219_2;
+--enable_warnings
+
+CREATE TABLE bug24219 (a INT, INDEX(a));
+
+SHOW INDEX FROM bug24219;
+
+ALTER TABLE bug24219 RENAME TO bug24219_2;
+ALTER TABLE bug24219_2 DISABLE KEYS;
+
+SHOW INDEX FROM bug24219_2;
+
+DROP TABLE bug24219_2;
+
+#
+# Bug #14693 (ALTER SET DEFAULT doesn't work)
+#
+
+create table t1 (mycol int(10) not null);
+alter table t1 alter column mycol set default 0;
+desc t1;
+drop table t1;
+
+#
+# Bug#25262 Auto Increment lost when changing Engine type
+#
+
+create table t1(id int(8) primary key auto_increment) engine=heap;
+
+insert into t1 values (null);
+insert into t1 values (null);
+
+select * from t1;
+
+# Set auto increment to 50
+alter table t1 auto_increment = 50;
+
+# Alter to myisam
+--error ErrUnsupportedDDLOperation
+alter table t1 engine = myisam;
+
+# This insert should get id 50
+insert into t1 values (null);
+select count(id) from t1 where id > 50;
+
+# Alter to heap again
+--error ErrUnsupportedDDLOperation
+alter table t1 engine = heap;
+insert into t1 values (null);
+select count(id) from t1 where id > 50;
+
+drop table t1;
+
+#
+# Bug#6073 "ALTER table minor glich": ALTER TABLE complains that an index
+# without # prefix is not allowed for TEXT columns, while index
+# is defined with prefix.
+# 
+create table t1 (t varchar(255) default null, key t (t(80)))
+engine=myisam default CHARSET=utf8mb4;
+alter table t1 change t t text;
+drop table t1;
+
+#
+# Bug#18038  MySQL server corrupts binary columns data
+#
+
+CREATE TABLE t1 (s CHAR(8) BINARY);
+INSERT INTO t1 VALUES ('test');
+SELECT LENGTH(s) FROM t1;
+ALTER TABLE t1 MODIFY s CHAR(10) BINARY;
+SELECT LENGTH(s) FROM t1;
+DROP TABLE t1;
+
+CREATE TABLE t1 (s BINARY(8));
+INSERT INTO t1 VALUES ('test');
+SELECT LENGTH(s) FROM t1;
+SELECT HEX(s) FROM t1;
+ALTER TABLE t1 MODIFY s BINARY(10);
+SELECT HEX(s) FROM t1;
+SELECT LENGTH(s) FROM t1;
+DROP TABLE t1;
+
+#
+# Bug#19386: Multiple alter causes crashed table
+# The trailing column would get corrupted data, or server could not even read
+# it.
+#
+
+CREATE TABLE t1 (v VARCHAR(3), b INT);
+INSERT INTO t1 VALUES ('abc', 5);
+SELECT * FROM t1;
+ALTER TABLE t1 MODIFY COLUMN v VARCHAR(4);
+SELECT * FROM t1;
+DROP TABLE t1;
+
+#
+# Bug #22369: Alter table rename combined with other alterations causes lost tables
+#
+# This problem happens if the data change is compatible.
+# Changing to the same type is compatible for example.
+#
+--disable_warnings
+DROP TABLE IF EXISTS t1;
+DROP TABLE IF EXISTS t2;
+--enable_warnings
+CREATE TABLE t1 (
+  int_field INTEGER UNSIGNED NOT NULL,
+  char_field CHAR(10),
+  INDEX(`int_field`)
+);
+
+DESCRIBE t1;
+
+SHOW INDEXES FROM t1;
+
+INSERT INTO t1 VALUES (1, "edno"), (1, "edno"), (2, "dve"), (3, "tri"), (5, "pet"); 
+--echo "Non-copy data change - new frm, but old data and index files"
+ALTER TABLE t1 CHANGE int_field unsigned_int_field INTEGER UNSIGNED NOT NULL;
+ALTER TABLE t1 RENAME t2;
+
+--error ER_NO_SUCH_TABLE
+SELECT * FROM t1 ORDER BY int_field;
+SELECT * FROM t2 ORDER BY unsigned_int_field;
+DESCRIBE t2;
+DESCRIBE t2;
+ALTER TABLE t2 MODIFY unsigned_int_field BIGINT UNSIGNED NOT NULL;
+DESCRIBE t2;
+
+DROP TABLE t2;
+
+#
+# Bug#28427: Columns were renamed instead of moving by ALTER TABLE.
+#
+CREATE TABLE t1 (f1 INT, f2 INT, f3 INT);
+INSERT INTO t1 VALUES (1, 2, NULL);
+SELECT * FROM t1;
+ALTER TABLE t1 MODIFY COLUMN f3 INT AFTER f1;
+SELECT * FROM t1;
+ALTER TABLE t1 MODIFY COLUMN f3 INT AFTER f2;
+SELECT * FROM t1;
+DROP TABLE t1;
+
+#
+# BUG#29957 - alter_table.test fails
+#
+create table t1 (c char(10) default "Two");
+lock table t1 write;
+insert into t1 values ();
+alter table t1 modify c char(10) default "Three";
+unlock tables;
+select * from t1;
+admin check table t1;
+drop table t1;
+
+--echo #
+--echo # Bug #31145: ALTER TABLE DROP COLUMN, ADD COLUMN crashes (linux) 
+--echo #   or freezes (win) the server
+--echo #
+
+CREATE TABLE t1 (a TEXT, id INT, b INT);
+ALTER TABLE t1 DROP COLUMN a;
+ALTER TABLE t1 ADD COLUMN c TEXT FIRST;
+
+DROP TABLE t1;
+
+
+--echo #
+--echo # Test for bug #12652385 - "61493: REORDERING COLUMNS TO POSITION
+--echo #                           FIRST CAN CAUSE DATA TO BE CORRUPTED".
+--echo #
+--disable_warnings
+drop table if exists t1;
+--enable_warnings
+--echo # Use MyISAM engine as the fact that InnoDB doesn't support
+--echo # in-place ALTER TABLE in cases when columns are being renamed
+--echo # hides some bugs.
+create table t1 (i int, j int) engine=myisam;
+insert into t1 value (1, 2);
+--echo # First, test for original problem described in the bug report.
+select * from t1;
+--echo # Change of column order by the below ALTER TABLE statement should
+--echo # affect both column names and column contents.
+alter table t1 modify column j int first;
+select * from t1;
+--echo # Now test for similar problem with the same root.
+--echo # The below ALTER TABLE should change not only the name but
+--echo # also the value for the last column of the table.
+alter table t1 drop column i;
+alter table t1 add column k int default 0;
+select * from t1;
+--echo # Clean-up.
+drop table t1;
+
+
+--echo End of 5.1 tests
+
+#
+# Bug #31031 ALTER TABLE regression in 5.0
+#
+#  The ALTER TABLE operation failed with 
+#  ERROR 1089 (HY000): Incorrect sub part key; ...
+#
+CREATE TABLE t1(c CHAR(10), 
+  i INT UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY);
+INSERT INTO t1 VALUES('a',2),('b',4),('c',6);
+ALTER TABLE t1 AUTO_INCREMENT = 1;
+DROP TABLE t1;
+
+
+#
+# Bug#50542 5.5.x doesn't check length of key prefixes: 
+#           corruption and crash results
+#
+# This case is related to Bug#31031 (above)
+# A statement where the index key is larger/wider than
+# the column type, should cause an error
+#
+--error ER_WRONG_SUB_KEY
+CREATE TABLE t1 (a CHAR(1), PRIMARY KEY (a(255)));
+
+# Test other variants of creating indices
+CREATE TABLE t1 (a CHAR(1));
+#  ALTER TABLE
+--error ER_WRONG_SUB_KEY
+ALTER TABLE t1 ADD KEY (a(20));
+#  CREATE INDEX
+--error ER_WRONG_SUB_KEY
+CREATE UNIQUE INDEX i1 ON t1 (a(20));
+--error ER_WRONG_SUB_KEY
+CREATE INDEX i2 ON t1 (a(20));
+# cleanup
+DROP TABLE t1;
+
+
+#
+# Bug #45052    ALTER TABLE ADD COLUMN crashes server with multiple foreign key columns
+#   The alter table fails if 2 or more new fields added and
+#   also added a key with these fields
+#
+CREATE TABLE t1 (id int);
+INSERT INTO t1 VALUES (1), (2);
+ALTER TABLE t1 ADD COLUMN (f1 INT);
+ALTER TABLE t1 ADD COLUMN (f2 INT);
+ALTER TABLE t1 ADD KEY f2k(f2);
+DROP TABLE t1;
+
+
+--echo #
+--echo # Test for bug #53820 "ALTER a MEDIUMINT column table causes full
+--echo #                      table copy".
+--echo #
+--disable_warnings
+DROP TABLE IF EXISTS t1;
+--enable_warnings
+CREATE TABLE t1 (a INT, b MEDIUMINT);
+INSERT INTO t1 VALUES (1, 1), (2, 2);
+--echo # The below ALTER should not copy table and so no rows should
+--echo # be shown as affected.
+--enable_info
+ALTER TABLE t1 CHANGE a id INT;
+--disable_info
+DROP TABLE t1;
+
+
+--echo # Additional coverage for refactoring which is made as part
+--echo # of fix for bug #27480 "Extend CREATE TEMPORARY TABLES privilege
+--echo # to allow temp table operations".
+--echo #
+--echo # At some point the below test case failed on assertion.
+
+--disable_warnings
+DROP TABLE IF EXISTS t1;
+--enable_warnings
+
+--echo #
+--echo # WL#5534 Online ALTER, Phase 1
+--echo #
+
+--echo # Single thread tests.
+--echo # See innodb_mysql_sync.test for multi thread tests.
+
+--disable_warnings
+DROP TABLE IF EXISTS t1;
+--enable_warnings
+
+CREATE TABLE t1(a INT PRIMARY KEY, b INT) engine=InnoDB;
+CREATE TABLE m1(a INT PRIMARY KEY, b INT) engine=MyISAM;
+INSERT INTO t1 VALUES (1,1), (2,2);
+INSERT INTO m1 VALUES (1,1), (2,2);
+
+--echo #
+--echo # 1: Test ALGORITHM keyword
+--echo #
+
+--echo # --enable_info allows us to see how many rows were updated
+--echo # by ALTER TABLE. in-place will show 0 rows, while copy > 0.
+
+--enable_info
+--disable_warnings
+ALTER TABLE t1 ADD INDEX i1(b);
+ALTER TABLE t1 ADD INDEX i2(b), ALGORITHM= DEFAULT;
+ALTER TABLE t1 ADD INDEX i3(b), ALGORITHM= COPY;
+ALTER TABLE t1 ADD INDEX i4(b), ALGORITHM= INPLACE;
+
+ALTER TABLE m1 ENABLE KEYS;
+ALTER TABLE m1 ENABLE KEYS, ALGORITHM= DEFAULT;
+ALTER TABLE m1 ENABLE KEYS, ALGORITHM= COPY;
+--error ER_ALTER_OPERATION_NOT_SUPPORTED_REASON
+ALTER TABLE m1 ENABLE KEYS, ALGORITHM= INPLACE;
+--enable_warnings
+--disable_info
+
+ALTER TABLE t1 DROP INDEX i1;
+ALTER TABLE t1 DROP INDEX i2;
+ALTER TABLE t1 DROP INDEX i3;
+ALTER TABLE t1 DROP INDEX i4;
+
+--echo #
+--echo # 2: Test ALGORITHM + old_alter_table
+--echo #
+
+--enable_info
+SET SESSION old_alter_table= 1;
+ALTER TABLE t1 ADD INDEX i1(b);
+--disable_warnings
+ALTER TABLE t1 ADD INDEX i2(b), ALGORITHM= DEFAULT;
+ALTER TABLE t1 ADD INDEX i3(b), ALGORITHM= COPY;
+ALTER TABLE t1 ADD INDEX i4(b), ALGORITHM= INPLACE;
+--enable_warnings
+--error ER_ALTER_OPERATION_NOT_SUPPORTED_REASON
+ALTER TABLE t1 ADD INDEX i5(b), ALGORITHM= INSTANT;
+SET SESSION old_alter_table= 0;
+--disable_info
+
+ALTER TABLE t1 DROP INDEX i1;
+ALTER TABLE t1 DROP INDEX i2;
+ALTER TABLE t1 DROP INDEX i3;
+ALTER TABLE t1 DROP INDEX i4;
+
+--echo #
+--echo # 3: Test in-place operation
+--echo #
+
+ALTER TABLE t1 ADD COLUMN (c1 INT);
+--disable_warnings
+ALTER TABLE t1 ADD COLUMN (c2 INT), ALGORITHM= DEFAULT;
+ALTER TABLE t1 ADD COLUMN (c3 INT), ALGORITHM= COPY;
+--error ER_ALTER_OPERATION_NOT_SUPPORTED_REASON
+ALTER TABLE t1 ADD COLUMN (c4 INT), ALGORITHM= INPLACE;
+ALTER TABLE t1 ADD COLUMN (c5 INT), ALGORITHM= INSTANT;
+--enable_warnings
+
+ALTER TABLE t1 DROP COLUMN c1;
+ALTER TABLE t1 DROP COLUMN c2;
+ALTER TABLE t1 DROP COLUMN c3;
+ALTER TABLE t1 DROP COLUMN c4;
+
+--echo #
+--echo # 4: Test LOCK keyword
+--echo #
+
+--enable_info
+ALTER TABLE t1 ADD INDEX i1(b), LOCK= DEFAULT;
+ALTER TABLE t1 ADD INDEX i2(b), LOCK= NONE;
+ALTER TABLE t1 ADD INDEX i3(b), LOCK= SHARED;
+ALTER TABLE t1 ADD INDEX i4(b), LOCK= EXCLUSIVE;
+--disable_info
+
+ALTER TABLE m1 ENABLE KEYS, LOCK= DEFAULT;
+--error ER_ALTER_OPERATION_NOT_SUPPORTED
+ALTER TABLE m1 ENABLE KEYS, LOCK= NONE;
+--error ER_ALTER_OPERATION_NOT_SUPPORTED
+ALTER TABLE m1 ENABLE KEYS, LOCK= SHARED;
+ALTER TABLE m1 ENABLE KEYS, LOCK= EXCLUSIVE;
+
+ALTER TABLE t1 DROP INDEX i1;
+ALTER TABLE t1 DROP INDEX i2;
+ALTER TABLE t1 DROP INDEX i3;
+ALTER TABLE t1 DROP INDEX i4;
+
+--echo #
+--echo # 5: Test ALGORITHM + LOCK
+--echo #
+
+--enable_info
+--disable_warnings
+ALTER TABLE t1 ADD INDEX i1(b), ALGORITHM= INPLACE, LOCK= NONE;
+ALTER TABLE t1 ADD INDEX i2(b), ALGORITHM= INPLACE, LOCK= SHARED;
+ALTER TABLE t1 ADD INDEX i3(b), ALGORITHM= INPLACE, LOCK= EXCLUSIVE;
+--error ER_ALTER_OPERATION_NOT_SUPPORTED_REASON
+ALTER TABLE t1 ADD INDEX i4(b), ALGORITHM= COPY, LOCK= NONE;
+--error ER_ALTER_OPERATION_NOT_SUPPORTED_REASON
+ALTER TABLE t1 ADD INDEX i5(b), ALGORITHM= COPY, LOCK= SHARED;
+--error ER_ALTER_OPERATION_NOT_SUPPORTED_REASON
+ALTER TABLE t1 ADD INDEX i6(b), ALGORITHM= COPY, LOCK= EXCLUSIVE;
+
+--error ER_ALTER_OPERATION_NOT_SUPPORTED
+ALTER TABLE m1 ENABLE KEYS, ALGORITHM= INPLACE, LOCK= NONE;
+--error ER_ALTER_OPERATION_NOT_SUPPORTED
+ALTER TABLE m1 ENABLE KEYS, ALGORITHM= INPLACE, LOCK= SHARED;
+--error ER_ALTER_OPERATION_NOT_SUPPORTED_REASON
+ALTER TABLE m1 ENABLE KEYS, ALGORITHM= INPLACE, LOCK= EXCLUSIVE;
+--error ER_ALTER_OPERATION_NOT_SUPPORTED_REASON
+ALTER TABLE m1 ENABLE KEYS, ALGORITHM= COPY, LOCK= NONE;
+# This works because the lock will be SNW for the copy phase.
+# It will still require exclusive lock for actually enabling keys.
+ALTER TABLE m1 ENABLE KEYS, ALGORITHM= COPY, LOCK= SHARED;
+ALTER TABLE m1 ENABLE KEYS, ALGORITHM= COPY, LOCK= EXCLUSIVE;
+--disable_info
+--enable_warnings
+
+DROP TABLE t1, m1;
+
+--echo #
+--echo # 6: Possible deadlock involving thr_lock.c
+--echo #
+
+CREATE TABLE t1(a INT PRIMARY KEY, b INT);
+INSERT INTO t1 VALUES (1,1), (2,2);
+
+START TRANSACTION;
+INSERT INTO t1 VALUES (3,3);
+
+--echo # Connection con1
+connect (con1, localhost, root);
+--echo # Sending:
+--send ALTER TABLE t1 DISABLE KEYS
+
+--echo # Connection default
+connection default;
+--echo # Waiting until ALTER TABLE is blocked.
+let $wait_condition=
+  SELECT COUNT(*) = 1 FROM information_schema.processlist
+  WHERE state = "Waiting for table metadata lock" AND
+        info = "ALTER TABLE t1 DISABLE KEYS";
+--source include/wait_condition.inc
+UPDATE t1 SET b = 4;
+COMMIT;
+
+--echo # Connection con1
+connection con1;
+--echo # Reaping: ALTER TABLE t1 DISABLE KEYS
+--reap
+disconnect con1;
+--source include/wait_until_disconnected.inc
+
+--echo # Connection default
+connection default;
+DROP TABLE t1;
+
+--echo #
+--echo # 7: Which operations require copy and which can be done in-place?
+--echo #
+--echo # Test which ALTER TABLE operations are done in-place and
+--echo # which operations are done using temporary table copy.
+--echo #
+--echo # --enable_info allows us to see how many rows were updated
+--echo # by ALTER TABLE. in-place will show 0 rows, while copy > 0.
+--echo #
+
+--disable_warnings
+DROP TABLE IF EXISTS ti1, ti2, ti3, tm1, tm2, tm3;
+--enable_warnings
+
+--echo # Single operation tests
+
+CREATE TABLE ti1(a INT NOT NULL, b INT, c INT) engine=InnoDB;
+CREATE TABLE tm1(a INT NOT NULL, b INT, c INT) engine=MyISAM;
+CREATE TABLE ti2(a INT PRIMARY KEY AUTO_INCREMENT, b INT, c INT) engine=InnoDB;
+CREATE TABLE tm2(a INT PRIMARY KEY AUTO_INCREMENT, b INT, c INT) engine=MyISAM;
+INSERT INTO ti1 VALUES (1,1,1), (2,2,2);
+INSERT INTO ti2 VALUES (1,1,1), (2,2,2);
+INSERT INTO tm1 VALUES (1,1,1), (2,2,2);
+INSERT INTO tm2 VALUES (1,1,1), (2,2,2);
+
+--enable_info
+ALTER TABLE ti1;
+ALTER TABLE tm1;
+
+ALTER TABLE ti1 ADD COLUMN d VARCHAR(200);
+ALTER TABLE tm1 ADD COLUMN d VARCHAR(200);
+ALTER TABLE ti1 ADD COLUMN d2 VARCHAR(200);
+ALTER TABLE tm1 ADD COLUMN d2 VARCHAR(200);
+ALTER TABLE ti1 ADD COLUMN e ENUM('a', 'b') FIRST;
+ALTER TABLE tm1 ADD COLUMN e ENUM('a', 'b') FIRST;
+ALTER TABLE ti1 ADD COLUMN f INT AFTER a;
+ALTER TABLE tm1 ADD COLUMN f INT AFTER a;
+
+ALTER TABLE ti1 ADD INDEX ii1(b);
+ALTER TABLE tm1 ADD INDEX im1(b);
+ALTER TABLE ti1 ADD UNIQUE INDEX ii2 (c);
+ALTER TABLE tm1 ADD UNIQUE INDEX im2 (c);
+--disable_warnings
+ALTER TABLE ti1 ADD FULLTEXT INDEX ii3 (d);
+ALTER TABLE tm1 ADD FULLTEXT INDEX im3 (d);
+ALTER TABLE ti1 ADD FULLTEXT INDEX ii4 (d2);
+ALTER TABLE tm1 ADD FULLTEXT INDEX im4 (d2);
+--disable_warnings
+
+ALTER TABLE ti1 DROP COLUMN d2;
+ALTER TABLE tm1 DROP COLUMN d2;
+
+ALTER TABLE ti1 ADD CONSTRAINT fi1 FOREIGN KEY (b) REFERENCES ti2(a);
+ALTER TABLE tm1 ADD CONSTRAINT fm1 FOREIGN KEY (b) REFERENCES tm2(a);
+
+ALTER TABLE ti1 ALTER COLUMN b SET DEFAULT 1;
+ALTER TABLE tm1 ALTER COLUMN b SET DEFAULT 1;
+ALTER TABLE ti1 ALTER COLUMN b DROP DEFAULT;
+ALTER TABLE tm1 ALTER COLUMN b DROP DEFAULT;
+
+# This will set both ALTER_COLUMN_NAME and COLUMN_DEFAULT_VALUE
+ALTER TABLE ti1 CHANGE COLUMN f g INT;
+ALTER TABLE tm1 CHANGE COLUMN f g INT;
+# This will set both ALTER_COLUMN_ORDER and COLUMN_DEFAULT_VALUE
+# This will set both ALTER_COLUMN_NOT_NULLABLE and COLUMN_DEFAULT_VALUE
+# This will set both ALTER_COLUMN_NULLABLE and COLUMN_DEFAULT_VALUE
+# This will set both ALTER_COLUMN_EQUAL_PACK_LENGTH and COLUMN_DEFAULT_VALUE
+
+ALTER TABLE ti1 DROP INDEX ii2;
+ALTER TABLE tm1 DROP INDEX im2;
+
+ALTER TABLE ti1 DROP FOREIGN KEY fi1;
+ALTER TABLE tm1 DROP FOREIGN KEY fm1;
+
+ALTER TABLE ti1 RENAME TO ti3;
+ALTER TABLE tm1 RENAME TO tm3;
+ALTER TABLE ti3 RENAME TO ti1;
+ALTER TABLE tm3 RENAME TO tm1;
+
+ALTER TABLE ti1 DEFAULT CHARACTER SET utf8mb4;
+ALTER TABLE tm1 DEFAULT CHARACTER SET utf8mb4;
+
+--error ErrUnsupportedDDLOperation
+ALTER TABLE ti1 AVG_ROW_LENGTH 10;
+--error ErrUnsupportedDDLOperation
+ALTER TABLE tm1 AVG_ROW_LENGTH 10;
+--error ErrUnsupportedDDLOperation
+ALTER TABLE ti1 CHECKSUM 1;
+--error ErrUnsupportedDDLOperation
+ALTER TABLE tm1 CHECKSUM 1;
+ALTER TABLE ti1 COMMENT 'test';
+ALTER TABLE tm1 COMMENT 'test';
+--error ErrUnsupportedDDLOperation
+ALTER TABLE ti1 MAX_ROWS 100;
+--error ErrUnsupportedDDLOperation
+ALTER TABLE tm1 MAX_ROWS 100;
+--error ErrUnsupportedDDLOperation
+ALTER TABLE ti1 MIN_ROWS 1;
+--error ErrUnsupportedDDLOperation
+ALTER TABLE tm1 MIN_ROWS 1;
+--error ErrUnsupportedDDLOperation
+ALTER TABLE ti1 PACK_KEYS 1;
+--error ErrUnsupportedDDLOperation
+ALTER TABLE tm1 PACK_KEYS 1;
+
+--disable_info
+DROP TABLE ti1, ti2, tm1, tm2;
+
+--echo # Tests of >1 operation (InnoDB)
+
+CREATE TABLE ti1(a INT PRIMARY KEY AUTO_INCREMENT, b INT) engine=InnoDB;
+INSERT INTO ti1(b) VALUES (1), (2);
+
+--enable_info
+ALTER TABLE ti1 RENAME TO ti3;
+ALTER TABLE ti3 ADD INDEX ii1(b);
+
+ALTER TABLE ti3 DROP INDEX ii1;
+ALTER TABLE ti3 AUTO_INCREMENT = 5;
+--disable_info
+INSERT INTO ti3(b) VALUES (5);
+--enable_info
+ALTER TABLE ti3 ADD INDEX ii1(b);
+ALTER TABLE ti3 AUTO_INCREMENT = 7;
+--disable_info
+INSERT INTO ti3(b) VALUES (7);
+SELECT count(a) FROM ti3 WHERE a > 7;
+
+DROP TABLE ti3;
+
+--echo #
+--echo # 8: Scenario in which ALTER TABLE was returning an unwarranted
+--echo #    ER_ILLEGAL_HA error at some point during work on this WL.
+--echo #
+
+CREATE TABLE tm1(i INT DEFAULT 1) engine=MyISAM;
+ALTER TABLE tm1 ADD INDEX ii1(i);
+ALTER TABLE tm1 ALTER COLUMN i DROP DEFAULT;
+DROP TABLE tm1;
+
+--echo #
+--echo # Bug#11815557 60269: MYSQL SHOULD REJECT ATTEMPTS TO CREATE SYSTEM
+--echo #                     TABLES IN INCORRECT ENGINE
+--echo #
+--echo # Note: This test assumes that only MyISAM and InnoDB supports system tables.
+--echo #       If other engines are made to support system tables,
+--echo #       then this test needs to be updated
+--echo #
+
+use mysql;
+--error ER_UNSUPPORTED_ENGINE
+ALTER TABLE db ENGINE=innodb;
+--error ER_UNSUPPORTED_ENGINE
+ALTER TABLE user ENGINE=memory;
+--error ER_UNSUPPORTED_ENGINE
+ALTER TABLE proc ENGINE=heap;
+--error ER_UNSUPPORTED_ENGINE
+ALTER TABLE func ENGINE=csv;
+--error ER_UNSUPPORTED_ENGINE
+ALTER TABLE event ENGINE=merge;
+--error ER_UNSUPPORTED_ENGINE
+ALTER TABLE servers ENGINE=merge;
+--error ER_UNSUPPORTED_ENGINE
+ALTER TABLE procs_priv ENGINE=memory;
+--error ER_UNSUPPORTED_ENGINE
+ALTER TABLE tables_priv ENGINE=heap;
+--error ER_UNSUPPORTED_ENGINE
+ALTER TABLE columns_priv ENGINE=csv;
+--error ER_UNSUPPORTED_ENGINE
+ALTER TABLE time_zone ENGINE=merge;
+--error ER_UNSUPPORTED_ENGINE
+ALTER TABLE help_topic ENGINE=merge;
+--error ER_UNSUPPORTED_ENGINE
+CREATE TABLE db (dummy int) ENGINE=innodb;
+--error ER_UNSUPPORTED_ENGINE
+CREATE TABLE user (dummy int) ENGINE=memory;
+--error ER_UNSUPPORTED_ENGINE
+CREATE TABLE proc (dummy int) ENGINE=heap;
+--error ER_UNSUPPORTED_ENGINE
+CREATE TABLE func (dummy int) ENGINE=csv;
+--error ER_UNSUPPORTED_ENGINE
+CREATE TABLE event (dummy int) ENGINE=merge;
+--error ER_UNSUPPORTED_ENGINE
+CREATE TABLE servers (dummy int) ENGINE=merge;
+--error ER_UNSUPPORTED_ENGINE
+CREATE TABLE procs_priv (dummy int) ENGINE=memory;
+--error ER_UNSUPPORTED_ENGINE
+CREATE TABLE tables_priv (dummy int) ENGINE=heap;
+--error ER_UNSUPPORTED_ENGINE
+CREATE TABLE columns_priv (dummy int) ENGINE=csv;
+--error ER_UNSUPPORTED_ENGINE
+CREATE TABLE time_zone (dummy int) ENGINE=merge;
+--error ER_UNSUPPORTED_ENGINE
+CREATE TABLE help_topic (dummy int) ENGINE=merge;
+use alter_table1;
+--echo # End of Bug#11815557
+
+--echo #
+--echo # The below ALTER TABLE statement should either drop and recreate key
+--echo # under new name, or simply rename it. It should not bring .FRM and
+--echo # InnoDB data-dictionary out of sync thus causing asserts.
+--echo #
+create table t1 (i int, key x(i)) engine=InnoDB;
+alter table t1 drop key x;
+alter table t1 add key X(i); 
+alter table t1 alter column i set default 10;
+drop table t1;
+
+
+--echo #
+--echo # BUG 19779365: INDEX COMMENT IN ADD INDEX IS IGNORED.
+--echo #
+
+--echo # After the patch, the alter table reflects the new
+--echo # index comment or the lack of comment for the indexes.
+CREATE TABLE t1(fld1 int, key key1(fld1));
+SHOW INDEX FROM t1;
+ALTER TABLE t1 DROP INDEX key1;
+ALTER TABLE t1 ADD INDEX key1(fld1) COMMENT 'test';
+SHOW INDEX FROM t1;
+DROP TABLE t1;
+
+CREATE TABLE t1(fld1 int, key key1(fld1) COMMENT 'test');
+SHOW INDEX FROM t1;
+ALTER TABLE t1 DROP INDEX key1;
+ALTER TABLE t1 ADD INDEX key1(fld1);
+SHOW INDEX FROM t1;
+DROP TABLE t1;
+
+CREATE TABLE t1(fld1 int, key key1(fld1) COMMENT 'test');
+SHOW INDEX FROM t1;
+ALTER TABLE t1 DROP INDEX key1;
+ALTER TABLE t1 ADD INDEX key1(fld1) COMMENT 'success';
+SHOW INDEX FROM t1;
+DROP TABLE t1;
+
+# Alter the comment, but keep the same comment length
+CREATE TABLE t1(fld1 int, key key1(fld1) COMMENT 'old comment');
+SHOW INDEX FROM t1;
+ALTER TABLE t1 DROP INDEX key1;
+ALTER TABLE t1 ADD INDEX key1(fld1) COMMENT 'new comment';
+SHOW INDEX FROM t1;
+DROP TABLE t1; 
+
+
+--echo #
+--echo # BUG#16886196 - ALTER TABLE FAILS TO CONVERT TO PREFIX INDEX IN
+--echo #                ALTER_COLUMN_EQUAL_PACK_LENGTH
+
+
+SET @orig_sql_mode = @@sql_mode;
+SET sql_mode= '';
+
+--echo # Test with '767' as index size limit.
+SET GLOBAL innodb_large_prefix=OFF;
+CREATE TABLE t1(fld1 VARCHAR(767), KEY a(fld1)) ENGINE= INNODB;
+INSERT INTO t1 VALUES('a');
+--disable_warnings
+ALTER TABLE t1 CHANGE fld1 fld1 VARCHAR(768), ALGORITHM= INSTANT;
+--enable_warnings
+
+--echo # Without patch, the below statement will assert in a debug build.
+SELECT COUNT(*) FROM t1 WHERE fld1= 'a';
+
+--echo # Cleanup.
+DROP TABLE t1;
+SET GLOBAL innodb_large_prefix=default;
+
+--echo # Test with innodb large prefix indexes(Upto 3072).
+
+CREATE TABLE t1(fld1 VARCHAR(3072), KEY a(fld1)) CHARSET=ascii ENGINE= INNODB
+ROW_FORMAT= DYNAMIC;
+INSERT INTO t1 VALUES('a');
+--disable_warnings
+--error ER_ALTER_OPERATION_NOT_SUPPORTED_REASON
+ALTER TABLE t1 CHANGE fld1 fld1 VARCHAR(3073), ALGORITHM= INPLACE;
+--enable_warnings
+--error ER_INDEX_KEY_LENGTH_EXCEED_THE_LIMIT
+ALTER TABLE t1 CHANGE fld1 fld1 VARCHAR(3073), ALGORITHM= INSTANT;
+
+--echo # Without patch, the below statement will assert in a debug build.
+SELECT COUNT(*) FROM t1 WHERE fld1= 'a';
+
+--echo # Cleanup.
+DROP TABLE t1;
+
+--echo #Test cases with the session variable 'show_old_temporals'
+--echo #enabled.
+
+--echo #
+--echo #BUG#20106553: ALTER TABLE WHICH CHANGES INDEX COMMENT IS NOT
+--echo #              LONGER INPLACE/FAST OPERATION.
+
+--echo #Without the patch, the ALTER TABLE to change the index
+--echo #comment using INPLACE algorithm reports an error.
+CREATE TABLE t1(fld1 int, key key1(fld1)) ENGINE= INNODB;
+SHOW INDEX FROM t1;
+ALTER TABLE t1 DROP INDEX key1;
+--disable_warnings
+ALTER TABLE t1 ADD INDEX key1(fld1) COMMENT 'test', ALGORITHM= INPLACE;
+--enable_warnings
+SHOW INDEX FROM t1;
+DROP TABLE t1;
+
+CREATE TABLE t1(fld1 int, key key1(fld1) COMMENT 'test') ENGINE= MyISAM;
+SHOW INDEX FROM t1;
+ALTER TABLE t1 DROP INDEX key1;
+--disable_warnings
+ALTER TABLE t1 ADD INDEX key1(fld1), ALGORITHM=INPLACE;
+--enable_warnings
+SHOW INDEX FROM t1;
+DROP TABLE t1;
+
+CREATE TABLE t1(fld1 int, key key1(fld1) COMMENT 'test') ENGINE= INNODB;
+SHOW INDEX FROM t1;
+ALTER TABLE t1 DROP INDEX key1;
+--disable_warnings
+ALTER TABLE t1 ADD INDEX key1(fld1) COMMENT 'success', ALGORITHM= INPLACE;
+--enable_warnings
+SHOW INDEX FROM t1;
+DROP TABLE t1;
+
+# Alter the comment, but keep the same comment length
+CREATE TABLE t1(fld1 int, key key1(fld1) COMMENT 'old comment') ENGINE=MyISAM;
+SHOW INDEX FROM t1;
+ALTER TABLE t1 DROP INDEX key1;
+--disable_warnings
+ALTER TABLE t1 ADD INDEX key1(fld1) COMMENT 'new comment', ALGORITHM= INPLACE;
+--enable_warnings
+SHOW INDEX FROM t1;
+DROP TABLE t1;
+
+# Check that we can create a table with a prefix index of
+# 64 4-byte characters for a TEXT column.
+
+# 64 characters of 4 bytes each fit in 65535 bytes.
+CREATE TABLE t1(id INT PRIMARY KEY,
+                name TEXT,
+                KEY nameloc (name(64))
+) DEFAULT CHARSET=utf8mb4;
+
+# Check ALTER TABLE where we change the type of the
+# base column, reducing max field length, keeping the
+# length of the prefix key the same.
+--error ER_TOO_LONG_KEY
+ALTER TABLE t1 MODIFY COLUMN name TINYTEXT;
+DROP TABLE t1;
+
+
+--echo #
+--echo # BUG#16888677: OUT OF RANGE VALUE ACCEPTED FOR DATETIME COLUMN IN
+--echo #               ALTER TABLE...ADD COLUMN
+
+SET @saved_sql_mode = @@session.sql_mode;
+
+--echo # Test case with no SQL_MODE enabled.
+SET SESSION sql_mode= '';
+CREATE TABLE t1(fld1 DATE NOT NULL) ENGINE= INNODB;
+INSERT INTO t1 VALUES('2000-01-01');
+
+--echo # No warnings or error is reported
+--disable_warnings
+ALTER TABLE t1 ADD COLUMN fld2 DATETIME NOT NULL, ALGORITHM=INPLACE;
+ALTER TABLE t1 ADD COLUMN fld3 DATETIME NOT NULL, ALGORITHM=INSTANT;
+ALTER TABLE t1 ADD COLUMN fld4 DATETIME NOT NULL, ALGORITHM=COPY;
+--enable_warnings
+
+DROP TABLE t1;
+
+--echo # Test case with strict mode enabled.
+
+SET SESSION sql_mode= 'STRICT_ALL_TABLES';
+CREATE TABLE t1(fld1 DATE NOT NULL) ENGINE= INNODB;
+INSERT INTO t1 VALUES('2000-01-01');
+
+--echo # No warnings or error is reported
+--disable_warnings
+ALTER TABLE t1 ADD COLUMN fld2 DATETIME NOT NULL, ALGORITHM=INPLACE;
+ALTER TABLE t1 ADD COLUMN fld3 DATETIME NOT NULL, ALGORITHM=INSTANT;
+ALTER TABLE t1 ADD COLUMN fld4 DATETIME NOT NULL, ALGORITHM=COPY;
+--enable_warnings
+DROP TABLE t1;
+
+--echo # Test case with 'NO_ZERO_DATE' enabled.
+
+SET SESSION sql_mode= 'NO_ZERO_DATE';
+CREATE TABLE t1(fld1 DATE NOT NULL) ENGINE= INNODB;
+INSERT INTO t1 VALUES('2000-01-01');
+
+--echo # Warnings are reported after patch.
+--disable_warnings
+ALTER TABLE t1 ADD COLUMN fld2 DATETIME NOT NULL, ALGORITHM=INPLACE;
+ALTER TABLE t1 ADD COLUMN fld3 DATETIME NOT NULL, ALGORITHM=INSTANT;
+ALTER TABLE t1 ADD COLUMN fld4 DATETIME NOT NULL, ALGORITHM=COPY;
+--enable_warnings
+DROP TABLE t1;
+
+--echo # Test case with both 'NO_ZERO_DATE and strict mode' enabled.
+
+SET SESSION sql_mode= @saved_sql_mode;
+
+CREATE TABLE t1(fld1 DATE NOT NULL) ENGINE= INNODB;
+INSERT INTO t1 VALUES('2000-01-01');
+
+--echo # Without patch, the following statement succeeds.
+--error ER_TRUNCATED_WRONG_VALUE
+--disable_warnings
+ALTER TABLE t1 ADD COLUMN fld2 DATETIME NOT NULL, ALGORITHM=INPLACE;
+ALTER TABLE t1 ADD COLUMN fld3 DATETIME NOT NULL, ALGORITHM=INSTANT;
+--error ER_TRUNCATED_WRONG_VALUE
+ALTER TABLE t1 ADD COLUMN fld4 DATETIME NOT NULL, ALGORITHM=COPY;
+
+TRUNCATE TABLE t1;
+--echo # Operation below succeeds in TiDB no matter if the table has record.
+ALTER TABLE t1 ADD COLUMN fld5 DATETIME NOT NULL, ALGORITHM=INPLACE;
+--enable_warnings
+ALTER TABLE t1 ADD COLUMN fld6 DATETIME NOT NULL, ALGORITHM=INSTANT;
+DROP TABLE t1;

@@ -1,0 +1,18 @@
+CREATE DATABASE IF NOT EXISTS d_select;
+CREATE DATABASE IF NOT EXISTS e_select;
+USE d_select;
+CREATE TABLE t (a int);
+INSERT t VALUES (1);
+USE e_select;
+CREATE TABLE t (b int);
+CREATE TABLE t1 (b int);
+INSERT t VALUES (2);
+INSERT t1 VALUES (3);
+SELECT * FROM d_select.t;
+SELECT * FROM e_select.t;
+SELECT d_select.t.a, e_select.t.b FROM d_select.t, e_select.t;
+SELECT a, b FROM d_select.t, e_select.t;
+SELECT t.a, t1.b FROM d_select.t, e_select.t1;
+SELECT a, b FROM d_select.t, t1;
+DROP DATABASE d_select;
+DROP DATABASE e_select;

@@ -1,0 +1,30 @@
+drop table if exists t;
+create table t (id int);
+insert into t VALUES(1);
+PREPARE stmt1 FROM 'SELECT id+? AS id_plus from t';
+PREPARE stmt2 FROM 'SELECT id+?, id+? AS id_plus from t';
+--error too many prepared stmt
+PREPARE stmt3 FROM 'SELECT id+?, id+? AS id_plus;SELECT id+?, id+? AS id_plus';
+
+SET @a=1;
+EXECUTE stmt1 USING @a;
+
+--error Paramter number does not match
+EXECUTE stmt2 USING @a;
+
+--error Can not find prepared statement with name stmt_not_exists
+EXECUTE stmt_not_exists USING @a;
+
+DEALLOCATE PREPARE stmt1;
+--error Can not find prepared statement with name stmt1
+DROP PREPARE stmt1;
+--error Can not find prepared statement with name stmt1
+EXECUTE stmt1 USING @a;
+
+--error table prepare.tablenoexists does not exist
+PREPARE stmt4 FROM 'SELECT id+? AS id_plus from tablenoexists';
+
+PREPARE stmt5 FROM 'SELECT id+? AS id_plus from t where id=?';
+insert into t VALUES(2);
+SET @b=2;
+EXECUTE stmt5 USING @a, @b;

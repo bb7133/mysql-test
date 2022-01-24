@@ -1,0 +1,671 @@
+# test CREATE ROLE and variations of authorizationID:
+# WL988.I-1
+# Role is not a reserved keyword
+CREATE ROLE `role`;
+DROP ROLE `role`;
+CREATE ROLE `ident with space`;
+CREATE ROLE 'text string';
+CREATE ROLE role@host;
+DROP ROLE role@host;
+CREATE ROLE 'role'@`host`;
+CREATE ROLE IF NOT EXISTS 'role'@'host';
+DROP ROLE 'role'@`host`;
+CREATE ROLE `role`@host;
+DROP ROLE `role`@host;
+CREATE ROLE `role`@`host`;
+DROP ROLE `role`@`host`;
+CREATE ROLE `role`, role1, role2;
+CREATE ROLE r1 IDENTIFIED BY 'test';
+[parser:1064]You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 25 near "IDENTIFIED BY 'test';" 
+# Creating roles which already exist should not cause an error to be raised
+# WL988.I-1
+CREATE ROLE IF NOT EXISTS role1, role2;
+# Granting a role to another role using only role name.
+# WL988 I-4
+GRANT 'role' TO role1;
+CREATE USER user1, user2, user3@host3;
+# To grant a role, a user must have either INSERT_ACL on mysql.roles
+# or admin_roles privilege on the roles to be granted.
+# WL988 R-2.9
+GRANT role1 TO user1;
+Error 1227: Access denied; you need (at least one of) the SUPER or ROLE_ADMIN privilege(s) for this operation
+CREATE ROLE role2@host2;
+CREATE ROLE role3;
+# Granting many roles to each user in a list of users.
+# WL988.I-4
+GRANT role1, `role2`@`host2`, role3 TO user1, user2, `user3`@`host3`;
+# Failing to assign an unknown role to an unknown user.
+GRANT sys_role TO peter@clickhost.net;
+Error 3523: Unknown authorization ID `sys_role`@`%`
+# Failing to assign a known role to an unknown user.
+GRANT role1 TO peter@clickhost.net;
+Error 1396: Operation GRANT ROLE failed for peter@clickhost.net
+# Failing to assign an unknown role to an known user.
+GRANT sys_role TO user1;
+Error 3523: Unknown authorization ID `sys_role`@`%`
+# Creating a role subgraph with multiple nodes and levels.
+CREATE USER joan;
+CREATE USER sally;
+CREATE ROLE engineering;
+CREATE ROLE consultants;
+CREATE ROLE qa;
+GRANT engineering TO joan;
+GRANT engineering TO sally;
+GRANT engineering, consultants TO joan, sally;
+GRANT qa TO consultants;
+CREATE ROLE `engineering`@`US`;
+CREATE ROLE `engineering`@`INDIA`;
+GRANT `engineering`@`US` TO `engineering`@`INDIA`;
+CREATE ROLE `wp_administrators`;
+CREATE USER `joe`@`localhost`;
+# Assigning WITH ADMIN OPTION to a role edge
+# WL988.R-2.3,I-4
+GRANT wp_administrators TO joe@localhost;
+GRANT SELECT ON role.* TO wp_administrators;
+TODO verify that joe@localhost can transfer wp_administrators
+# Granting a role on SQL objects must fail.
+GRANT engineering ON *.*, SUPER ON *.* TO joan, sally;
+[parser:1064]You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 25 near ", SUPER ON *.* TO joan, sally;" 
+# Mixing ACLs and roles in a grant must fail.
+GRANT SUPER, engineering ON *.* TO joan, sally;
+Error 3929: Dynamic privilege 'ENGINEERING' is not registered with the server.
+GRANT engineering,SELECT ON *.* TO joan;
+Error 3929: Dynamic privilege 'ENGINEERING' is not registered with the server.
+# Make sure current_user() works correctly!
+GRANT `role`,engineering TO current_user();
+# WL988.I-6 SET ROLE
+SET ROLE `role`;
+# WL988.I-7 CURRENT_ROLE()
+SELECT CURRENT_ROLE();
+CURRENT_ROLE()
+`role`@`%`
+# Setting active roles for which the user has no privilege should fail.
+# WL988.R-3.3
+SET ROLE role1;
+Error 3530: `role1`@`%` is not granted to root@%
+SELECT CURRENT_ROLE();
+CURRENT_ROLE()
+`role`@`%`
+SET ROLE `role`;
+SELECT CURRENT_ROLE();
+CURRENT_ROLE()
+`role`@`%`
+# If the SET ROLE statement fails the active roles shouldn't change
+# we used to have before the error
+SET ROLE role1;
+Error 3530: `role1`@`%` is not granted to root@%
+SELECT CURRENT_ROLE();
+CURRENT_ROLE()
+`role`@`%`
+# Make sure NONE works as an intended reserved word.
+SET ROLE NONE;
+SELECT CURRENT_ROLE();
+CURRENT_ROLE()
+NONE
+SET ROLE none;
+SELECT CURRENT_ROLE();
+CURRENT_ROLE()
+NONE
+# Setting multiple roles as active should work.
+# WL988.I-6
+SET ROLE engineering, 'role';
+SELECT CURRENT_ROLE();
+CURRENT_ROLE()
+`engineering`@`%`,`role`@`%`
+# Make sure DEFAULT works as an intended reserved word and that it sets
+# the active roles to the default roles
+SET ROLE DEFAULT;
+SELECT CURRENT_ROLE();
+CURRENT_ROLE()
+NONE
+# Make sure ALL works as an intended reserved word and that all granted
+# roles are picked.
+SET ROLE ALL;
+SELECT CURRENT_ROLE();
+CURRENT_ROLE()
+`engineering`@`%`,`role`@`%`
+# Make sure ALL EXCEPT works as an intended reserved word and that all
+# granted roles but the exceptions are picked.
+SET ROLE ALL EXCEPT role1;
+SELECT CURRENT_ROLE();
+CURRENT_ROLE()
+`engineering`@`%`,`role`@`%`
+SHOW GRANTS FOR current_user() USING `engineering`@`%`,`role`@`%`;
+Grants for root@%
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION
+GRANT 'engineering'@'%', 'role'@'%' TO 'root'@'%'
+GRANT role1 TO current_user();
+SET ROLE ALL EXCEPT role1;
+SELECT CURRENT_ROLE();
+CURRENT_ROLE()
+`engineering`@`%`,`role`@`%`
+SET ROLE ALL;
+SELECT CURRENT_ROLE();
+CURRENT_ROLE()
+`engineering`@`%`,`role1`@`%`,`role`@`%`
+SHOW STATUS LIKE '%acl_cache%';
+Variable_name	Value
+# REVOKE a FROM b
+# WL988.I-5
+REVOKE 'role' FROM role1;
+REVOKE role1, `role2`@`host2`, role3 FROM user1, user2, `user3`@`host3`;
+# Revoking an unknown role from an unknown user must fail.
+REVOKE engineering_role FROM foo@localhost;
+Error 1396: Operation REVOKE ROLE failed for `engineering_role`@`%`
+# Revoking a known role from an unknown user must fail.
+REVOKE engineering FROM managers;
+Error 1396: Operation REVOKE ROLE failed for managers@%
+REVOKE engineering FROM joan;
+REVOKE engineering, role1 FROM root;
+# List all subgraphs as a graphml document. This should verify that
+# revoking worked too.
+# WL988.I-14,R-2.1
+# only count nodes and edges as the sorting order is depending on platform
+# Make sure the tables reflect the in memory representation
+SELECT * FROM mysql.role_edges order by FROM_USER;
+FROM_HOST	FROM_USER	TO_HOST	TO_USER	WITH_ADMIN_OPTION
+%	consultants	%	joan	N
+%	consultants	%	sally	N
+%	engineering	%	sally	N
+US	engineering	INDIA	engineering	N
+%	qa	%	consultants	N
+%	role	%	root	N
+%	wp_administrators	localhost	joe	N
+SELECT * FROM mysql.default_roles;
+HOST	USER	DEFAULT_ROLE_HOST	DEFAULT_ROLE_USER
+# DROP ROLE:
+# WL988.I-2
+DROP ROLE 'role';
+# Don't fail if attempting to drop an unknown role.
+DROP ROLE IF EXISTS 'role';
+DROP ROLE IF EXISTS role1, role2;
+DROP ROLE IF EXISTS `role`, `role`@`host`;
+# ...unless this is what we want:
+DROP ROLE 'role';
+Error 1396: Operation DROP ROLE failed for role@%
+# Dropping roles should update the in memory roles graph
+# WL988.R-1.10
+# only count nodes and edges as the sorting order is depending on platform
+# ..and synchronize the non-volatile area:
+SELECT * FROM mysql.role_edges order by FROM_HOST;
+FROM_HOST	FROM_USER	TO_HOST	TO_USER	WITH_ADMIN_OPTION
+%	consultants	%	joan	N
+%	consultants	%	sally	N
+%	engineering	%	sally	N
+%	qa	%	consultants	N
+%	wp_administrators	localhost	joe	N
+US	engineering	INDIA	engineering	N
+SELECT * FROM mysql.default_roles;
+HOST	USER	DEFAULT_ROLE_HOST	DEFAULT_ROLE_USER
+# ALTER USER ... DEFAULT ROLE:
+# WL988.I-9
+SET DEFAULT ROLE wp_administrators TO `joe`@`localhost`;
+SELECT * FROM mysql.default_roles;
+HOST	USER	DEFAULT_ROLE_HOST	DEFAULT_ROLE_USER
+localhost	joe	%	wp_administrators
+SET DEFAULT ROLE wp_administrators,engineering TO `joe`@`localhost`;
+Error 3530: `engineering`@`%` is not granted to joe@localhost
+SELECT * FROM mysql.default_roles;
+HOST	USER	DEFAULT_ROLE_HOST	DEFAULT_ROLE_USER
+localhost	joe	%	wp_administrators
+SET DEFAULT ROLE wp_administrators TO `joe`@`localhost`;
+SELECT * FROM mysql.default_roles;
+HOST	USER	DEFAULT_ROLE_HOST	DEFAULT_ROLE_USER
+localhost	joe	%	wp_administrators
+# CURRENT_USER shouldn't crash the server.
+SET DEFAULT ROLE NONE TO root;
+# SHOW GRANTS FOR:
+# WL988.I-10
+SHOW GRANTS FOR `wp_administrators`;
+Grants for wp_administrators@%
+GRANT USAGE ON *.* TO 'wp_administrators'@'%'
+GRANT SELECT ON role.* TO 'wp_administrators'@'%'
+SHOW GRANTS FOR `joe`@`localhost`;
+Grants for joe@localhost
+GRANT USAGE ON *.* TO 'joe'@'localhost'
+GRANT 'wp_administrators'@'%' TO 'joe'@'localhost'
+SHOW GRANTS FOR `joe`@`localhost` USING wp_administrators;
+Grants for joe@localhost
+GRANT USAGE ON *.* TO 'joe'@'localhost'
+GRANT SELECT ON role.* TO 'joe'@'localhost'
+GRANT 'wp_administrators'@'%' TO 'joe'@'localhost'
+SHOW GRANTS FOR `joe`@`localhost` USING role1;
+Error 3530: `role1`@`%` is not granted to joe@localhost
+GRANT engineering TO joe@localhost;
+GRANT UPDATE ON role.* TO engineering;
+SHOW GRANTS FOR `joe`@`localhost` USING engineering;
+Grants for joe@localhost
+GRANT USAGE ON *.* TO 'joe'@'localhost'
+GRANT UPDATE ON role.* TO 'joe'@'localhost'
+GRANT 'engineering'@'%', 'wp_administrators'@'%' TO 'joe'@'localhost'
+SHOW GRANTS FOR `joe`@`localhost`;
+Grants for joe@localhost
+GRANT USAGE ON *.* TO 'joe'@'localhost'
+GRANT 'engineering'@'%', 'wp_administrators'@'%' TO 'joe'@'localhost'
+GRANT consultants TO engineering;
+CREATE TABLE role.t_external (c1 INT, c2 INT, c3 INT);
+GRANT UPDATE(c1,c3), INSERT(c1) ON role.t_external TO consultants;
+SHOW GRANTS FOR `joe`@`localhost` USING engineering;
+Grants for joe@localhost
+GRANT USAGE ON *.* TO 'joe'@'localhost'
+GRANT UPDATE ON role.* TO 'joe'@'localhost'
+GRANT INSERT(c1), UPDATE(c1, c3) ON role.t_external TO 'joe'@'localhost'
+GRANT 'engineering'@'%', 'wp_administrators'@'%' TO 'joe'@'localhost'
+SHOW GRANTS FOR sally USING engineering, consultants;
+Grants for sally@%
+GRANT USAGE ON *.* TO 'sally'@'%'
+GRANT UPDATE ON role.* TO 'sally'@'%'
+GRANT INSERT(c1), UPDATE(c1, c3) ON role.t_external TO 'sally'@'%'
+GRANT 'consultants'@'%', 'engineering'@'%' TO 'sally'@'%'
+REVOKE consultants from engineering;
+SHOW GRANTS FOR sally USING engineering, consultants;
+Grants for sally@%
+GRANT USAGE ON *.* TO 'sally'@'%'
+GRANT UPDATE ON role.* TO 'sally'@'%'
+GRANT INSERT(c1), UPDATE(c1, c3) ON role.t_external TO 'sally'@'%'
+GRANT 'consultants'@'%', 'engineering'@'%' TO 'sally'@'%'
+SHOW GRANTS FOR sally USING consultants;
+Grants for sally@%
+GRANT USAGE ON *.* TO 'sally'@'%'
+GRANT INSERT(c1), UPDATE(c1, c3) ON role.t_external TO 'sally'@'%'
+GRANT 'consultants'@'%', 'engineering'@'%' TO 'sally'@'%'
+SHOW GRANTS FOR sally USING engineering;
+Grants for sally@%
+GRANT USAGE ON *.* TO 'sally'@'%'
+GRANT UPDATE ON role.* TO 'sally'@'%'
+GRANT 'consultants'@'%', 'engineering'@'%' TO 'sally'@'%'
+REVOKE engineering FROM sally;
+SHOW GRANTS FOR sally USING consultants;
+Grants for sally@%
+GRANT USAGE ON *.* TO 'sally'@'%'
+GRANT INSERT(c1), UPDATE(c1, c3) ON role.t_external TO 'sally'@'%'
+GRANT 'consultants'@'%' TO 'sally'@'%'
+SHOW GRANTS FOR sally USING engineering;
+Error 3530: `engineering`@`%` is not granted to sally@%
+GRANT consultants TO engineering;
+GRANT consultants TO sally;
+# only count nodes and edges as the sorting order is depending on platform
+DROP ROLE engineering;
+SHOW GRANTS FOR sally USING engineering;
+Error 3530: `engineering`@`%` is not granted to sally@%
+SELECT * FROM mysql.role_edges;
+FROM_HOST	FROM_USER	TO_HOST	TO_USER	WITH_ADMIN_OPTION
+%	consultants	%	joan	N
+%	consultants	%	sally	N
+%	qa	%	consultants	N
+US	engineering	INDIA	engineering	N
+%	wp_administrators	localhost	joe	N
+SELECT * FROM mysql.default_roles;
+HOST	USER	DEFAULT_ROLE_HOST	DEFAULT_ROLE_USER
+localhost	joe	%	wp_administrators
+ALTER USER joe@localhost IDENTIFIED BY 'joe';
+CREATE ROLE `replication`;
+GRANT `replication` TO joe@localhost;
+GRANT UPDATE ON role.* TO `replication`;
+GRANT SELECT ON role.t_external TO `replication`;
+CREATE ROLE delete_stuff_privilege;
+GRANT DELETE ON role.t_external TO delete_stuff_privilege;
+GRANT delete_stuff_privilege TO `replication`;
+# At this point joe should have the default role wp_administrators
+SELECT CURRENT_USER(), CURRENT_ROLE();
+CURRENT_USER()	CURRENT_ROLE()
+joe@localhost	`wp_administrators`@`%`
+SHOW GRANTS;
+Grants for User
+GRANT USAGE ON *.* TO 'joe'@'localhost'
+GRANT SELECT ON role.* TO 'joe'@'localhost'
+GRANT 'replication'@'%', 'wp_administrators'@'%' TO 'joe'@'localhost'
+# Showing privileges for joe using replication role. Expects:
+# GRANT USAGE ON *.* TO `joe`@`localhost`
+# GRANT UPDATE ON `role`.* TO `joe`@`localhost`
+# GRANT SELECT, DELETE ON `role`.`t_external` TO `joe`@`localhost`
+# GRANT `wp_administrators`@`%`,`replication`@`%` TO `joe`@`localhost`
+SHOW GRANTS FOR current_user() USING `replication`;
+Grants for joe@localhost
+GRANT USAGE ON *.* TO 'joe'@'localhost'
+GRANT UPDATE ON role.* TO 'joe'@'localhost'
+GRANT SELECT,DELETE ON role.t_external TO 'joe'@'localhost'
+GRANT 'replication'@'%', 'wp_administrators'@'%' TO 'joe'@'localhost'
+SHOW GRANTS FOR `joe`@`localhost` USING `replication`;
+Grants for joe@localhost
+GRANT USAGE ON *.* TO 'joe'@'localhost'
+GRANT UPDATE ON role.* TO 'joe'@'localhost'
+GRANT SELECT,DELETE ON role.t_external TO 'joe'@'localhost'
+GRANT 'replication'@'%', 'wp_administrators'@'%' TO 'joe'@'localhost'
+SHOW GRANTS FOR `root`@`localhost` USING `replication`;
+Error 1044: Access denied for user 'joe'@'localhost' to database 'mysql'
+DROP ROLE `replication`;
+DROP ROLE `delete_stuff_privilege`;
+DROP ROLE consultants;
+DROP ROLE `ident with space`;
+DROP ROLE joan;
+DROP ROLE role3;
+DROP ROLE qa;
+DROP ROLE sally;
+DROP ROLE `text string`;
+DROP ROLE user1;
+DROP ROLE user2;
+DROP ROLE wp_administrators;
+SELECT user, host from mysql.user where user='role';
+user	host
+DROP ROLE role2@host2;
+DROP ROLE user3@host3;
+DROP ROLE engineering@INDIA;
+DROP ROLE engineering@US;
+DROP ROLE joe@localhost;
+# only count nodes and edges as the sorting order is depending on platform
+DROP TABLE role.t_external;
+#
+# Verify that all privileges are applied correctly.
+#
+CREATE ROLE maintenance_admin;
+CREATE ROLE user_admin;
+CREATE ROLE security_admin;
+CREATE ROLE schema_admin;
+CREATE ROLE schema_designer;
+CREATE ROLE db_admin;
+CREATE ROLE replication_admin;
+CREATE ROLE backup_admin;
+CREATE ROLE process_admin;
+CREATE ROLE monitor_admin;
+GRANT schema_designer TO schema_admin;
+GRANT user_admin TO security_admin;
+GRANT monitor_admin TO security_admin;
+GRANT replication_admin TO db_admin;
+GRANT backup_admin TO db_admin;
+GRANT schema_admin TO db_admin;
+GRANT security_admin TO process_admin;
+GRANT no_such_grant TO user_admin;
+Error 3523: Unknown authorization ID `no_such_grant`@`%`
+GRANT INSERT ON mysql.* TO user_admin;
+GRANT UPDATE,INSERT,DELETE ON mysql.user TO security_admin;
+GRANT UPDATE,INSERT,DELETE ON mysql.db TO security_admin;
+++ GRANT UPDATE,INSERT,DELETE ON mysql.proxies_priv TO security_admin WITH GRANT OPTION;
+GRANT UPDATE,INSERT,DELETE ON mysql.role_edges TO security_admin;
+GRANT CREATE,INSERT,DELETE ON *.* TO schema_designer;
+GRANT UPDATE, SELECT ON role.* TO schema_designer;
+GRANT DROP ON *.* TO schema_admin;
+CREATE USER `joe_schema_designer`@`localhost` IDENTIFIED BY 'schmoo';
+GRANT `schema_designer` TO `joe_schema_designer`@`localhost`;
+GRANT `schema_admin` TO `joe_schema_designer`@`localhost`;
+SET DEFAULT ROLE `schema_designer` TO `joe_schema_designer`@`localhost`;
+SHOW GRANTS FOR 'joe_schema_designer'@'localhost' USING 'schema_designer';
+Grants for joe_schema_designer@localhost
+GRANT INSERT,DELETE,CREATE ON *.* TO 'joe_schema_designer'@'localhost'
+GRANT SELECT,UPDATE ON role.* TO 'joe_schema_designer'@'localhost'
+GRANT 'schema_admin'@'%', 'schema_designer'@'%' TO 'joe_schema_designer'@'localhost'
+SELECT CURRENT_USER(), CURRENT_ROLE();
+CURRENT_USER()	CURRENT_ROLE()
+joe_schema_designer@localhost	`schema_designer`@`%`
+CREATE TABLE t1 (c1 INT);
+INSERT INTO t1 VALUES (1),(2);
+UPDATE t1 SET c1=1;
+DELETE FROM t1;
+++ We assigned global DROP privilege to schema_admin
+++ but this role isn't activated yet. Instead the default role
+++ 'schema_designer' is active and doesn't have the DROP privilege.
+++ Please note that DB-level privileges from mysql.db aren't applied
+++ using user- and host-mask when roles are active.
+DROP TABLE t1;
+Error 1142: DROP command denied to user 'joe_schema_designer'@'localhost' for table 't1'
+++ Just to make sure; we're not allowing for schema DROPs either
+DROP DATABASE joes;
+Error 1044: Access denied for user 'joe_schema_designer'@'localhost' to database 'joes'
+++ Now we switch active roles, and it should be allowed to DROP the table
+SET ROLE `schema_admin`;
+DROP TABLE t1;
+++ Global create privileges makes it possible to create schemas!
+CREATE DATABASE joes;
+++ And more tables! All this comes from schema_designer which from which
+++ schema_admin inhert most of its privileges.
+CREATE TABLE joes.t1 (c1 INT);
+DROP TABLE joes.t1;
+DROP DATABASE joes;
+We still don't have any global SELECT privileges!
+SELECT * FROM mysql.user;
+Error 1142: SELECT command denied to user 'joe_schema_designer'@'localhost' for table 'user'
+++ Let's repeat some of the instructions before to make sure it works
+++ for all joe_schema_designer's connections.
+CREATE TABLE t1 (c1 INT);
+INSERT INTO t1 VALUES (1),(2);
+UPDATE t1 SET c1=1;
+DELETE FROM t1;
+DROP TABLE t1;
+Error 1142: DROP command denied to user 'joe_schema_designer'@'localhost' for table 't1'
+DROP TABLE t1;
+++ Now checking if we inherit table level privileges properly.
+CREATE DATABASE db1;
+CREATE TABLE db1.t1 (c1 int, c2 int);
+CREATE TABLE db1.t2 (c1 int);
+GRANT SELECT ON db1.t1 TO backup_admin;
+GRANT UPDATE(c2)  ON db1.t1 TO backup_admin;
+INSERT INTO db1.t1 VALUES (1,2),(3,4);
+INSERT INTO db1.t2 VALUES (1),(2),(3),(4);
+GRANT db_admin to joe_schema_designer@localhost;
+SHOW GRANTS FOR 'joe_schema_designer'@'localhost' USING 'db_admin';
+Grants for joe_schema_designer@localhost
+GRANT INSERT,DELETE,CREATE,DROP ON *.* TO 'joe_schema_designer'@'localhost'
+GRANT SELECT,UPDATE ON role.* TO 'joe_schema_designer'@'localhost'
+GRANT SELECT ON db1.t1 TO 'joe_schema_designer'@'localhost'
+GRANT UPDATE(c2) ON db1.t1 TO 'joe_schema_designer'@'localhost'
+GRANT 'db_admin'@'%', 'schema_admin'@'%', 'schema_designer'@'%' TO 'joe_schema_designer'@'localhost'
+Table SELECT on db1.t1 should fail without proper role.
+SELECT * FROM db1.t1;
+Error 1142: SELECT command denied to user 'joe_schema_designer'@'localhost' for table 't1'
+Table SELECT on db1.t1 is inherited from backup_admin and should succeed.
+SET ROLE db_admin;
+SELECT * FROM db1.t1;
+c1	c2
+1	2
+3	4
+UPDATE db1.t1 SET c1=1;
+Error 8121: privilege check for 'Update' fail
+SET ROLE NONE;
+SELECT * FROM db1.t1;
+Error 1142: SELECT command denied to user 'joe_schema_designer'@'localhost' for table 't1'
+SET ROLE db_admin;
+SELECT * FROM db1.t1;
+c1	c2
+1	2
+3	4
+SET ROLE db_admin;
+SET ROLE db_admin;
+FLUSH PRIVILEGES;
+Error 1227: Access denied; you need (at least one of) the RELOAD privilege(s) for this operation
+FLUSH PRIVILEGES;
+SELECT * FROM mysql.role_edges;
+FROM_HOST	FROM_USER	TO_HOST	TO_USER	WITH_ADMIN_OPTION
+%	schema_designer	%	schema_admin	N
+%	user_admin	%	security_admin	N
+%	monitor_admin	%	security_admin	N
+%	replication_admin	%	db_admin	N
+%	backup_admin	%	db_admin	N
+%	schema_admin	%	db_admin	N
+%	security_admin	%	process_admin	N
+%	schema_designer	localhost	joe_schema_designer	N
+%	schema_admin	localhost	joe_schema_designer	N
+%	db_admin	localhost	joe_schema_designer	N
+SELECT * FROM mysql.default_roles;
+HOST	USER	DEFAULT_ROLE_HOST	DEFAULT_ROLE_USER
+localhost	joe_schema_designer	%	schema_designer
+DROP DATABASE db1;
+SELECT user,host FROM mysql.user WHERE user NOT IN ('root', 'mysql.sys', 'mysql.session', 'mysql.infoschema') order by user;
+user	host
+backup_admin	%
+db_admin	%
+joe_schema_designer	localhost
+maintenance_admin	%
+monitor_admin	%
+process_admin	%
+replication_admin	%
+schema_admin	%
+schema_designer	%
+security_admin	%
+user_admin	%
+DROP ROLE maintenance_admin;
+DROP ROLE user_admin;
+DROP ROLE security_admin;
+DROP ROLE schema_admin;
+DROP ROLE schema_designer;
+DROP ROLE db_admin;
+DROP ROLE replication_admin;
+DROP ROLE backup_admin;
+DROP ROLE process_admin;
+DROP ROLE monitor_admin;
+DROP USER `joe_schema_designer`@`localhost`;
+CREATE ROLE r1;
+CREATE USER `u1`@`%` IDENTIFIED BY 'foo';
+SHOW GRANTS FOR u1@`%`;
+Grants for u1@%
+GRANT USAGE ON *.* TO 'u1'@'%'
+GRANT SELECT ON *.* TO r1;
+GRANT r1 TO u1@`%`;
+SET DEFAULT ROLE r1 TO u1@`%`;
+SHOW GRANTS FOR u1@`%` USING r1;
+Grants for u1@%
+GRANT SELECT ON *.* TO 'u1'@'%'
+GRANT 'r1'@'%' TO 'u1'@'%'
+SET ROLE r1;
+DROP USER `u1`@`%`;
+DROP ROLE r1;
+#
+# Changing database should refresh the cache
+#
+CREATE USER hoho@localhost IDENTIFIED BY 'foo';
+CREATE DATABASE haha;
+CREATE ROLE rr;
+GRANT rr TO hoho@localhost;
+** Connecting as hoho@localhost
+USE haha;
+Error 1044: Access denied for user 'hoho'@'localhost' to database 'haha'
+SET  ROLE rr;
+USE haha;
+Error 1044: Access denied for user 'hoho'@'localhost' to database 'haha'
+** continue as root
+GRANT ALL ON haha.* TO hoho@localhost;
+** continue as hoho@localhost
+USE haha;
+** done
+DROP USER hoho@localhost;
+DROP ROLE rr;
+DROP DATABASE haha;
+#
+# SET DEFAULT ROLE ALL / NONE
+#
+CREATE USER u1@localhost IDENTIFIED BY 'foo';
+GRANT SELECT ON test.* TO u1@localhost;
+CREATE USER r1;
+SET DEFAULT ROLE r1 TO u1@localhost;
+Error 3530: `r1`@`%` is not granted to u1@localhost
+GRANT r1 TO u1@localhost;
+SET DEFAULT ROLE r1 TO u1@localhost;
+GRANT UPDATE ON *.* TO r1;
+SELECT * FROM mysql.default_roles;
+HOST	USER	DEFAULT_ROLE_HOST	DEFAULT_ROLE_USER
+localhost	u1	%	r1
+SHOW GRANTS FOR u1@localhost;
+Grants for u1@localhost
+GRANT USAGE ON *.* TO 'u1'@'localhost'
+GRANT SELECT ON test.* TO 'u1'@'localhost'
+GRANT 'r1'@'%' TO 'u1'@'localhost'
+++ Shows default r1.
+SELECT CURRENT_ROLE();
+CURRENT_ROLE()
+`r1`@`%`
+SET ROLE DEFAULT;
+SELECT CURRENT_ROLE();
+CURRENT_ROLE()
+`r1`@`%`
+SET ROLE DEFAULT;
+SELECT CURRENT_ROLE();
+CURRENT_ROLE()
+`r1`@`%`
+REVOKE r1 FROM u1@localhost;
+++ Default role is r1 but this isn't granted.
+SELECT CURRENT_ROLE();
+CURRENT_ROLE()
+NONE
+++ Only global select on test.* should be active and none from r1
+SHOW GRANTS;
+Grants for User
+GRANT USAGE ON *.* TO 'u1'@'localhost'
+GRANT SELECT ON test.* TO 'u1'@'localhost'
+DROP USER u1@localhost, r1;
+CREATE DATABASE other;
+USE other;
+CREATE TABLE t1(a int);
+INSERT INTO t1 VALUES (7);
+CREATE USER u1@localhost IDENTIFIED BY 'foo';
+CREATE USER r1;
+GRANT SELECT ON other.t1 TO r1;
+GRANT r1 TO u1@localhost;
+SET DEFAULT ROLE r1 TO u1@localhost;
+GRANT SELECT ON test.* TO u1@localhost;
+## Connected as u1@localhost.
+USE other;
+SELECT * FROM other.t1;
+a
+7
+GRANT SELECT ON other.t1 TO u1@localhost;
+use other;
+SET ROLE `no such role`;
+Error 3530: `no such role`@`%` is not granted to u1@localhost
+SET DEFAULT ROLE `rrrrr` TO u1@localhost;
+Error 3530: `rrrrr`@`%` is not granted to u1@localhost
+SET DEFAULT ROLE `rrrrr` TO u1@localhost;
+Error 1396: Operation SET DEFAULT ROLE failed for `rrrrr`@`%`
+SET ROLE DEFAULT;
+SET DEFAULT ROLE `asdasd` TO u1@localhost;
+Error 3530: `asdasd`@`%` is not granted to u1@localhost
+SET DEFAULT ROLE `asdasd` TO u1@localhost;
+Error 1396: Operation SET DEFAULT ROLE failed for `asdasd`@`%`
+SET ROLE DEFAULT;
+SET ROLE ALL;
+SET ROLE NONE;
+DROP DATABASE other;
+DROP USER u1@localhost;
+DROP USER r1;
+CREATE USER u1@localhost IDENTIFIED BY 'foo';
+CREATE ROLE r1;
+REVOKE r1 from u1@localhost;
+DROP ROLE r1;
+DROP USER u1@localhost;
+CREATE USER u1@localhost IDENTIFIED BY 'foo';
+CREATE USER r1, r11;
+GRANT r1 TO r11;
+GRANT r11 TO u1@localhost;
+SET ROLE r1;
+Error 3530: `r1`@`%` is not granted to u1@localhost
+SET ROLE r11;
+DROP USER u1@localhost, r1, r11;
+CREATE ROLE `u1234567890123456789012345678901`;
+CREATE USER 'u1'@'localhost';
+GRANT u1234567890123456789012345678901 TO u1@localhost;
+GRANT SELECT, UPDATE ON *.* TO u1234567890123456789012345678901;
+SHOW GRANTS FOR u1@localhost USING u1234567890123456789012345678901;
+Grants for u1@localhost
+GRANT SELECT,UPDATE ON *.* TO 'u1'@'localhost'
+GRANT 'u1234567890123456789012345678901'@'%' TO 'u1'@'localhost'
+REVOKE u1234567890123456789012345678901 FROM u1@localhost;
+DROP ROLE u1234567890123456789012345678901;
+DROP USER u1@localhost;
+CREATE ROLE `u12345678901234567890123456789012`;
+Error 1406: Data too long for column 'User' at row 1
+CREATE ROLE `PUBLIC`,`EVENT_SCHEDULER`,`127.0.0.1`,`a b`;
+DROP ROLE `PUBLIC`,`EVENT_SCHEDULER`,`127.0.0.1`,`a b`;
+CREATE ROLE PUBLIC;
+DROP ROLE PUBLIC;
+CREATE USER u1@localhost IDENTIFIED BY 'foo';
+CREATE ROLE r1,r2;
+GRANT r2 TO u1@localhost;
+GRANT ALL ON test.* TO r2;
+SET DEFAULT ROLE r1,r2 TO u1@localhost;
+Error 3530: `r1`@`%` is not granted to u1@localhost
+SELECT * FROM mysql.default_roles;
+HOST	USER	DEFAULT_ROLE_HOST	DEFAULT_ROLE_USER
+SELECT current_role();
+current_role()
+NONE
+SET ROLE DEFAULT;
+DROP ROLE r1,r2;
+DROP USER u1@localhost

@@ -1,0 +1,8 @@
+CREATE DATABASE create_database2;
+CREATE DATABASE create_database2;
+Error 1007: Can't create database 'create_database2'; database exists
+CREATE DATABASE IF NOT EXISTS create_database2;
+DROP DATABASE create_database2;
+DROP DATABASE create_database2;
+Error 1008: Can't drop database 'create_database2'; database doesn't exist
+DROP DATABASE IF EXISTS create_database2;

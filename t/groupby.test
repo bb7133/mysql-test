@@ -1,0 +1,114 @@
+SET @SAVE_sql_mode = @@sql_mode ;
+SET @@sql_mode = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' ;
+set @@tidb_hashagg_partial_concurrency=1;
+set @@tidb_hashagg_final_concurrency=1;
+drop table if exists t;
+create table t (c1 int, c2 int);
+select count(*) from t;
+insert into t values (1, 1), (2, 2), (1, 3), (2, 1);
+select count(*) from t order by c1;
+select c1, c2, max(c1), min(c2), count(c1), count(c2) from t order by c1;
+select c1, c2, count(*) cnt from t group by c1 order by c1, c2, cnt;
+select c1, c2, count(*) cnt  from t group by c2 order by c1, c2, cnt;
+select c1, c2, count(*) cnt from t group by c1, c2 order by c1, c2, cnt;
+select s+10 as col from (select sum(c1) as s from t where c1 < 2) as a order by col;
+select * from (select count(c1) as c1, c2 from t group by c2 order by t.c1, c2) as a order by a.c1, a.c2;
+select distinct(c2) as col from (select count(c1) as c, c2 from t group by c2 order by c, c2) as a order by col;
+select distinct(c) from (select count(c1) as c, c2 from t group by c2 order by c, c2) as a order by c;
+insert into t values (),(),();
+insert into t values (1,null);
+select * from t;
+select count(c2) as col, c1 from t group by c1 order by col, c1;
+select count(*) as col, c1 from t group by c1 order by col, c1;
+select group_concat(c2) as col from t group by c1 order by col;
+select group_concat(c1) as col from t group by c2 order by col;
+select group_concat(c2,c1) as col from t group by c1 order by col;
+delete from t;
+insert into t values (1,1), (2,2), (1,2), (1,3);
+select c1, group_concat(c2) from t group by t.c1 order by c1;
+select c1, group_concat(c2) from t group by 1 order by c1;
+--error ER_BAD_FIELD_ERROR
+select * from t group by 3 order by c1;
+--error ER_INVALID_GROUP_FUNC_USE
+select * from t group by count(c1) order by c1;
+--error ER_INVALID_GROUP_FUNC_USE
+select count(c1) from t group by 1 order by c1;
+select c1, group_concat(c2) from t group by "abc" order by c1;
+select c1, group_concat(c2) from t group by 3.14 order by c1;
+# 3 * 10 is an expression, not position
+select c1, group_concat(c2) from t group by 3 * 10 order by c1;
+select c1, group_concat(c2) from t group by "abc", c1 order by c1;
+select c1 as a, group_concat(c2) from t group by a order by c1;
+select c1 as a, group_concat(c2) from t group by a * 0 order by c1;
+select c1 as a, group_concat(c2) from t group by c1 * 0 order by c1;
+--error ER_ILLEGAL_REFERENCE
+select c1 as a, group_concat(c2) as b from t group by b + 1 order by a;
+--error ER_NON_UNIQ_ERROR
+select c1 as a, c2 as a from t group by a order by a;
+select c1 as c2, c2 from t group by c1 order by c1;
+--error ER_NON_UNIQ_ERROR
+select c1 as c2, c2 from t group by c2 order by c1;
+# incompatible: mysql support
+--error ER_NON_UNIQ_ERROR
+select c1 as c2, c2 from t group by c2 + 1 order by c1;
+select c1 as c2, c1 as c2 from t group by c2 order by c1;
+select c1 as c2, c1 as c2 from t group by c1 order by c1;
+
+delete from t;
+insert into t values (1,1), (2, 1), (1, 1), (4, 1);
+#aggregate func
+select sum(all c1) as col from t order by col;
+select sum(distinct all c1) col from t order by col;
+select avg(all c1) col from t order by col;
+select avg(distinct all c1) col from t order by col;
+select count(c1) col from t order by col;
+select count(distinct c1) col from t order by col;
+select group_concat(c1) col from t group by c2 order by col;
+select group_concat(distinct c1) col from t group by c2 order by col;
+select group_concat(c1, c2) col from t group by c2 order by col;
+select group_concat(distinct c1, c2) col from t group by c2 order by col;
+select sum(distinct c1) + count(*) col from t group by c2 order by col;
+
+drop table t;
+create table t(c1 int);
+insert t values(null), (null);
+select sum(c1) as col from t order by col; 
+select avg(c1) as col from t order by col; 
+select count(c1) as col from t order by col;
+select count(*) as col from t order by col;
+delete from t;
+insert into t values (1), (2), (3);
+--echo must output empty
+select * from t where c1 = null group by c1 order by c1;
+select * from t where c1 = null group by c1 order by max(c1);
+select * from t group by c1 having not null is null order by c1;
+select count(*) col from t where c1 = null group by c1 order by col;
+select count(*) col from t where c1 = null having not null is null order by col;
+--echo must output an extra row
+select * from t where c1 = null order by max(c1);
+select count(*) as col from t where c1 = null order by col;
+select count(c1) as col from t where c1 = null order by col;
+select avg(c1) as col from t where c1 = null order by col;
+select sum(c1) as col from t where c1 = null order by col;
+select group_concat(c1) as col from t where c1 = null order by col;
+select * from t where c1 = null having count(c1) = 0;
+select c1, max(c1), 123 from t where c1 = null order by c1;
+
+--echo sqllogic/test/random/groupby test
+drop table if exists tab0;
+CREATE TABLE tab0(col0 INTEGER, col1 INTEGER, col2 INTEGER);
+insert tab0 values(1,2,3),(2,3,3),(3,1,2),(4,4,1),(6,3,1);
+select * from tab0;
+SELECT col0 AS col0, col0 AS col0 FROM tab0 GROUP BY col0 order by col0;
+SELECT col0 + col1 AS col0, col0 AS col0 FROM tab0 GROUP BY col0 order by col0;
+SELECT all + col0 AS col0, col0 AS col0 FROM tab0 GROUP BY col0 order by col0;
+SELECT DISTINCT + - col0 AS col0, col1 * - col1 col0 FROM tab0 GROUP BY col1 order by col0;
+SELECT DISTINCT + - col0 AS col0, col1 * - col1 col0 FROM tab0 GROUP BY col1, col0 order by col0;
+SELECT DISTINCT + - col0 AS col0, col1 * - col1 col0 FROM tab0 AS cor0 GROUP BY col1, col0 order by col0;
+SELECT ALL - col0 col1, col0 AS col1 FROM tab0 cor0 GROUP BY col1, col0 order by col0;
+SELECT col2 col1, col1 FROM tab0 AS cor0 GROUP BY cor0.col2, cor0.col1 order by cor0.col1, cor0.col2;
+SELECT cor0.col2 col1, cor0.col1 FROM tab0 AS cor0 GROUP BY cor0.col2, cor0.col1 order by cor0.col1, cor0.col2;
+SELECT DISTINCT cor0.col2 col1, cor0.col1 FROM tab0 AS cor0 GROUP BY cor0.col2, cor0.col1 order by cor0.col1, cor0.col2;
+set @@tidb_hashagg_partial_concurrency=1;
+set @@tidb_hashagg_final_concurrency=1;
+SET @@sql_mode = @SAVE_sql_mode ;

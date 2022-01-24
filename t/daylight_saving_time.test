@@ -1,0 +1,34 @@
+drop table if exists t;
+set time_zone = '+00:00';
+create table t(a timestamp);
+insert into t value('1991-05-06 04:59:28');
+set time_zone='Asia/Shanghai';
+# at this point, timezone offset compared with utc is +9 instead of +8
+select * from t;
+set time_zone = '+08:00';
+select * from t;
+set time_zone = 'America/Los_Angeles';
+# cannot insert since such time does not exist
+--error ER_NON_UNIQ_ERROR 
+insert into t value('2011-03-13 02:00:00');
+# test read ambigious time
+# case 1
+drop table if exists t;
+set time_zone = '+00:00';
+create table t(a timestamp);
+insert into t value('1988-09-10 15:59:59');
+set time_zone='Asia/Shanghai';
+select * from t;
+# case 2
+drop table if exists t;
+set time_zone = '+00:00';
+create table t(a timestamp);
+insert into t value('1988-09-10 15:00:00');
+set time_zone='Asia/Shanghai';
+select * from t;
+# case 3
+drop table if exists t;
+set time_zone='Asia/Shanghai';
+create table t(a timestamp);
+insert into t value('1988-09-10 23:59:59');
+select * from t;

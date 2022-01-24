@@ -1,0 +1,16 @@
+# Can't rename or drop a column used in the function of a generated column
+create table t1 (a int, b int generated always as (a+1) virtual);
+# On renaming/dropping a column on which a virtual field is
+# defined the following error is displayed:
+# "Unknown column 'a' in 'generated column function'"
+alter table t1 drop column a;
+Error 3108: Column 'a' has a generated column dependency.
+alter table t1 change a c int;
+Error 1054: Unknown column 'a' in 'generated column function'
+drop table t1;
+# Can't rename or drop a generated column used by the paritition function
+create table t1 (a int, b int generated always as (a+1) virtual) partition by hash(b);
+alter table t1 drop b;
+Error 1054: Unknown column 'b' in 'expression'
+alter table t1 change b c int generated always as (a+1) virtual;
+Error 1054: Unknown column 'b' in 'expression'

@@ -1,0 +1,1852 @@
+create table t1 (a int, b  varchar(32));
+insert into t1 values
+(4,'aaaa' ), (7,'bb'), (1,'ccc'), (4,'dd');
+insert into t1 values
+(3,'eee'), (7,'bb'), (1,'fff'), (4,'ggg');
+create table t2 (c int);
+insert into t2 values
+(2), (4), (5), (3);
+# select certain field in the specification of t
+with t as (select a from t1 where b >= 'c')
+select * from t2,t where t2.c=t.a;
+c	a
+4	4
+4	4
+3	3
+select * from t2, (select a from t1 where b >= 'c') as t
+where t2.c=t.a;
+c	a
+4	4
+4	4
+3	3
+explain
+with t as (select a from t1 where b >= 'c')
+select * from t2,t where t2.c=t.a;
+id	estRows	task	access object	operator info
+Projection_17	3333.33	root		mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t1.a
+└─HashJoin_19	3333.33	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c)]
+  ├─Selection_20(Build)	2666.67	root		not(isnull(mariadb_cte_nonrecursive.t1.a))
+  │ └─CTEFullScan_21	3333.33	root	CTE:t	data:CTE_0
+  └─TableReader_24(Probe)	9990.00	root		data:Selection_23
+    └─Selection_23	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+      └─TableFullScan_22	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+CTE_0	3333.33	root		Non-Recursive CTE
+└─Projection_10(Seed Part)	3333.33	root		mariadb_cte_nonrecursive.t1.a
+  └─TableReader_13	3333.33	root		data:Selection_12
+    └─Selection_12	3333.33	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c")
+      └─TableFullScan_11	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+explain
+select * from t2, (select a from t1 where b >= 'c') as t
+where t2.c=t.a;
+id	estRows	task	access object	operator info
+Projection_11	4162.50	root		mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t1.a
+└─HashJoin_13	4162.50	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c)]
+  ├─TableReader_16(Build)	3330.00	root		data:Selection_15
+  │ └─Selection_15	3330.00	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c"), not(isnull(mariadb_cte_nonrecursive.t1.a))
+  │   └─TableFullScan_14	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+  └─TableReader_19(Probe)	9990.00	root		data:Selection_18
+    └─Selection_18	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+      └─TableFullScan_17	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+# select '*' in the specification of t
+with t as (select * from t1 where b >= 'c')
+select * from t2,t where t2.c=t.a;
+c	a	b
+4	4	ggg
+4	4	dd
+3	3	eee
+select * from t2, (select * from t1 where b >= 'c') as t
+where t2.c=t.a;
+c	a	b
+4	4	ggg
+4	4	dd
+3	3	eee
+explain
+with t as (select * from t1 where b >= 'c')
+select * from t2,t where t2.c=t.a;
+id	estRows	task	access object	operator info
+Projection_17	3333.33	root		mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t1.b
+└─HashJoin_19	3333.33	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c)]
+  ├─Selection_20(Build)	2666.67	root		not(isnull(mariadb_cte_nonrecursive.t1.a))
+  │ └─CTEFullScan_21	3333.33	root	CTE:t	data:CTE_0
+  └─TableReader_24(Probe)	9990.00	root		data:Selection_23
+    └─Selection_23	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+      └─TableFullScan_22	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+CTE_0	3333.33	root		Non-Recursive CTE
+└─TableReader_13(Seed Part)	3333.33	root		data:Selection_12
+  └─Selection_12	3333.33	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c")
+    └─TableFullScan_11	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+explain
+select * from t2, (select * from t1 where b >= 'c') as t
+where t2.c=t.a;
+id	estRows	task	access object	operator info
+Projection_11	4162.50	root		mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t1.b
+└─HashJoin_13	4162.50	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c)]
+  ├─TableReader_16(Build)	3330.00	root		data:Selection_15
+  │ └─Selection_15	3330.00	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c"), not(isnull(mariadb_cte_nonrecursive.t1.a))
+  │   └─TableFullScan_14	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+  └─TableReader_19(Probe)	9990.00	root		data:Selection_18
+    └─Selection_18	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+      └─TableFullScan_17	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+# rename fields returned by the specication when defining t
+with t(f1,f2) as (select * from t1 where b >= 'c')
+select * from t2,t where t2.c=t.f1;
+c	f1	f2
+4	4	ggg
+4	4	dd
+3	3	eee
+explain
+with t(f1,f2) as (select * from t1 where b >= 'c')
+select * from t2,t where t2.c=t.f1;
+id	estRows	task	access object	operator info
+Projection_17	3333.33	root		mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t1.b
+└─HashJoin_19	3333.33	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c)]
+  ├─Selection_20(Build)	2666.67	root		not(isnull(mariadb_cte_nonrecursive.t1.a))
+  │ └─CTEFullScan_21	3333.33	root	CTE:t	data:CTE_0
+  └─TableReader_24(Probe)	9990.00	root		data:Selection_23
+    └─Selection_23	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+      └─TableFullScan_22	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+CTE_0	3333.33	root		Non-Recursive CTE
+└─TableReader_13(Seed Part)	3333.33	root		data:Selection_12
+  └─Selection_12	3333.33	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c")
+    └─TableFullScan_11	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+# materialized query specifying t
+with t as (select a, count(*) from t1 where b >= 'c' group by a)
+select * from t2,t where t2.c=t.a;
+c	a	count(*)
+4	4	2
+3	3	1
+select * from t2, (select a, count(*) from t1 where b >= 'c' group by a) as t
+where t2.c=t.a;
+c	a	count(*)
+4	4	2
+3	3	1
+explain
+with t as (select a, count(*) from t1 where b >= 'c' group by a)
+select * from t2,t where t2.c=t.a;
+id	estRows	task	access object	operator info
+Projection_25	2666.67	root		mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t1.a, Column#8
+└─HashJoin_27	2666.67	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c)]
+  ├─Selection_28(Build)	2133.33	root		not(isnull(mariadb_cte_nonrecursive.t1.a))
+  │ └─CTEFullScan_29	2666.67	root	CTE:t	data:CTE_0
+  └─TableReader_32(Probe)	9990.00	root		data:Selection_31
+    └─Selection_31	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+      └─TableFullScan_30	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+CTE_0	2666.67	root		Non-Recursive CTE
+└─Projection_11(Seed Part)	2666.67	root		mariadb_cte_nonrecursive.t1.a, Column#4
+  └─HashAgg_17	2666.67	root		group by:mariadb_cte_nonrecursive.t1.a, funcs:count(Column#9)->Column#4, funcs:firstrow(mariadb_cte_nonrecursive.t1.a)->mariadb_cte_nonrecursive.t1.a
+    └─TableReader_18	2666.67	root		data:HashAgg_12
+      └─HashAgg_12	2666.67	cop[tikv]		group by:mariadb_cte_nonrecursive.t1.a, funcs:count(1)->Column#9
+        └─Selection_16	3333.33	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c")
+          └─TableFullScan_15	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+explain
+select * from t2, (select a, count(*) from t1 where b >= 'c' group by a) as t
+where t2.c=t.a;
+id	estRows	task	access object	operator info
+Projection_11	3330.00	root		mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t1.a, Column#6
+└─Projection_12	3330.00	root		mariadb_cte_nonrecursive.t2.c, Column#6, mariadb_cte_nonrecursive.t1.a
+  └─HashJoin_14	3330.00	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c)]
+    ├─HashAgg_20(Build)	2664.00	root		group by:mariadb_cte_nonrecursive.t1.a, funcs:count(Column#7)->Column#6, funcs:firstrow(mariadb_cte_nonrecursive.t1.a)->mariadb_cte_nonrecursive.t1.a
+    │ └─TableReader_21	2664.00	root		data:HashAgg_15
+    │   └─HashAgg_15	2664.00	cop[tikv]		group by:mariadb_cte_nonrecursive.t1.a, funcs:count(1)->Column#7
+    │     └─Selection_19	3330.00	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c"), not(isnull(mariadb_cte_nonrecursive.t1.a))
+    │       └─TableFullScan_18	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+    └─TableReader_27(Probe)	9990.00	root		data:Selection_26
+      └─Selection_26	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+        └─TableFullScan_25	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+# specivication of t contains having
+with t as (select a, count(*) from t1 where b >= 'c'
+group by a having count(*)=1 )
+select * from t2,t where t2.c=t.a;
+c	a	count(*)
+3	3	1
+select * from t2, (select a, count(*) from t1 where b >= 'c'
+group by a having count(*)=1) t
+where t2.c=t.a;
+c	a	count(*)
+3	3	1
+# main query contains having
+with t as (select * from t2 where c <= 4)
+select a, count(*) from t1,t where t1.a=t.c group by a having count(*)=1;
+a	count(*)
+3	1
+select a, count(*) from t1, (select * from t2 where c <= 4) t
+where t1.a=t.c group by a having count(*)=1;
+a	count(*)
+3	1
+# main query contains group by + order by
+with t as (select * from t2 where c <= 4 )
+select a, count(*) from t1,t where t1.a=t.c group by a order by count(*);
+a	count(*)
+3	1
+4	3
+select a, count(*) from t1, (select * from t2 where c <= 4 ) t
+where t1.a=t.c group by a order by count(*);
+a	count(*)
+3	1
+4	3
+# main query contains group by + order by + limit
+with t as (select * from t2 where c <= 4 )
+select a, count(*) from t1,t
+where t1.a=t.c group by a order by count(*) desc limit 1;
+a	count(*)
+4	3
+select a, count(*) from t1, (select * from t2 where c <= 4 ) t
+where t1.a=t.c group by a order by count(*) desc limit 1;
+a	count(*)
+4	3
+# t is used in a subquery
+with t as (select a from t1 where a<5)
+select * from t2 where c in (select a from t);
+c
+4
+3
+select * from t2
+where c in (select a from (select a from t1 where a<5) as t);
+c
+4
+3
+explain
+with t as (select a from t1 where a<5)
+select * from t2 where c in (select a from t);
+id	estRows	task	access object	operator info
+HashJoin_21	2658.67	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c)]
+├─HashAgg_22(Build)	2126.93	root		group by:mariadb_cte_nonrecursive.t1.a, funcs:firstrow(mariadb_cte_nonrecursive.t1.a)->mariadb_cte_nonrecursive.t1.a
+│ └─Selection_23	2658.67	root		not(isnull(mariadb_cte_nonrecursive.t1.a))
+│   └─CTEFullScan_24	3323.33	root	CTE:t	data:CTE_0
+└─TableReader_27(Probe)	9990.00	root		data:Selection_26
+  └─Selection_26	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+    └─TableFullScan_25	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+CTE_0	3323.33	root		Non-Recursive CTE
+└─TableReader_15(Seed Part)	3323.33	root		data:Selection_14
+  └─Selection_14	3323.33	cop[tikv]		lt(mariadb_cte_nonrecursive.t1.a, 5)
+    └─TableFullScan_13	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+explain
+select * from t2
+where c in (select a from (select a from t1 where a<5) as t);
+id	estRows	task	access object	operator info
+HashJoin_15	3323.33	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c)]
+├─HashAgg_18(Build)	2658.67	root		group by:mariadb_cte_nonrecursive.t1.a, funcs:firstrow(mariadb_cte_nonrecursive.t1.a)->mariadb_cte_nonrecursive.t1.a
+│ └─TableReader_25	3323.33	root		data:Selection_24
+│   └─Selection_24	3323.33	cop[tikv]		lt(mariadb_cte_nonrecursive.t1.a, 5), not(isnull(mariadb_cte_nonrecursive.t1.a))
+│     └─TableFullScan_23	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+└─TableReader_28(Probe)	9990.00	root		data:Selection_27
+  └─Selection_27	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+    └─TableFullScan_26	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+# materialized t is used in a subquery
+with t as (select count(*) as c from t1 where b >= 'c' group by a)
+select * from t2 where c in (select c from t);
+c
+2
+select * from t2
+where c in (select c from (select count(*) as c from t1
+where b >= 'c' group by a) as t);
+c
+2
+explain
+with t as (select count(*) as c from t1 where b >= 'c' group by a)
+select * from t2 where c in (select c from t);
+id	estRows	task	access object	operator info
+HashJoin_29	2666.67	root		inner join, equal:[eq(Column#7, mariadb_cte_nonrecursive.t2.c)]
+├─HashAgg_30(Build)	2133.33	root		group by:Column#7, funcs:firstrow(Column#7)->Column#7
+│ └─Selection_31	2133.33	root		not(isnull(Column#7))
+│   └─CTEFullScan_32	2666.67	root	CTE:t	data:CTE_0
+└─TableReader_35(Probe)	9990.00	root		data:Selection_34
+  └─Selection_34	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+    └─TableFullScan_33	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+CTE_0	2666.67	root		Non-Recursive CTE
+└─HashAgg_19(Seed Part)	2666.67	root		group by:mariadb_cte_nonrecursive.t1.a, funcs:count(Column#8)->Column#4
+  └─TableReader_20	2666.67	root		data:HashAgg_14
+    └─HashAgg_14	2666.67	cop[tikv]		group by:mariadb_cte_nonrecursive.t1.a, funcs:count(1)->Column#8
+      └─Selection_18	3333.33	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c")
+        └─TableFullScan_17	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+explain
+select * from t2
+where c in (select c from (select count(*) as c from t1
+where b >= 'c' group by a) as t);
+id	estRows	task	access object	operator info
+HashJoin_16	3333.33	root		inner join, equal:[eq(Column#6, mariadb_cte_nonrecursive.t2.c)]
+├─HashAgg_17(Build)	2666.67	root		group by:Column#6, funcs:firstrow(Column#6)->Column#6
+│ └─HashAgg_23	2666.67	root		group by:mariadb_cte_nonrecursive.t1.a, funcs:count(Column#7)->Column#6
+│   └─TableReader_24	2666.67	root		data:HashAgg_18
+│     └─HashAgg_18	2666.67	cop[tikv]		group by:mariadb_cte_nonrecursive.t1.a, funcs:count(1)->Column#7
+│       └─Selection_22	3333.33	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c")
+│         └─TableFullScan_21	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+└─TableReader_30(Probe)	9990.00	root		data:Selection_29
+  └─Selection_29	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+    └─TableFullScan_28	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+# two references to t specified by a query
+# selecting a field:  both in main query
+with t as (select a from t1 where b >= 'c')
+select * from t as r1, t as r2 where r1.a=r2.a;
+a	a
+1	1
+1	1
+1	1
+1	1
+3	3
+4	4
+4	4
+4	4
+4	4
+select * from (select a from t1 where b >= 'c') as r1,
+(select a from t1 where b >= 'c') as r2
+where r1.a=r2.a;
+a	a
+1	1
+1	1
+4	4
+4	4
+3	3
+1	1
+1	1
+4	4
+4	4
+explain
+with t as (select a from t1 where b >= 'c')
+select * from t as r1, t as r2 where r1.a=r2.a;
+id	estRows	task	access object	operator info
+HashJoin_17	3333.33	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t1.a)]
+├─Selection_21(Build)	2666.67	root		not(isnull(mariadb_cte_nonrecursive.t1.a))
+│ └─CTEFullScan_22	3333.33	root	CTE:r2	data:CTE_0
+└─Selection_19(Probe)	2666.67	root		not(isnull(mariadb_cte_nonrecursive.t1.a))
+  └─CTEFullScan_20	3333.33	root	CTE:r1	data:CTE_0
+CTE_0	3333.33	root		Non-Recursive CTE
+└─Projection_11(Seed Part)	3333.33	root		mariadb_cte_nonrecursive.t1.a
+  └─TableReader_14	3333.33	root		data:Selection_13
+    └─Selection_13	3333.33	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c")
+      └─TableFullScan_12	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+explain
+select * from (select a from t1 where b >= 'c') as r1,
+(select a from t1 where b >= 'c') as r2
+where r1.a=r2.a;
+id	estRows	task	access object	operator info
+HashJoin_12	4162.50	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t1.a)]
+├─TableReader_19(Build)	3330.00	root		data:Selection_18
+│ └─Selection_18	3330.00	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c"), not(isnull(mariadb_cte_nonrecursive.t1.a))
+│   └─TableFullScan_17	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+└─TableReader_16(Probe)	3330.00	root		data:Selection_15
+  └─Selection_15	3330.00	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c"), not(isnull(mariadb_cte_nonrecursive.t1.a))
+    └─TableFullScan_14	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+# two references to materialized t: both in main query
+with t as (select distinct a from t1 where b >= 'c')
+select * from t as r1, t as r2 where r1.a=r2.a;
+a	a
+1	1
+3	3
+4	4
+select * from (select distinct a from t1 where b >= 'c') as r1,
+(select distinct a from t1 where b >= 'c') as r2
+where r1.a=r2.a;
+a	a
+1	1
+3	3
+4	4
+explain
+with t as (select distinct a from t1 where b >= 'c')
+select * from t as r1, t as r2 where r1.a=r2.a;
+id	estRows	task	access object	operator info
+HashJoin_24	2133.33	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t1.a)]
+├─Selection_28(Build)	2133.33	root		not(isnull(mariadb_cte_nonrecursive.t1.a))
+│ └─CTEFullScan_29	2666.67	root	CTE:r2	data:CTE_0
+└─Selection_26(Probe)	2133.33	root		not(isnull(mariadb_cte_nonrecursive.t1.a))
+  └─CTEFullScan_27	2666.67	root	CTE:r1	data:CTE_0
+CTE_0	2666.67	root		Non-Recursive CTE
+└─HashAgg_17(Seed Part)	2666.67	root		group by:mariadb_cte_nonrecursive.t1.a, funcs:firstrow(mariadb_cte_nonrecursive.t1.a)->mariadb_cte_nonrecursive.t1.a
+  └─TableReader_18	2666.67	root		data:HashAgg_12
+    └─HashAgg_12	2666.67	cop[tikv]		group by:mariadb_cte_nonrecursive.t1.a, 
+      └─Selection_16	3333.33	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c")
+        └─TableFullScan_15	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+explain
+select * from (select distinct a from t1 where b >= 'c') as r1,
+(select distinct a from t1 where b >= 'c') as r2
+where r1.a=r2.a;
+id	estRows	task	access object	operator info
+HashJoin_14	2664.00	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t1.a)]
+├─HashAgg_31(Build)	2664.00	root		group by:mariadb_cte_nonrecursive.t1.a, funcs:firstrow(mariadb_cte_nonrecursive.t1.a)->mariadb_cte_nonrecursive.t1.a
+│ └─TableReader_32	2664.00	root		data:HashAgg_26
+│   └─HashAgg_26	2664.00	cop[tikv]		group by:mariadb_cte_nonrecursive.t1.a, 
+│     └─Selection_30	3330.00	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c"), not(isnull(mariadb_cte_nonrecursive.t1.a))
+│       └─TableFullScan_29	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+└─HashAgg_21(Probe)	2664.00	root		group by:mariadb_cte_nonrecursive.t1.a, funcs:firstrow(mariadb_cte_nonrecursive.t1.a)->mariadb_cte_nonrecursive.t1.a
+  └─TableReader_22	2664.00	root		data:HashAgg_16
+    └─HashAgg_16	2664.00	cop[tikv]		group by:mariadb_cte_nonrecursive.t1.a, 
+      └─Selection_20	3330.00	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c"), not(isnull(mariadb_cte_nonrecursive.t1.a))
+        └─TableFullScan_19	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+# two references to t specified by a query
+# selecting all fields:  both in main query
+with t as (select * from t1 where b >= 'c')
+select * from t as r1, t as r2 where r1.a=r2.a;
+a	b	a	b
+1	ccc	1	ccc
+1	ccc	1	fff
+1	fff	1	ccc
+1	fff	1	fff
+3	eee	3	eee
+4	dd	4	dd
+4	dd	4	ggg
+4	ggg	4	dd
+4	ggg	4	ggg
+select * from (select * from t1 where b >= 'c') as r1,
+(select * from t1 where b >= 'c') as r2
+where r1.a=r2.a;
+a	b	a	b
+1	ccc	1	ccc
+1	ccc	1	fff
+1	fff	1	ccc
+1	fff	1	fff
+3	eee	3	eee
+4	dd	4	dd
+4	dd	4	ggg
+4	ggg	4	dd
+4	ggg	4	ggg
+explain
+with t as (select * from t1 where b >= 'c')
+select * from t as r1, t as r2 where r1.a=r2.a;
+id	estRows	task	access object	operator info
+HashJoin_17	3333.33	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t1.a)]
+├─Selection_21(Build)	2666.67	root		not(isnull(mariadb_cte_nonrecursive.t1.a))
+│ └─CTEFullScan_22	3333.33	root	CTE:r2	data:CTE_0
+└─Selection_19(Probe)	2666.67	root		not(isnull(mariadb_cte_nonrecursive.t1.a))
+  └─CTEFullScan_20	3333.33	root	CTE:r1	data:CTE_0
+CTE_0	3333.33	root		Non-Recursive CTE
+└─TableReader_14(Seed Part)	3333.33	root		data:Selection_13
+  └─Selection_13	3333.33	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c")
+    └─TableFullScan_12	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+explain
+select * from (select * from t1 where b >= 'c') as r1,
+(select * from t1 where b >= 'c') as r2
+where r1.a=r2.a;
+id	estRows	task	access object	operator info
+HashJoin_12	4162.50	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t1.a)]
+├─TableReader_19(Build)	3330.00	root		data:Selection_18
+│ └─Selection_18	3330.00	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c"), not(isnull(mariadb_cte_nonrecursive.t1.a))
+│   └─TableFullScan_17	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+└─TableReader_16(Probe)	3330.00	root		data:Selection_15
+  └─Selection_15	3330.00	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c"), not(isnull(mariadb_cte_nonrecursive.t1.a))
+    └─TableFullScan_14	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+# two references to t specifying explicitly column names
+with t(c) as (select a from t1 where b >= 'c')
+select * from t r1, t r2 where r1.c=r2.c;
+c	c
+1	1
+1	1
+1	1
+1	1
+3	3
+4	4
+4	4
+4	4
+4	4
+# t two references of t used in different parts of a union
+with t as (select a from t1 where b >= 'c')
+select * from t where a < 2
+union
+select * from t where a >= 4;
+a
+1
+4
+select * from (select a from t1 where b >= 'c') as t
+where t.a < 2
+union
+select * from (select a from t1 where b >= 'c') as t
+where t.a >= 4;
+a
+1
+4
+explain
+with t as (select a from t1 where b >= 'c')
+select * from t where a < 2
+union
+select * from t where a >= 4;
+id	estRows	task	access object	operator info
+HashAgg_18	4266.67	root		group by:Column#6, funcs:firstrow(Column#6)->Column#6
+└─Union_19	5333.33	root		
+  ├─Selection_21	2666.67	root		lt(mariadb_cte_nonrecursive.t1.a, 2)
+  │ └─CTEFullScan_22	3333.33	root	CTE:t	data:CTE_0
+  └─Selection_24	2666.67	root		ge(mariadb_cte_nonrecursive.t1.a, 4)
+    └─CTEFullScan_25	3333.33	root	CTE:t	data:CTE_0
+CTE_0	3333.33	root		Non-Recursive CTE
+└─Projection_14(Seed Part)	3333.33	root		mariadb_cte_nonrecursive.t1.a
+  └─TableReader_17	3333.33	root		data:Selection_16
+    └─Selection_16	3333.33	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c")
+      └─TableFullScan_15	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+explain
+select * from (select a from t1 where b >= 'c') as t
+where t.a < 2
+union
+select * from (select a from t1 where b >= 'c') as t
+where t.a >= 4;
+id	estRows	task	access object	operator info
+HashAgg_15	1775.11	root		group by:Column#7, funcs:firstrow(Column#7)->Column#7
+└─Union_16	2218.89	root		
+  ├─Projection_17	1107.78	root		mariadb_cte_nonrecursive.t1.a
+  │ └─TableReader_20	1107.78	root		data:Selection_19
+  │   └─Selection_19	1107.78	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c"), lt(mariadb_cte_nonrecursive.t1.a, 2)
+  │     └─TableFullScan_18	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+  └─Projection_21	1111.11	root		mariadb_cte_nonrecursive.t1.a
+    └─TableReader_24	1111.11	root		data:Selection_23
+      └─Selection_23	1111.11	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.a, 4), ge(mariadb_cte_nonrecursive.t1.b, "c")
+        └─TableFullScan_22	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+# specification of t contains union
+with t as (select a from t1 where b >= 'f'
+union
+select c as a from t2 where c < 4)
+select * from t2,t where t2.c=t.a;
+c	a
+2	2
+4	4
+3	3
+select * from t2,
+(select a from t1 where b >= 'f'
+union
+select c as a from t2 where c < 4) as t
+where t2.c=t.a;
+c	a
+2	2
+4	4
+3	3
+explain
+with t as (select a from t1 where b >= 'f'
+union
+select c as a from t2 where c < 4)
+select * from t2,t where t2.c=t.a;
+id	estRows	task	access object	operator info
+Projection_30	5325.33	root		mariadb_cte_nonrecursive.t2.c, Column#9
+└─HashJoin_32	5325.33	root		inner join, equal:[eq(Column#9, mariadb_cte_nonrecursive.t2.c)]
+  ├─Selection_33(Build)	4260.27	root		not(isnull(Column#9))
+  │ └─CTEFullScan_34	5325.33	root	CTE:t	data:CTE_0
+  └─TableReader_37(Probe)	9990.00	root		data:Selection_36
+    └─Selection_36	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+      └─TableFullScan_35	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+CTE_0	5325.33	root		Non-Recursive CTE
+└─HashAgg_17(Seed Part)	5325.33	root		group by:Column#6, funcs:firstrow(Column#6)->Column#6
+  └─Union_18	6656.67	root		
+    ├─Projection_19	3333.33	root		mariadb_cte_nonrecursive.t1.a
+    │ └─TableReader_22	3333.33	root		data:Selection_21
+    │   └─Selection_21	3333.33	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "f")
+    │     └─TableFullScan_20	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+    └─TableReader_26	3323.33	root		data:Selection_25
+      └─Selection_25	3323.33	cop[tikv]		lt(mariadb_cte_nonrecursive.t2.c, 4)
+        └─TableFullScan_24	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+explain
+select * from t2,
+(select a from t1 where b >= 'f'
+union
+select c as a from t2 where c < 4) as t
+where t2.c=t.a;
+id	estRows	task	access object	operator info
+HashJoin_17	6653.33	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t2.c, Column#8)]
+├─HashAgg_22(Build)	5322.67	root		group by:Column#8, funcs:firstrow(Column#8)->Column#8
+│ └─Union_23	6653.33	root		
+│   ├─Projection_24	3330.00	root		mariadb_cte_nonrecursive.t1.a
+│   │ └─TableReader_27	3330.00	root		data:Selection_26
+│   │   └─Selection_26	3330.00	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "f"), not(isnull(mariadb_cte_nonrecursive.t1.a))
+│   │     └─TableFullScan_25	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+│   └─TableReader_31	3323.33	root		data:Selection_30
+│     └─Selection_30	3323.33	cop[tikv]		lt(mariadb_cte_nonrecursive.t2.c, 4), not(isnull(mariadb_cte_nonrecursive.t2.c))
+│       └─TableFullScan_29	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+└─TableReader_21(Probe)	9990.00	root		data:Selection_20
+  └─Selection_20	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+    └─TableFullScan_19	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+# t is defined in the with clause of a subquery
+select t1.a,t1.b from t1,t2
+where t1.a>t2.c and
+t2.c in (with t as (select * from t1 where t1.a<5)
+select t2.c from t2,t where t2.c=t.a);
+a	b
+4	aaaa
+7	bb
+7	bb
+4	dd
+7	bb
+7	bb
+4	ggg
+select t1.a,t1.b from t1,t2
+where t1.a>t2.c and
+t2.c in (select t2.c
+from t2,(select * from t1 where t1.a<5) as t
+where t2.c=t.a);
+a	b
+4	aaaa
+7	bb
+7	bb
+4	dd
+7	bb
+7	bb
+4	ggg
+explain
+select t1.a,t1.b from t1,t2
+where t1.a>t2.c and
+t2.c in (with t as (select * from t1 where t1.a<5)
+select t2.c from t2,t where t2.c=t.a);
+id	estRows	task	access object	operator info
+HashJoin_26	41500125.00	root		CARTESIAN inner join, other cond:gt(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c), gt(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c)
+├─HashJoin_31(Build)	4154.17	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t2.c)]
+│ ├─HashAgg_36(Build)	3323.33	root		group by:mariadb_cte_nonrecursive.t2.c, funcs:firstrow(mariadb_cte_nonrecursive.t2.c)->mariadb_cte_nonrecursive.t2.c
+│ │ └─HashJoin_39	3323.33	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c)]
+│ │   ├─Selection_40(Build)	2658.67	root		not(isnull(mariadb_cte_nonrecursive.t1.a))
+│ │   │ └─CTEFullScan_41	3323.33	root	CTE:t	data:CTE_0
+│ │   └─TableReader_44(Probe)	9990.00	root		data:Selection_43
+│ │     └─Selection_43	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+│ │       └─TableFullScan_42	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+│ └─TableReader_35(Probe)	9990.00	root		data:Selection_34
+│   └─Selection_34	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+│     └─TableFullScan_33	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+└─TableReader_30(Probe)	9990.00	root		data:Selection_29
+  └─Selection_29	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t1.a))
+    └─TableFullScan_28	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+CTE_0	3323.33	root		Non-Recursive CTE
+└─TableReader_20(Seed Part)	3323.33	root		data:Selection_19
+  └─Selection_19	3323.33	cop[tikv]		lt(mariadb_cte_nonrecursive.t1.a, 5)
+    └─TableFullScan_18	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+explain
+select t1.a,t1.b from t1,t2
+where t1.a>t2.c and
+t2.c in (select t2.c
+from t2,(select * from t1 where t1.a<5) as t
+where t2.c=t.a);
+id	estRows	task	access object	operator info
+HashJoin_20	51875156.25	root		CARTESIAN inner join, other cond:gt(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c), gt(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c)
+├─HashJoin_25(Build)	5192.71	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t2.c)]
+│ ├─HashAgg_30(Build)	4154.17	root		group by:mariadb_cte_nonrecursive.t2.c, funcs:firstrow(mariadb_cte_nonrecursive.t2.c)->mariadb_cte_nonrecursive.t2.c
+│ │ └─HashJoin_33	4154.17	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c)]
+│ │   ├─TableReader_36(Build)	3323.33	root		data:Selection_35
+│ │   │ └─Selection_35	3323.33	cop[tikv]		lt(mariadb_cte_nonrecursive.t1.a, 5), not(isnull(mariadb_cte_nonrecursive.t1.a))
+│ │   │   └─TableFullScan_34	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+│ │   └─TableReader_39(Probe)	9990.00	root		data:Selection_38
+│ │     └─Selection_38	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+│ │       └─TableFullScan_37	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+│ └─TableReader_29(Probe)	9990.00	root		data:Selection_28
+│   └─Selection_28	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+│     └─TableFullScan_27	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+└─TableReader_24(Probe)	9990.00	root		data:Selection_23
+  └─Selection_23	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t1.a))
+    └─TableFullScan_22	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+# two different definitions of t: one in the with clause of the main query,
+# the other in the with clause of a subquery
+with t as (select c from t2 where c >= 4)
+select t1.a,t1.b from t1,t
+where t1.a=t.c and
+t.c in (with t as (select * from t1 where t1.a<5)
+select t2.c from t2,t where t2.c=t.a);
+a	b
+4	aaaa
+4	dd
+4	ggg
+select t1.a,t1.b from t1, (select c from t2 where c >= 4) as t
+where t1.a=t.c and
+t.c in (select t2.c from t2,  (select * from t1 where t1.a<5) as t
+where t2.c=t.a);
+a	b
+4	aaaa
+4	dd
+4	ggg
+explain
+with t as (select c from t2 where c >= 4)
+select t1.a,t1.b from t1,t
+where t1.a=t.c and
+t.c in (with t as (select * from t1 where t1.a<5)
+select t2.c from t2,t where t2.c=t.a);
+id	estRows	task	access object	operator info
+HashJoin_37	3333.33	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t2.c)]
+├─HashAgg_46(Build)	3323.33	root		group by:mariadb_cte_nonrecursive.t2.c, funcs:firstrow(mariadb_cte_nonrecursive.t2.c)->mariadb_cte_nonrecursive.t2.c
+│ └─HashJoin_49	3323.33	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c)]
+│   ├─Selection_50(Build)	2658.67	root		not(isnull(mariadb_cte_nonrecursive.t1.a))
+│   │ └─CTEFullScan_51	3323.33	root	CTE:t	data:CTE_1
+│   └─TableReader_54(Probe)	9990.00	root		data:Selection_53
+│     └─Selection_53	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+│       └─TableFullScan_52	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+└─HashJoin_40(Probe)	3333.33	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t1.a)]
+  ├─Selection_41(Build)	2666.67	root		not(isnull(mariadb_cte_nonrecursive.t2.c))
+  │ └─CTEFullScan_42	3333.33	root	CTE:t	data:CTE_0
+  └─TableReader_45(Probe)	9990.00	root		data:Selection_44
+    └─Selection_44	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t1.a))
+      └─TableFullScan_43	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+CTE_1	3323.33	root		Non-Recursive CTE
+└─TableReader_24(Seed Part)	3323.33	root		data:Selection_23
+  └─Selection_23	3323.33	cop[tikv]		lt(mariadb_cte_nonrecursive.t1.a, 5)
+    └─TableFullScan_22	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+CTE_0	3333.33	root		Non-Recursive CTE
+└─TableReader_30(Seed Part)	3333.33	root		data:Selection_29
+  └─Selection_29	3333.33	cop[tikv]		ge(mariadb_cte_nonrecursive.t2.c, 4)
+    └─TableFullScan_28	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+explain
+select t1.a,t1.b from t1, (select c from t2 where c >= 4) as t
+where t1.a=t.c and
+t.c in (select t2.c from t2,  (select * from t1 where t1.a<5) as t
+where t2.c=t.a);
+id	estRows	task	access object	operator info
+HashJoin_25	4166.67	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t2.c)]
+├─HashAgg_35(Build)	4154.17	root		group by:mariadb_cte_nonrecursive.t2.c, funcs:firstrow(mariadb_cte_nonrecursive.t2.c)->mariadb_cte_nonrecursive.t2.c
+│ └─HashJoin_38	4154.17	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c)]
+│   ├─TableReader_41(Build)	3323.33	root		data:Selection_40
+│   │ └─Selection_40	3323.33	cop[tikv]		lt(mariadb_cte_nonrecursive.t1.a, 5), not(isnull(mariadb_cte_nonrecursive.t1.a))
+│   │   └─TableFullScan_39	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+│   └─TableReader_44(Probe)	9990.00	root		data:Selection_43
+│     └─Selection_43	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+│       └─TableFullScan_42	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+└─HashJoin_28(Probe)	4166.67	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t1.a)]
+  ├─TableReader_31(Build)	3333.33	root		data:Selection_30
+  │ └─Selection_30	3333.33	cop[tikv]		ge(mariadb_cte_nonrecursive.t2.c, 4), not(isnull(mariadb_cte_nonrecursive.t2.c))
+  │   └─TableFullScan_29	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+  └─TableReader_34(Probe)	9990.00	root		data:Selection_33
+    └─Selection_33	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t1.a))
+      └─TableFullScan_32	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+# another with table tt is defined in the with clause of a subquery
+# from the specification of t
+with t as (select * from t1
+where a>2 and
+b in (with tt as (select * from t2 where t2.c<5)
+select t1.b from t1,tt where t1.a=tt.c))
+select t.a, count(*) from t1,t where t1.a=t.a  group by t.a;
+a	count(*)
+3	1
+4	9
+select t.a, count(*)
+from t1,
+(select * from t1
+where a>2 and
+b in (select t1.b
+from t1,
+(select * from t2 where t2.c<5) as tt
+where t1.a=tt.c)) as t
+where t1.a=t.a  group by t.a;
+a	count(*)
+3	1
+4	9
+explain
+with t as (select * from t1
+where a>2 and
+b in (with tt as (select * from t2 where t2.c<5)
+select t1.b from t1,tt where t1.a=tt.c))
+select t.a, count(*) from t1,t where t1.a=t.a  group by t.a;
+id	estRows	task	access object	operator info
+Projection_46	2131.20	root		mariadb_cte_nonrecursive.t1.a, Column#15
+└─HashAgg_47	2131.20	root		group by:mariadb_cte_nonrecursive.t1.a, funcs:count(1)->Column#15, funcs:firstrow(mariadb_cte_nonrecursive.t1.a)->mariadb_cte_nonrecursive.t1.a
+  └─HashJoin_50	3330.00	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t1.a)]
+    ├─Selection_51(Build)	2664.00	root		not(isnull(mariadb_cte_nonrecursive.t1.a))
+    │ └─CTEFullScan_52	3330.00	root	CTE:t	data:CTE_0
+    └─TableReader_55(Probe)	9990.00	root		data:Selection_54
+      └─Selection_54	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t1.a))
+        └─TableFullScan_53	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+CTE_0	3330.00	root		Non-Recursive CTE
+└─HashJoin_30(Seed Part)	3330.00	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.b, mariadb_cte_nonrecursive.t1.b)]
+  ├─HashAgg_35(Build)	3323.33	root		group by:mariadb_cte_nonrecursive.t1.b, funcs:firstrow(mariadb_cte_nonrecursive.t1.b)->mariadb_cte_nonrecursive.t1.b
+  │ └─HashJoin_38	3323.33	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t1.a)]
+  │   ├─Selection_39(Build)	2658.67	root		not(isnull(mariadb_cte_nonrecursive.t2.c))
+  │   │ └─CTEFullScan_40	3323.33	root	CTE:tt	data:CTE_1
+  │   └─TableReader_43(Probe)	9980.01	root		data:Selection_42
+  │     └─Selection_42	9980.01	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t1.a)), not(isnull(mariadb_cte_nonrecursive.t1.b))
+  │       └─TableFullScan_41	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+  └─TableReader_34(Probe)	3330.00	root		data:Selection_33
+    └─Selection_33	3330.00	cop[tikv]		gt(mariadb_cte_nonrecursive.t1.a, 2), not(isnull(mariadb_cte_nonrecursive.t1.b))
+      └─TableFullScan_32	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+CTE_1	3323.33	root		Non-Recursive CTE
+└─TableReader_25(Seed Part)	3323.33	root		data:Selection_24
+  └─Selection_24	3323.33	cop[tikv]		lt(mariadb_cte_nonrecursive.t2.c, 5)
+    └─TableFullScan_23	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+explain
+select t.a, count(*)
+from t1,
+(select * from t1
+where a>2 and
+b in (select t1.b
+from t1,
+(select * from t2 where t2.c<5) as tt
+where t1.a=tt.c)) as t
+where t1.a=t.a  group by t.a;
+id	estRows	task	access object	operator info
+Projection_24	2664.00	root		mariadb_cte_nonrecursive.t1.a, Column#12
+└─HashAgg_25	2664.00	root		group by:mariadb_cte_nonrecursive.t1.a, funcs:count(1)->Column#12, funcs:firstrow(mariadb_cte_nonrecursive.t1.a)->mariadb_cte_nonrecursive.t1.a
+  └─HashJoin_27	4162.50	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.b, mariadb_cte_nonrecursive.t1.b)]
+    ├─HashAgg_37(Build)	4154.17	root		group by:mariadb_cte_nonrecursive.t1.b, funcs:firstrow(mariadb_cte_nonrecursive.t1.b)->mariadb_cte_nonrecursive.t1.b
+    │ └─HashJoin_40	4154.17	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t1.a)]
+    │   ├─TableReader_43(Build)	3323.33	root		data:Selection_42
+    │   │ └─Selection_42	3323.33	cop[tikv]		lt(mariadb_cte_nonrecursive.t2.c, 5), not(isnull(mariadb_cte_nonrecursive.t2.c))
+    │   │   └─TableFullScan_41	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+    │   └─TableReader_46(Probe)	9980.01	root		data:Selection_45
+    │     └─Selection_45	9980.01	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t1.a)), not(isnull(mariadb_cte_nonrecursive.t1.b))
+    │       └─TableFullScan_44	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+    └─HashJoin_30(Probe)	4162.50	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t1.a)]
+      ├─TableReader_33(Build)	3330.00	root		data:Selection_32
+      │ └─Selection_32	3330.00	cop[tikv]		gt(mariadb_cte_nonrecursive.t1.a, 2), not(isnull(mariadb_cte_nonrecursive.t1.a)), not(isnull(mariadb_cte_nonrecursive.t1.b))
+      │   └─TableFullScan_31	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+      └─TableReader_36(Probe)	9990.00	root		data:Selection_35
+        └─Selection_35	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t1.a))
+          └─TableFullScan_34	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+# with clause in the specification of a derived table
+select *
+from t1,
+(with t as (select a from t1 where b >= 'c')
+select * from t2,t where t2.c=t.a) as tt
+where t1.b > 'f' and tt.a=t1.a;
+a	b	c	a
+4	ggg	4	4
+4	ggg	4	4
+select *
+from t1,
+(select * from t2,
+(select a from t1 where b >= 'c') as t
+where t2.c=t.a) as tt
+where t1.b > 'f' and tt.a=t1.a;
+a	b	c	a
+4	ggg	4	4
+4	ggg	4	4
+explain
+select *
+from t1,
+(with t as (select a from t1 where b >= 'c')
+select * from t2,t where t2.c=t.a) as tt
+where t1.b > 'f' and tt.a=t1.a;
+id	estRows	task	access object	operator info
+Projection_22	4166.67	root		mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t1.b, mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t1.a
+└─HashJoin_24	4166.67	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c)]
+  ├─HashJoin_25(Build)	3333.33	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t1.a)]
+  │ ├─Selection_30(Build)	2666.67	root		not(isnull(mariadb_cte_nonrecursive.t1.a))
+  │ │ └─CTEFullScan_31	3333.33	root	CTE:t	data:CTE_0
+  │ └─TableReader_29(Probe)	3330.00	root		data:Selection_28
+  │   └─Selection_28	3330.00	cop[tikv]		gt(mariadb_cte_nonrecursive.t1.b, "f"), not(isnull(mariadb_cte_nonrecursive.t1.a))
+  │     └─TableFullScan_27	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+  └─TableReader_34(Probe)	9990.00	root		data:Selection_33
+    └─Selection_33	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+      └─TableFullScan_32	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+CTE_0	3333.33	root		Non-Recursive CTE
+└─Projection_14(Seed Part)	3333.33	root		mariadb_cte_nonrecursive.t1.a
+  └─TableReader_17	3333.33	root		data:Selection_16
+    └─Selection_16	3333.33	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c")
+      └─TableFullScan_15	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+explain
+select *
+from t1,
+(select * from t2,
+(select a from t1 where b >= 'c') as t
+where t2.c=t.a) as tt
+where t1.b > 'f' and tt.a=t1.a;
+id	estRows	task	access object	operator info
+Projection_16	5203.12	root		mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t1.b, mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t1.a
+└─HashJoin_18	5203.12	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c)]
+  ├─HashJoin_19(Build)	4162.50	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t1.a)]
+  │ ├─TableReader_26(Build)	3330.00	root		data:Selection_25
+  │ │ └─Selection_25	3330.00	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c"), not(isnull(mariadb_cte_nonrecursive.t1.a))
+  │ │   └─TableFullScan_24	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+  │ └─TableReader_23(Probe)	3330.00	root		data:Selection_22
+  │   └─Selection_22	3330.00	cop[tikv]		gt(mariadb_cte_nonrecursive.t1.b, "f"), not(isnull(mariadb_cte_nonrecursive.t1.a))
+  │     └─TableFullScan_21	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+  └─TableReader_29(Probe)	9990.00	root		data:Selection_28
+    └─Selection_28	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+      └─TableFullScan_27	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+# with claused in the specification of a view
+create view v1 as
+with t as (select a from t1 where b >= 'c')
+select * from t2,t where t2.c=t.a;
+show create view v1;
+View	Create View	character_set_client	collation_connection
+v1	CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`%` SQL SECURITY DEFINER VIEW `v1` (`c`, `a`) AS WITH `t` AS (SELECT `a` AS `a` FROM `mariadb_cte_nonrecursive`.`t1` WHERE `b`>=_UTF8MB4'c') SELECT `mariadb_cte_nonrecursive`.`t2`.`c` AS `c`,`mariadb_cte_nonrecursive`.`t`.`a` AS `a` FROM (`mariadb_cte_nonrecursive`.`t2`) JOIN `t` WHERE `t2`.`c`=`t`.`a`	utf8mb4	utf8mb4_general_ci
+select * from v1;
+c	a
+4	4
+4	4
+3	3
+explain
+select * from v1;
+id	estRows	task	access object	operator info
+Projection_19	3333.33	root		mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t1.a
+└─HashJoin_21	3333.33	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t1.a, mariadb_cte_nonrecursive.t2.c)]
+  ├─Selection_22(Build)	2666.67	root		not(isnull(mariadb_cte_nonrecursive.t1.a))
+  │ └─CTEFullScan_23	3333.33	root	CTE:t	data:CTE_0
+  └─TableReader_26(Probe)	9990.00	root		data:Selection_25
+    └─Selection_25	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+      └─TableFullScan_24	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+CTE_0	3333.33	root		Non-Recursive CTE
+└─Projection_12(Seed Part)	3333.33	root		mariadb_cte_nonrecursive.t1.a
+  └─TableReader_15	3333.33	root		data:Selection_14
+    └─Selection_14	3333.33	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c")
+      └─TableFullScan_13	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+# with claused in the specification of a materialized view
+create view v2 as
+with t as (select a, count(*) from t1 where b >= 'c' group by a)
+select * from t2,t where t2.c=t.a;
+show create view v2;
+View	Create View	character_set_client	collation_connection
+v2	CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`%` SQL SECURITY DEFINER VIEW `v2` (`c`, `a`, `count(*)`) AS WITH `t` AS (SELECT `a` AS `a`,COUNT(1) AS `count(*)` FROM `mariadb_cte_nonrecursive`.`t1` WHERE `b`>=_UTF8MB4'c' GROUP BY `a`) SELECT `mariadb_cte_nonrecursive`.`t2`.`c` AS `c`,`mariadb_cte_nonrecursive`.`t`.`a` AS `a`,`mariadb_cte_nonrecursive`.`t`.`count(*)` AS `count(*)` FROM (`mariadb_cte_nonrecursive`.`t2`) JOIN `t` WHERE `t2`.`c`=`t`.`a`	utf8mb4	utf8mb4_general_ci
+# with clause in the specification of a view that whose definition
+# table alias for a with table
+create view v3 as
+with t(c) as (select a from t1 where b >= 'c')
+select * from t r1 where r1.c=4;
+show create view v3;
+View	Create View	character_set_client	collation_connection
+v3	CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`%` SQL SECURITY DEFINER VIEW `v3` (`c`) AS WITH `t` (`c`) AS (SELECT `a` AS `a` FROM `mariadb_cte_nonrecursive`.`t1` WHERE `b`>=_UTF8MB4'c') SELECT `mariadb_cte_nonrecursive`.`r1`.`c` AS `c` FROM `t` AS `r1` WHERE `r1`.`c`=4	utf8mb4	utf8mb4_general_ci
+select * from v3;
+c
+4
+4
+# with clause in the specification of a view that whose definition
+# two table aliases for for the same with table
+create view v4(c,d) as
+with t(c) as (select a from t1 where b >= 'c')
+select * from t r1, t r2 where r1.c=r2.c and r2.c=4;
+show create view v4;
+View	Create View	character_set_client	collation_connection
+v4	CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`%` SQL SECURITY DEFINER VIEW `v4` (`c`, `d`) AS WITH `t` (`c`) AS (SELECT `a` AS `a` FROM `mariadb_cte_nonrecursive`.`t1` WHERE `b`>=_UTF8MB4'c') SELECT `mariadb_cte_nonrecursive`.`r1`.`c` AS `c`,`mariadb_cte_nonrecursive`.`r2`.`c` AS `c` FROM (`t` AS `r1`) JOIN `t` AS `r2` WHERE `r1`.`c`=`r2`.`c` AND `r2`.`c`=4	utf8mb4	utf8mb4_general_ci
+select * from v4;
+c	d
+4	4
+4	4
+4	4
+4	4
+explain
+select * from v4;
+id	estRows	task	access object	operator info
+HashJoin_19	7111111.11	root		CARTESIAN inner join
+├─Selection_23(Build)	2666.67	root		eq(mariadb_cte_nonrecursive.t1.a, 4)
+│ └─CTEFullScan_24	3333.33	root	CTE:r2	data:CTE_0
+└─Selection_21(Probe)	2666.67	root		eq(mariadb_cte_nonrecursive.t1.a, 4)
+  └─CTEFullScan_22	3333.33	root	CTE:r1	data:CTE_0
+CTE_0	3333.33	root		Non-Recursive CTE
+└─Projection_13(Seed Part)	3333.33	root		mariadb_cte_nonrecursive.t1.a
+  └─TableReader_16	3333.33	root		data:Selection_15
+    └─Selection_15	3333.33	cop[tikv]		ge(mariadb_cte_nonrecursive.t1.b, "c")
+      └─TableFullScan_14	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+drop view v1,v2,v3,v4;
+# currently any views containing with clause are not updatable
+create view v1(a) as
+with t as (select a from t1 where b >= 'c')
+select t.a from t2,t where t2.c=t.a;
+update v1 set a=0 where a > 4;
+Error 1288: The target table v1 of the UPDATE is not updatable
+drop view v1;
+# prepare of a query containing a definition of a with table t
+prepare stmt1 from "with t as (select a from t1 where b >= 'c') select * from t2,t where t2.c=t.a;";
+execute stmt1;
+c	a
+3	3
+4	4
+4	4
+execute stmt1;
+c	a
+3	3
+4	4
+4	4
+deallocate prepare stmt1;
+# prepare of a query containing a definition of a materialized t
+prepare stmt1 from "with t as (select a, count(*) from t1 where b >= 'c' group by a) select * from t2,t where t2.c=t.a";
+execute stmt1;
+c	a	count(*)
+4	4	2
+3	3	1
+execute stmt1;
+c	a	count(*)
+4	4	2
+3	3	1
+deallocate prepare stmt1;
+# prepare of a query containing two references to with table t
+prepare stmt1 from "with t as (select * from t1 where b >= 'c')  select * from t as r1, t as r2 where r1.a=r2.a;";
+execute stmt1;
+a	b	a	b
+1	ccc	1	fff
+1	ccc	1	ccc
+4	dd	4	ggg
+4	dd	4	dd
+3	eee	3	eee
+1	fff	1	fff
+1	fff	1	ccc
+4	ggg	4	ggg
+4	ggg	4	dd
+execute stmt1;
+a	b	a	b
+1	ccc	1	fff
+1	ccc	1	ccc
+4	dd	4	ggg
+4	dd	4	dd
+3	eee	3	eee
+1	fff	1	fff
+1	fff	1	ccc
+4	ggg	4	ggg
+4	ggg	4	dd
+deallocate prepare stmt1;
+with t(f) as (select * from t1 where b >= 'c')
+select * from t2,t where t2.c=t.f1;
+Error 1353: In definition of view, derived table or common table expression, SELECT list and column names list have different column counts
+with t(f1,f1) as (select * from t1 where b >= 'c')
+select * from t2,t where t2.c=t.f1;
+Error 1060: Duplicate column name 'f1'
+with t as (select * from t2 where c>3),
+t as (select a from t1 where a>2)
+select * from t,t1 where t1.a=t.c;
+Error 1066: Not unique table/alias: '%-.192s'
+with t as (select a from s where a<5), s as (select a from t1 where b>='d') select * from t,s where t.a=s.a;
+Error 1146: Table 'mariadb_cte_nonrecursive.s' doesn't exist
+with recursive t as (select a from s where a<5), s as (select a from t1 where b>='d') select * from t,s where t.a=s.a;
+Error 1146: Table 'mariadb_cte_nonrecursive.s' doesn't exist
+with recursive t as (select * from s where a>2),
+s as (select a from t1,r where t1.a>r.c),
+r as (select c from t,t2 where t.a=t2.c)
+select * from r where r.c<7;
+Error 1146: Table 'mariadb_cte_nonrecursive.s' doesn't exist
+with recursive
+t as (select * from s where a>2),
+s as (select a from t1,r where t1.a>r.c),
+r as (select c from t,t2 where t.a=t2.c)
+select * from r where r.c<7;
+Error 1146: Table 'mariadb_cte_nonrecursive.s' doesn't exist
+with recursive
+t as (select * from t1
+where a in (select c from s where b<='ccc') and  b>'b'),
+s as (select * from t1,t2
+where t1.a=t2.c and t1.c in (select a from t where a<5))
+select * from s where s.b>'aaa';
+Error 1146: Table 'mariadb_cte_nonrecursive.s' doesn't exist
+with recursive
+t as (select * from t1 where b>'aaa' and b <='d')
+select t.b from t,t2
+where t.a=t2.c and
+t2.c in (with recursive
+s as (select t1.a from s,t1 where t1.a=s.a and t1.b<'c')
+select * from s);
+Error 3573: Recursive Common Table Expression 's' should contain a UNION
+#erroneous definition of unreferenced with table t
+with t as (select count(*) from t1 where d>='f' group by a)
+select t1.b from t2,t1 where t1.a = t2.c;
+Error 1054: Unknown column 'd' in 'where clause'
+with t as (select count(*) from t1 where b>='f' group by a)
+select t1.b from t2,t1 where t1.a = t2.c;
+b
+aaaa
+dd
+eee
+ggg
+#erroneous definition of s referring to unreferenced t
+with t(d) as (select count(*) from t1 where b<='ccc' group by b),
+s as (select * from t1 where a in (select t2.d from t2,t where t2.c=t.d))
+select t1.b from t1,t2 where t1.a=t2.c;
+Error 1054: Unknown column 't2.d' in 'field list'
+with t(d) as (select count(*) from t1 where b<='ccc' group by b),
+s as (select * from t1 where a in (select t2.c from t2,t where t2.c=t.c))
+select t1.b from t1,t2 where t1.a=t2.c;
+Error 1054: Unknown column 't.c' in 'where clause'
+with t(d) as (select count(*) from t1 where b<='ccc' group by b),
+s as (select * from t1 where a in (select t2.c from t2,t where t2.c=t.d))
+select t1.b from t1,t2 where t1.a=t2.c;
+b
+aaaa
+dd
+eee
+ggg
+#erroneous definition of unreferenced with table t
+with t(f) as (select * from t1 where b >= 'c')
+select t1.b from t2,t1 where t1.a = t2.c;
+Error 1353: In definition of view, derived table or common table expression, SELECT list and column names list have different column counts
+#erroneous definition of unreferenced with table t
+with t(f1,f1) as (select * from t1 where b >= 'c')
+select t1.b from t2,t1 where t1.a = t2.c;
+b
+aaaa
+dd
+eee
+ggg
+# explain for query with unreferenced with table
+explain
+with t as (select a from t1 where b >= 'c')
+select t1.b from t2,t1 where t1.a = t2.c;
+id	estRows	task	access object	operator info
+HashJoin_11	12487.50	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t1.a)]
+├─TableReader_18(Build)	9990.00	root		data:Selection_17
+│ └─Selection_17	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t1.a))
+│   └─TableFullScan_16	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+└─TableReader_15(Probe)	9990.00	root		data:Selection_14
+  └─Selection_14	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+    └─TableFullScan_13	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+explain
+with t as (select a, count(*) from t1 where b >= 'c' group by a)
+select t1.b from t2,t1 where t1.a = t2.c;
+id	estRows	task	access object	operator info
+HashJoin_12	12487.50	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t2.c, mariadb_cte_nonrecursive.t1.a)]
+├─TableReader_19(Build)	9990.00	root		data:Selection_18
+│ └─Selection_18	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t1.a))
+│   └─TableFullScan_17	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+└─TableReader_16(Probe)	9990.00	root		data:Selection_15
+  └─Selection_15	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.c))
+    └─TableFullScan_14	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+drop table t1,t2;
+#
+# Bug mdev-9937: View used in the specification of with table
+#                refers to the base table with the same name
+#
+create table t1 (a int);
+insert into t1 values (20), (30), (10);
+create view v1 as select * from t1 where a > 10;
+with t1 as (select * from v1) select * from t1;
+a
+20
+30
+drop view v1;
+drop table t1;
+#
+# Bug mdev-10058: Invalid derived table with WITH clause
+#
+CREATE TABLE t1 (a INT);
+CREATE TABLE t2 (a INT);
+CREATE TABLE t3 (a INT);
+INSERT INTO t1 VALUES (1),(2),(3);
+INSERT INTO t2 VALUES (1),(2),(3);
+INSERT INTO t3 VALUES (1),(2),(3);
+SELECT * FROM (WITH a AS (SELECT * FROM t1) (t2 NATURAL JOIN t3));
+[parser:1064]You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 47 near "t2 NATURAL JOIN t3));" 
+SELECT * FROM (WITH a AS (SELECT * FROM t1) SELECT * FROM t2 NATURAL JOIN t3) AS d1;
+a
+1
+2
+3
+DROP TABLE t1,t2,t3;
+#
+# Bug mdev-10344: the WITH clause of the query refers to a view that uses
+#     a base table with the same name as a  CTE table from the clause
+#
+create table ten(a int primary key);
+insert into ten values (0),(1),(2),(3),(4),(5),(6),(7),(8),(9);
+create table one_k(a int primary key);
+insert into one_k select A.a + B.a* 10 + C.a * 100 from ten A, ten B, ten C;
+create view v1 as select * from ten;
+select * from v1;
+a
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+drop view v1;
+drop table ten, one_k;
+#
+# MDEV-10057 : Crash with EXPLAIN + WITH + constant query
+#
+CREATE TABLE t1 (a INT);
+INSERT INTO t1 VALUES (1),(2),(3);
+SELECT * FROM (WITH a AS (SELECT * FROM t1) SELECT 1) AS t1;
+1
+1
+EXPLAIN SELECT * FROM (WITH a AS (SELECT * FROM t1) SELECT 1) AS t1;
+id	estRows	task	access object	operator info
+Projection_6	1.00	root		1->Column#3
+└─TableDual_7	1.00	root		rows:1
+DROP TABLE t1;
+#
+# MDEV-10058: Suspicious EXPLAIN output for a derived table + WITH + joined table
+#
+CREATE TABLE t1 (a INT);
+CREATE TABLE t2 (a INT);
+CREATE TABLE t3 (a INT);
+INSERT INTO t1 VALUES (1),(2),(3);
+INSERT INTO t2 VALUES (1),(2),(3);
+INSERT INTO t3 VALUES (1),(2),(3);
+EXPLAIN SELECT * FROM (WITH a AS (SELECT * FROM t1) (t2 NATURAL JOIN t3));
+[parser:1064]You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 55 near "t2 NATURAL JOIN t3));" 
+explain SELECT * FROM (WITH a AS (SELECT * FROM t1) SELECT * FROM t2 NATURAL JOIN t3) AS d1;
+id	estRows	task	access object	operator info
+HashJoin_10	12487.50	root		inner join, equal:[eq(mariadb_cte_nonrecursive.t2.a, mariadb_cte_nonrecursive.t3.a)]
+├─TableReader_17(Build)	9990.00	root		data:Selection_16
+│ └─Selection_16	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t3.a))
+│   └─TableFullScan_15	10000.00	cop[tikv]	table:t3	keep order:false, stats:pseudo
+└─TableReader_14(Probe)	9990.00	root		data:Selection_13
+  └─Selection_13	9990.00	cop[tikv]		not(isnull(mariadb_cte_nonrecursive.t2.a))
+    └─TableFullScan_12	10000.00	cop[tikv]	table:t2	keep order:false, stats:pseudo
+DROP TABLE t1,t2,t3;
+#
+# MDEV-10729: Server crashes in st_select_lex::set_explain_type
+#
+CREATE TABLE t1 (i1 INT, KEY(i1)) ENGINE=MyISAM;
+INSERT INTO t1 VALUES (4),(8);
+CREATE TABLE t2 (a2 INT, b2 INT, KEY(b2)) ENGINE=MyISAM;
+INSERT INTO t2 VALUES (8,7);
+CREATE TABLE t3 (i3 INT) ENGINE=MyISAM;
+INSERT INTO t3 VALUES (2),(6);
+SELECT * FROM t1, t2 WHERE a2 = i1 and b2 >= i1 AND i1 IN ( SELECT i3 FROM t3 )
+UNION
+SELECT * FROM t1, t2 WHERE a2 = i1 and b2 >= i1 AND i1 IN ( SELECT i3 FROM t3 )
+;
+i1	a2	b2
+DROP TABLE t1,t2,t3;
+#
+# MDEV-10923: mergeable CTE used twice in the query
+#
+create table employees (
+name varchar(32),
+dept varchar(32),
+country varchar(8)
+);
+insert into employees
+values
+('Sergei Golubchik', 'Development', 'DE'),
+('Claudio Nanni', 'Support', 'ES'),
+('Sergei Petrunia', 'Development', 'RU');
+with eng as
+(
+select * from employees
+where dept in ('Development','Support')
+),
+eu_eng  as
+(
+select * from eng where country IN ('DE','ES','RU')
+)
+select * from eu_eng T1
+where
+not exists (select 1 from eu_eng T2
+where T2.country=T1.country
+and T2.name <> T1.name);
+name	dept	country
+Sergei Golubchik	Development	DE
+Claudio Nanni	Support	ES
+Sergei Petrunia	Development	RU
+drop table employees;
+#
+# MDEV-11818: EXPLAIN EXTENDED for a query with optimized away CTE table
+#
+CREATE TABLE t1 (i INT, c VARCHAR(3));
+INSERT INTO t1 VALUES (1,'foo');
+EXPLAIN WITH cte AS ( SELECT * FROM t1 ) SELECT i FROM cte;
+id	estRows	task	access object	operator info
+Projection_8	10000.00	root		mariadb_cte_nonrecursive.t1.i
+└─CTEFullScan_9	10000.00	root	CTE:cte	data:CTE_0
+CTE_0	10000.00	root		Non-Recursive CTE
+└─TableReader_7(Seed Part)	10000.00	root		data:TableFullScan_6
+  └─TableFullScan_6	10000.00	cop[tikv]	table:t1	keep order:false, stats:pseudo
+DROP TABLE t1;
+#
+# MDEV-12185: view defintion contains WITH clause with
+#             several specifications of CTE
+#
+with
+alias1 as (select 1 as one),
+alias2 as (select 2 as two)
+select one, two from alias1, alias2;
+one	two
+1	2
+create view v1 as
+with
+alias1 as (select 1 as one),
+alias2 as (select 2 as two)
+select one, two from alias1, alias2;
+select * from v1;
+one	two
+1	2
+show create view v1;
+View	Create View	character_set_client	collation_connection
+v1	CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`%` SQL SECURITY DEFINER VIEW `v1` (`one`, `two`) AS WITH `alias1` AS (SELECT 1 AS `one`), `alias2` AS (SELECT 2 AS `two`) SELECT `one` AS `one`,`two` AS `two` FROM (`alias1`) JOIN `alias2`	utf8mb4	utf8mb4_general_ci
+drop view v1;
+#
+# MDEV-12440: the same CTE table is used twice
+#
+create table t1 (a int, b  varchar(32));
+insert into t1 values
+(4,'aaaa' ), (7,'bb'), (1,'ccc'), (4,'dd');
+# cte2 is used in the main query and in the spec for ct3
+with
+cte1 as (select * from t1 where  b >= 'c'),
+cte2 as (select * from cte1 where a < 7),
+cte3 as (select * from cte2 where a > 1)
+select * from cte2, cte3 where cte2.a = cte3.a;
+a	b	a	b
+4	dd	4	dd
+# cte2 is used twice in the spec for ct3
+with
+cte1 as (select * from t1 where  b >= 'b'),
+cte2 as (select * from cte1 where b > 'c'),
+cte3 as (select * from cte2 where a > 1 union select * from cte2 where a > 1)
+select * from cte3;
+a	b
+4	dd
+drop table t1;
+#
+# MDEV-12558: CTE with the same name as temporary table
+#
+set tidb_enable_noop_functions=1;
+CREATE TABLE `t` (
+`i` int NOT NULL DEFAULT '0'
+);
+INSERT INTO t values (1);
+CREATE TEMPORARY TABLE `cte` (
+`f` int NOT NULL DEFAULT '0'
+);
+INSERT INTO cte values (2);
+WITH cte AS ( SELECT i FROM t ) SELECT * FROM cte;
+i
+1
+WITH cte AS ( SELECT i FROM t GROUP BY i) SELECT * FROM cte;
+i
+1
+SELECT * FROM cte;
+f
+2
+DROP TABLE IF EXISTS cte;
+DROP TABLE t;
+#
+# MDEV-13107: SHOW TABLE STATUS, SHOW CREATE VIEW
+#             for CTEs that use derived tables
+#
+create table t1(a int) engine=myisam;
+insert into t1 values (3), (1), (2);
+create table t2 (b int) engine=myisam;
+insert into t2 values (2), (10);
+create view v1 as
+with t as (select s.a from (select t1.a from t1) s),
+r as(select t.a from t2, t where t2.b=t.a)
+select a from r;
+create view v2 as
+with t as (select s.a from (select t1.a from t1) s),
+r as(select t.a from t2, t where t2.b=t.a)
+select a from t1;
+show create view v1;
+View	Create View	character_set_client	collation_connection
+v1	CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`%` SQL SECURITY DEFINER VIEW `v1` (`a`) AS WITH `t` AS (SELECT `s`.`a` AS `a` FROM (SELECT `t1`.`a` AS `a` FROM `mariadb_cte_nonrecursive`.`t1`) AS `s`), `r` AS (SELECT `t`.`a` AS `a` FROM (`mariadb_cte_nonrecursive`.`t2`) JOIN `t` WHERE `t2`.`b`=`t`.`a`) SELECT `a` AS `a` FROM `r`	utf8mb4	utf8mb4_general_ci
+show create view v2;
+View	Create View	character_set_client	collation_connection
+v2	CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`%` SQL SECURITY DEFINER VIEW `v2` (`a`) AS WITH `t` AS (SELECT `s`.`a` AS `a` FROM (SELECT `t1`.`a` AS `a` FROM `mariadb_cte_nonrecursive`.`t1`) AS `s`), `r` AS (SELECT `t`.`a` AS `a` FROM (`mariadb_cte_nonrecursive`.`t2`) JOIN `t` WHERE `t2`.`b`=`t`.`a`) SELECT `a` AS `a` FROM `mariadb_cte_nonrecursive`.`t1`	utf8mb4	utf8mb4_general_ci
+select * from v1;
+a
+2
+select * from v2;
+a
+3
+1
+2
+prepare stmt1 from "select * from v1";
+execute stmt1;
+a
+2
+execute stmt1;
+a
+2
+prepare stmt2 from "select * from v2";
+execute stmt2;
+a
+3
+1
+2
+execute stmt2;
+a
+3
+1
+2
+deallocate prepare stmt1;
+deallocate prepare stmt2;
+drop view v1,v2;
+drop table t1,t2;
+#
+# MDEV-13796: UNION of two materialized CTEs
+#
+CREATE TABLE t1 (id int, k int);
+CREATE TABLE t2 (id int);
+INSERT INTO t1 VALUES (3,5), (1,7), (4,3);
+INSERT INTO t2 VALUES (4), (3), (2);
+DROP TABLE t1,t2;
+#
+# MDEV-13780: tower of embedding CTEs with multiple usage of them
+#
+create table t1 (a int);
+insert into t1 values (3), (2), (4), (7), (1), (2), (5);
+drop table t1;
+#
+# MDEV-13753: embedded CTE in a VIEW created in prepared statement
+#
+SET @sql_query = "CREATE OR REPLACE VIEW cte_test AS WITH  cte1  AS ( SELECT 1 as a from dual ), cte2 AS ( SELECT * FROM cte1 ) SELECT * FROM cte2;";
+PREPARE stmt FROM @sql_query;
+EXECUTE stmt;
+
+DEALLOCATE PREPARE stmt;
+#
+# mdev-14755 : PS for query using CTE in select with subquery
+#
+create table t1 (a int);
+insert into t1 values
+(7), (2), (8), (1), (3), (2), (7), (5), (4), (7), (9), (8);
+drop table t1;
+#
+# MDEV-14852: CTE using temporary table in query
+#             with two references to the CTE
+#
+create table t1 (term char(10));
+create temporary table t2 (term char(10));
+insert into t1 values ('TERM01'),('TERM02'),('TERM03');
+insert into t2 values ('TERM02'),('TERM03'),('TERM04');
+drop table if exists t1,t2;
+#
+# MDEV-14969: view using subquery with attached CTE
+#
+create table region (
+r_regionkey int,
+r_name char(25),
+primary key (r_regionkey)
+);
+insert into region values
+(0,'AFRICA'), (1,'AMERICA'), (2,'ASIA'), (3,'EUROPE'), (4,'MIDDLE EAST');
+create table nation (
+n_nationkey int,
+n_name char(25),
+n_regionkey int,
+primary key (n_nationkey),
+key i_n_regionkey (n_regionkey)
+);
+insert into nation values
+(0,'ALGERIA',0), (1,'ARGENTINA',1), (2,'BRAZIL',1), (3,'CANADA',1),
+(4,'EGYPT',4), (5,'ETHIOPIA',0), (6,'FRANCE',3), (7,'GERMANY',3),
+(8,'INDIA',2), (9,'INDONESIA',2), (10,'IRAN',4), (11,'IRAQ',4),
+(12,'JAPAN',2), (13,'JORDAN',4), (14,'KENYA',0), (15,'MOROCCO',0),
+(16,'MOZAMBIQUE',0), (17,'PERU',1), (18,'CHINA',2), (19,'ROMANIA',3),
+(20,'SAUDI ARABIA',4), (21,'VIETNAM',2), (22,'RUSSIA',3),
+(23,'UNITED KINGDOM',3), (24,'UNITED STATES',1);
+select * from nation n ,region r
+where n.n_regionkey = r.r_regionkey and
+r.r_regionkey in
+(with t as (select * from region where r_regionkey <= 3 )
+select r_regionkey from t where r_name <> "ASIA");
+n_nationkey	n_name	n_regionkey	r_regionkey	r_name
+0	ALGERIA	0	0	AFRICA
+1	ARGENTINA	1	1	AMERICA
+14	KENYA	0	0	AFRICA
+15	MOROCCO	0	0	AFRICA
+16	MOZAMBIQUE	0	0	AFRICA
+17	PERU	1	1	AMERICA
+19	ROMANIA	3	3	EUROPE
+2	BRAZIL	1	1	AMERICA
+22	RUSSIA	3	3	EUROPE
+23	UNITED KINGDOM	3	3	EUROPE
+24	UNITED STATES	1	1	AMERICA
+3	CANADA	1	1	AMERICA
+5	ETHIOPIA	0	0	AFRICA
+6	FRANCE	3	3	EUROPE
+7	GERMANY	3	3	EUROPE
+create view v as
+select * from nation n ,region r
+where n.n_regionkey = r.r_regionkey and
+r.r_regionkey in
+(with t as (select * from region where r_regionkey <= 3)
+select r_regionkey from t where r_name <> "ASIA");
+show create view v;
+View	Create View	character_set_client	collation_connection
+v	CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`%` SQL SECURITY DEFINER VIEW `v` (`n_nationkey`, `n_name`, `n_regionkey`, `r_regionkey`, `r_name`) AS SELECT `mariadb_cte_nonrecursive`.`n`.`n_nationkey` AS `n_nationkey`,`mariadb_cte_nonrecursive`.`n`.`n_name` AS `n_name`,`mariadb_cte_nonrecursive`.`n`.`n_regionkey` AS `n_regionkey`,`mariadb_cte_nonrecursive`.`r`.`r_regionkey` AS `r_regionkey`,`mariadb_cte_nonrecursive`.`r`.`r_name` AS `r_name` FROM (`mariadb_cte_nonrecursive`.`nation` AS `n`) JOIN `mariadb_cte_nonrecursive`.`region` AS `r` WHERE `n`.`n_regionkey`=`r`.`r_regionkey` AND `r`.`r_regionkey` IN (WITH `t` AS (SELECT `mariadb_cte_nonrecursive`.`region`.`r_regionkey` AS `r_regionkey`,`mariadb_cte_nonrecursive`.`region`.`r_name` AS `r_name` FROM `mariadb_cte_nonrecursive`.`region` WHERE `r_regionkey`<=3) SELECT `r_regionkey` AS `r_regionkey` FROM `t` WHERE `r_name`!=_UTF8MB4'ASIA')	utf8mb4	utf8mb4_general_ci
+select * from v;
+n_nationkey	n_name	n_regionkey	r_regionkey	r_name
+0	ALGERIA	0	0	AFRICA
+1	ARGENTINA	1	1	AMERICA
+14	KENYA	0	0	AFRICA
+15	MOROCCO	0	0	AFRICA
+16	MOZAMBIQUE	0	0	AFRICA
+17	PERU	1	1	AMERICA
+19	ROMANIA	3	3	EUROPE
+2	BRAZIL	1	1	AMERICA
+22	RUSSIA	3	3	EUROPE
+23	UNITED KINGDOM	3	3	EUROPE
+24	UNITED STATES	1	1	AMERICA
+3	CANADA	1	1	AMERICA
+5	ETHIOPIA	0	0	AFRICA
+6	FRANCE	3	3	EUROPE
+7	GERMANY	3	3	EUROPE
+drop view v;
+drop table region, nation;
+#
+# MDEV-15120: cte name used with database name
+#
+WITH cte AS (SELECT 1 AS a) SELECT test.cte.a FROM test.cte;
+Error 1146: Table 'test.cte' doesn't exist
+DROP DATABASE IF EXISTS ctedb;
+CREATE DATABASE ctedb;
+USE ctedb;
+WITH cte AS (SELECT 1 AS a) SELECT ctedb.cte.a FROM ctedb.cte;
+Error 1146: Table 'ctedb.cte' doesn't exist
+DROP DATABASE ctedb;
+USE test;
+#
+# MDEV-15119: CTE c2 specified after CTE c1 and is used in
+#             CTE c3 that is embedded into the spec of c1
+#
+drop table if exists t1;
+CREATE TABLE t1 (i int);
+INSERT INTO t1 VALUES (1),(2),(3);
+WITH c1 AS (WITH c3 AS (SELECT * FROM c2) SELECT * FROM c3),
+c2 AS (SELECT * FROM t1)
+SELECT * FROM c1;
+Error 1146: Table 'test.c2' doesn't exist
+WITH RECURSIVE c1 AS (WITH c3 AS (SELECT * FROM c2) SELECT * FROM c3), c2 AS (SELECT * FROM t1) SELECT * FROM c1;
+Error 1146: Table 'test.c2' doesn't exist
+DROP TABLE t1;
+#
+# MDEV-14297: Lost name of a explicitly named CTE column used in
+#             the non-recursive CTE via prepared statement
+#
+CREATE TABLE t1 (i int);
+INSERT INTO t1 VALUES (1),(2),(3);
+PREPARE stmt FROM "WITH cte(a) AS (SELECT 1) SELECT * FROM cte";
+EXECUTE stmt;
+a
+1
+DEALLOCATE PREPARE stmt;
+DROP VIEW IF EXISTS v1;
+PREPARE stmt FROM "CREATE VIEW v1 AS WITH cte(a) AS (SELECT 1) SELECT * FROM cte";
+EXECUTE stmt;
+
+SELECT * FROM v1;
+a
+1
+DEALLOCATE PREPARE stmt;
+PREPARE stmt FROM "CREATE VIEW v2 AS WITH cte(a) AS (SELECT * FROM t1) SELECT * FROM cte";
+EXECUTE stmt;
+
+SELECT * FROM v2;
+a
+1
+2
+3
+DEALLOCATE PREPARE stmt;
+DROP TABLE t1;
+DROP VIEW v1,v2;
+#
+# MDEV-15478: Lost name of a explicitly named CTE column used in
+#             the non-recursive CTE defined with UNION
+#
+CREATE TABLE t1 (x int, y int);
+INSERT INTO t1 VALUES (1,2),(2,7),(3,3);
+WITH cte(a) AS (SELECT 1 UNION SELECT 2) SELECT * FROM cte;
+a
+1
+2
+WITH cte(a) AS (SELECT 1 UNION SELECT 2) SELECT a FROM cte;
+a
+1
+2
+WITH cte(a) AS (SELECT 1 UNION ALL SELECT 1) SELECT a FROM cte;
+a
+1
+1
+WITH cte(a) AS (SELECT x from t1 UNION SELECT 4) SELECT a FROM cte;
+a
+1
+2
+3
+4
+WITH cte(a) AS (SELECT 4 UNION SELECT x FROM t1 UNION SELECT 5)
+SELECT a FROM cte;
+a
+1
+2
+3
+4
+5
+WITH cte(a,b) AS (SELECT 4,5 UNION SELECT 4,3) SELECT a,b FROM cte;
+a	b
+4	3
+4	5
+DROP TABLE t1;
+#
+# MDEV-16353: unreferenced CTE specified by query with UNION
+#
+with cte as
+(select 1 union select 2 union select 3)
+select 1 as f;
+f
+1
+create table t1 (a int);
+insert into t1 values (2), (1), (7), (1), (4);
+with cte as
+(select * from t1 where a < 2 union select * from t1 where a > 5)
+select 2 as f;
+f
+2
+drop table t1;
+#
+# MDEV-16473: query with CTE when no database is set
+#
+create database db_mdev_16473;
+use db_mdev_16473;
+drop database db_mdev_16473;
+# Now no default database is set
+select database();
+database()
+NULL
+with cte as (select 1 as a) select * from cte;
+a
+1
+create database db_mdev_16473;
+create table db_mdev_16473.t1 (a int);
+insert into db_mdev_16473.t1 values (2), (7), (3), (1);
+with cte as (select * from db_mdev_16473.t1) select * from cte;
+a
+2
+7
+3
+1
+with cte as (select * from db_mdev_16473.t1)
+select * from cte, t1 as t where cte.a=t.a;
+Error 1046: No database selected
+with cte as (select * from db_mdev_16473.t1)
+select * from cte, db_mdev_16473.t1 as t where cte.a=t.a;
+a	a
+2	2
+7	7
+3	3
+1	1
+drop database db_mdev_16473;
+use test;
+#
+# MDEV-17154: using parameter markers for PS within CTEs more than once
+#             using local variables in SP within CTEs more than once
+#
+prepare stmt from "with cte(c) as (select ? ) select r.c, s.c+10  from cte as r, cte as s;";
+set @a=2;
+execute stmt using @a;
+c	s.c+10
+2	12
+set @a=5;
+execute stmt using @a;
+c	s.c+10
+5	15
+deallocate prepare stmt;
+prepare stmt from "with cte(c) as (select ? ) select c from cte union select c+10 from cte;";
+set @a=2;
+execute stmt using @a;
+c
+12
+2
+set @a=5;
+execute stmt using @a;
+c
+15
+5
+deallocate prepare stmt;
+prepare stmt from "with cte_e(a,b) as(  with cte_o(c) as (select ?)  select r.c+10, s.c+20 from cte_o as r, cte_o as s)select * from cte_e as cte_e1 where a > 12 union all select * from cte_e as cte_e2;";
+set @a=2;
+execute stmt using @a;
+a	b
+12	22
+set @a=5;
+execute stmt using @a;
+a	b
+15	25
+15	25
+deallocate prepare stmt;
+create table t1 (a int, b int);
+insert into t1 values
+(3,33), (1,17), (7,72), (4,45), (2,27), (3,35), (4,47), (3,38), (2,22);
+prepare stmt from "with cte as (select * from t1 where a < ? and b > ?)  select r.a, r.b+10, s.a, s.b+20 from cte as r, cte as s where r.a=s.a+1;";
+set @a=4, @b=20;
+execute stmt using @a,@b;
+a	r.b+10	a	s.b+20
+3	43	2	42
+3	43	2	47
+3	45	2	42
+3	45	2	47
+3	48	2	42
+3	48	2	47
+set @a=5, @b=20;
+execute stmt using @a,@b;
+a	r.b+10	a	s.b+20
+3	43	2	42
+3	43	2	47
+3	45	2	42
+3	45	2	47
+3	48	2	42
+3	48	2	47
+4	55	3	53
+4	55	3	55
+4	55	3	58
+4	57	3	53
+4	57	3	55
+4	57	3	58
+deallocate prepare stmt;
+#
+# MDEV-17107: PS for CREATE OR REPLACE VIEW defined by SELECT with CTEs
+#
+drop table if exists t1;
+create table t1(a int);
+insert into t1 values (3), (1), (2);
+drop table if exists t2;
+create table t2 (b int);
+insert into t2 values (2), (10);
+prepare stmt from "create or replace view v1 as with t as (select s.a from (select t1.a from t1) s),      r as(select t.a from t2, t where t2.b=t.a) select a from r;";
+execute stmt;
+
+select * from v1;
+a
+2
+drop view v1;
+drop table if exists t1,t2;
+#
+# MDEV-19112: CTE usage when information_schema is set as default db
+#
+with t as (select 1 as t ) select * from t;
+t
+1
+use information_schema;
+with t as (select 1 as t) select * from t;
+t
+1
+with columns as (select 1 as t) select * from columns;
+t
+1
+use test;
+#
+# MDEV-18460: Server crashed in strmake / tdc_create_key /
+# THD::create_tmp_table_def_key
+#
+#
+# MDEV-22781: create view with CTE without default database
+#
+drop database test;
+create database ctedb;
+create table ctedb.t1 (a int);
+insert into ctedb.t1 values (3),(7),(1);
+create view ctedb.v1 as with t as (select * from ctedb.t1) select * from t;
+show create view ctedb.v1;
+View	Create View	character_set_client	collation_connection
+v1	CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`%` SQL SECURITY DEFINER VIEW `v1` (`a`) AS WITH `t` AS (SELECT `ctedb`.`t1`.`a` AS `a` FROM `ctedb`.`t1`) SELECT `t`.`a` AS `a` FROM `t`	utf8mb4	utf8mb4_general_ci
+select * from ctedb.v1;
+a
+3
+7
+1
+drop view ctedb.v1;
+prepare stmt from "create view ctedb.v1 as with t as (select * from ctedb.t1) select * from t;";
+execute stmt;
+
+deallocate prepare stmt;
+show create view ctedb.v1;
+View	Create View	character_set_client	collation_connection
+v1	CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`%` SQL SECURITY DEFINER VIEW `v1` (`a`) AS WITH `t` AS (SELECT `ctedb`.`t1`.`a` AS `a` FROM `ctedb`.`t1`) SELECT `t`.`a` AS `a` FROM `t`	utf8mb4	utf8mb4_general_ci
+select * from ctedb.v1;
+a
+3
+7
+1
+drop view ctedb.v1;
+drop table ctedb.t1;
+drop database ctedb;
+create database test;
+use test;
+#
+# MDEV-24597: CTE with union used multiple times in query
+#
+with cte(a) as
+(select 1 as d union select 2 as d)
+select a from cte as r1
+union
+select a from cte as r2;
+a
+1
+2
+create table t1 (a int, b int) engine=myisam;
+insert into t1 values
+(3,30), (7,70), (1,10), (7,71), (2,20), (7,72), (3,33), (4,44),
+(5,50), (4,40), (3,33), (4,42), (4,43), (5,51);
+with cte(c) as
+(select a from t1 where b < 30 union select a from t1 where b > 40)
+select * from cte as r1, cte as r2 where r1.c = r2.c;
+c	c
+1	1
+2	2
+4	4
+5	5
+7	7
+with cte(a,c) as
+(
+select a, count(*) from t1 group by a having count(*) = 1
+union
+select a, count(*) from t1 group by a having count(*) = 3
+)
+select a, c from cte as r1 where a < 3
+union
+select a, c from cte as r2 where a > 4;
+a	c
+1	1
+2	1
+7	3
+drop table t1;
+create table t1 (c1 int);
+insert into t1 values (1),(2),(6);
+create table t2 (a int, b int);
+insert into t2
+with cte1 as (select c1 from t1)
+select * from cte1 as s, cte1 as t where s.c1=t.c1 and s.c1 > 5;
+select * from t2;
+a	b
+6	6
+# checking CTE resolution for queries with hanging CTEs
+with
+cte1(a) as (select * from t1 where c1 <= 2),
+cte2(b) as (select * from cte1 where a >= 2),
+cte3 as (select * from cte1,cte2 where cte1.a < cte2.b)
+select * from cte3;
+a	b
+1	2
+select * from t2;
+a	b
+6	6
+with
+cte1(a) as (select * from t1 where c1 <= 2),
+cte2(b) as (select * from cte1 where a >= 2),
+cte3 as (select * from cte1,cte2 where cte1.a < cte2.b)
+select * from t2;
+a	b
+6	6
+with
+cte1(a) as (select * from t1 where c1 <= 2),
+cte2(b) as (select * from cte1 where c1 >= 2),
+cte3 as (select * from cte1,cte2 where cte1.a < cte2.b)
+select * from t2;
+Error 1054: Unknown column 'c1' in 'where clause'
+with
+cte1(a) as (select * from t1 where c1 <= 2),
+cte2(b) as (select * from cte1 where a >= 2),
+cte3 as (select * from cte1,cte2 where cte1.a < cte2.c1)
+select * from t2;
+Error 1054: Unknown column 'cte2.c1' in 'where clause'
+with
+cte1 as (select * from t1 where c1 <= 2),
+cte2(a,b) as (select * from cte1 as s1, cte1 as s2 where s1.c1=s2.c1)
+select * from cte2;
+a	b
+1	1
+2	2
+with
+cte1 as (select * from t1 where c1 <= 2),
+cte2(a,b) as (select * from cte1 as s1, cte1 as s2 where s1.c1=s2.c1)
+select * from t2;
+a	b
+6	6
+with
+cte1 as (select * from t1 where c1 <= 2),
+cte2(a,b) as (select * from cte1 as s1, cte1 as s2 where s1.c1=c1)
+select * from t2;
+Error 1052: Column 'c1' in field list is ambiguous
+with cte3 as
+( with cte2(a,b) as
+( with cte1 as (select * from t1 where c1 <= 2)
+select * from cte1 as s1, cte1 as s2 where s1.c1=s2.c1)
+select r1.a,r2.b from cte2 as r1, cte2 as r2)
+select * from cte3;
+a	b
+1	1
+1	2
+2	1
+2	2
+with cte3 as
+( with cte2(a,b) as
+( with cte1 as (select * from t1 where c1 <= 2)
+select * from cte1 as s1, cte1 as s2 where s1.c1=s2.c1)
+select r1.a,r2.b from cte2 as r1, cte2 as r2)
+select * from t2;
+a	b
+6	6
+with cte3 as
+( with cte2(a,b) as
+( with cte1 as (select * from t1 where c1 <= 2)
+select * from cte1 as s1, cte1 as s2 where s1.c1=s2.c1)
+select r1.c1,r2.c1 from cte2 as r1, cte2 as r2)
+select * from t2;
+Error 1054: Unknown column 'r1.c1' in 'field list'
+#
+# MDEV-20730: Syntax error on SELECT INTO @variable with CTE
+#

@@ -1,0 +1,177 @@
+drop table if exists t1;
+drop table if exists t2;
+drop table if exists t3;
+
+create table t1 (c1 int, c2 int);
+create table t2 (c1 int, c2 int);
+create table t3 (c1 int, c2 int);
+
+insert into t1 values (1,1), (2,2), (3,3);
+insert into t2 values (1,1), (3,3), (5,5);
+insert into t3 values (1,1), (5,5), (9,9);
+
+select * from t1, t2 order by t1.c1, t1.c2, t2.c1, t2.c2;
+select * from t1 left join t2 on t1.c1 = t2.c1 order by t1.c1, t1.c2, t2.c1, t2.c2;
+select * from t1 right join t2 on t1.c1 = t2.c1 order by t1.c1, t1.c2, t2.c1, t2.c2;
+select * from t1 left join (t2, t3) on t1.c1 = t2.c1 order by t1.c1, t1.c2, t2.c1, t2.c2, t3.c1, t3.c2;
+select * from t1 left join t2 on t1.c1 = t2.c1 right join t3 on t2.c1 = t3.c1 order by t1.c1, t1.c2, t2.c1, t2.c2, t3.c1, t3.c2;
+select * from t1, t2 right join t3 on t2.c1 = t3.c1 order by t1.c1, t1.c2, t2.c1, t2.c2, t3.c1, t3.c2;
+select * from t1 left join (t2 right join t3 on t2.c1 = t3.c1) on t1.c1= t2.c1 order by t1.c1, t1.c2, t2.c1, t2.c2, t3.c1, t3.c2;
+select * from t1 left join t2 on t1.c1 = t2.c1, t2 as a right join t3 on a.c1 = t3.c1 order by t1.c1, t1.c2, t2.c1, t2.c2, t3.c1, t3.c2;
+
+select * from t1, (select * from t2) as t2 order by t1.c1, t1.c2, t2.c1, t2.c2;
+select * from t1 left join (select * from t2) as t2 on t1.c1 = t2.c1 order by t1.c1, t1.c2, t2.c1, t2.c2;
+
+# test https://github.com/pingcap/tidb/pull/5332
+drop table if exists c, cc;
+
+CREATE TABLE C (
+  pk int(11) NOT NULL AUTO_INCREMENT,
+  col_date_key date DEFAULT NULL,
+  col_varchar_key varchar(1) DEFAULT NULL,
+  col_varchar_nokey varchar(1) DEFAULT NULL,
+  PRIMARY KEY (pk)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE CC (
+  pk int(11) NOT NULL AUTO_INCREMENT,
+  col_date_key date DEFAULT NULL,
+  col_varchar_key varchar(1) DEFAULT NULL,
+  col_varchar_nokey varchar(1) DEFAULT NULL,
+  PRIMARY KEY (pk)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin AUTO_INCREMENT=10;
+
+INSERT INTO `C` (col_date_key, col_varchar_key, col_varchar_nokey) VALUES (NULL, 'v', 'v'), (NULL, 'v', 'v'), (NULL, 'v', 'v'), (NULL, 'v', 'v'), (NULL, 'v', 'v'), (NULL, 'v', 'v'), (NULL, 'v', 'v'), (NULL, 'v', 'v'), (NULL, 'v', 'v'), (NULL, 'v', 'v');
+INSERT INTO `CC` (col_date_key, col_varchar_key, col_varchar_nokey) VALUES (NULL, 'v', 'v'), (NULL, 'v', 'v'), (NULL, 'v', 'v'), (NULL, 'v', 'v'), (NULL, 'v', 'v'), (NULL, 'v', 'v'), (NULL, 'v', 'v'), (NULL, 'v', 'v'), (NULL, 'v', 'v'), (NULL, 'v', 'v');
+SELECT table1.col_date_key FROM C AS table1, CC AS table2 WHERE table2.col_varchar_nokey NOT IN (SELECT C.col_varchar_key FROM C) OR table1.col_varchar_key = table2.col_varchar_key;
+
+DROP TABLE IF EXISTS IpClass, IpRltshp, Person, StaffMemberRole;
+
+CREATE TABLE `IpClass` (
+  `IpId` int(11) DEFAULT NULL,
+  `EmailLeft` varchar(200) DEFAULT NULL,
+  `EmailRight` varchar(200) DEFAULT NULL,
+  `Password` varchar(256) DEFAULT NULL,
+  `CRC` varchar(256) DEFAULT NULL,
+  `PasswordExpired` tinyint(1) DEFAULT NULL,
+  `StartDate` date DEFAULT NULL,
+  `EndDate` date DEFAULT NULL,
+  `AccessAttempts` int(11) DEFAULT NULL,
+  KEY `xfkIpClass` (`IpId`),
+  KEY `xckIpClass` (`EndDate`,`EmailLeft`,`EmailRight`),
+  KEY `xpkIpClass` (`EmailRight`,`EmailLeft`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `IpRltshp` (
+  `IpParent` int(11) DEFAULT NULL,
+  `IpChild` int(11) DEFAULT NULL,
+  `RltshpTypeCode` varchar(40) DEFAULT NULL,
+  `StartDate` date DEFAULT NULL,
+  `EndDate` date DEFAULT NULL,
+  `EndReasonCode` varchar(40) DEFAULT NULL,
+  `InternalReferenceId` varchar(256) DEFAULT NULL,
+  `PrivacyLevelCode` varchar(40) DEFAULT NULL,
+  `RltshpLevelCode` varchar(40) DEFAULT NULL,
+  `DefReHireCode` varchar(40) DEFAULT NULL,
+  KEY `xckIpRltshp` (`IpChild`,`RltshpTypeCode`,`EndDate`),
+  KEY `xpkIpRltshp` (`IpParent`,`IpChild`,`RltshpTypeCode`,`EndDate`),
+  KEY `xskIpRltshp` (`IpChild`),
+  KEY `xzkIpRltshp` (`IpParent`,`InternalReferenceId`(128),`StartDate`,`EndDate`),
+  KEY `xfkIpRltshp` (`IpParent`,`RltshpTypeCode`,`EndDate`),
+  KEY `xxkIpRltshp` (`IpChild`,`IpParent`,`RltshpTypeCode`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `Person` (
+  `IpPerson` int(11) DEFAULT NULL,
+  `LastName` varchar(256) DEFAULT NULL,
+  `FirstName` varchar(256) DEFAULT NULL,
+  `MiddleInitial` varchar(40) DEFAULT NULL,
+  `Gender` varchar(40) DEFAULT NULL,
+  `DateOfBirth` date DEFAULT NULL,
+  `Soundex` varchar(40) DEFAULT NULL,
+  `SalutationCode` varchar(40) DEFAULT NULL,
+  `FullName` varchar(256) DEFAULT NULL,
+  `PreferredName` varchar(256) DEFAULT NULL,
+  `PreferredLanguageCode` varchar(40) DEFAULT NULL,
+  `ExposureLevelCode` varchar(40) DEFAULT NULL,
+  `PrivacyLevelCode` varchar(40) DEFAULT NULL,
+  `PreferredContactMethodCode` varchar(40) DEFAULT NULL,
+  `PrivateKeyId` varchar(40) DEFAULT NULL,
+  `PrivateURL` varchar(256) DEFAULT NULL,
+  `ResumeLastUpdate` date DEFAULT NULL,
+  `LocalTimeZoneCode` varchar(40) DEFAULT NULL,
+  `ResumeLastCrunch` date DEFAULT NULL,
+  `ResumeWorkStartDate` date DEFAULT NULL,
+  `ProfileLastUpdate` date DEFAULT NULL,
+  `Status` varchar(40) DEFAULT NULL,
+  KEY `xpkPerson` (`IpPerson`),
+  KEY `xtkPerson` (`LastName`(64),`FirstName`(64),`Gender`,`DateOfBirth`),
+  KEY `xskPerson` (`Soundex`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `StaffMemberRole` (
+  `IpEmployee` int(11) DEFAULT NULL,
+  `IpEmployer` int(11) DEFAULT NULL,
+  `RoleCode` varchar(40) DEFAULT NULL,
+  `StartDate` date DEFAULT NULL,
+  `EndDate` date DEFAULT NULL,
+  `IpAccessOrg` int(11) DEFAULT NULL,
+  KEY `xfkStaffMemberRole` (`IpEmployee`,`RoleCode`),
+  KEY `xxkStaffMemberRole` (`IpAccessOrg`,`RoleCode`,`EndDate`,`StartDate`),
+  KEY `xpkStaffMemberRole` (`IpEmployer`,`RoleCode`),
+  KEY `xskStaffMemberRole` (`IpEmployer`,`IpEmployee`,`RoleCode`,`EndDate`,`StartDate`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+
+INSERT INTO IpClass (IpId,EmailLeft,EmailRight,Password,CRC,PasswordExpired,StartDate,EndDate,AccessAttempts) VALUES
+(5,'admin','fasf.com.au','mEgW/TKWIoduFJB2NCZObzMun7M=','4120855952',0,'2018-03-18','9999-12-31',0);
+
+INSERT INTO IpRltshp (IpParent,IpChild,RltshpTypeCode,StartDate,EndDate,EndReasonCode,InternalReferenceId,PrivacyLevelCode,RltshpLevelCode,DefReHireCode) VALUES
+(1,1,'ORGHIRCHY','2001-01-01','9999-12-31',NULL,NULL,NULL,NULL,NULL),
+(1,2,'SystemAdministrator','2001-01-01','9999-12-31',NULL,NULL,NULL,NULL,NULL),
+(1,5,'STAFFMEMBER','2001-01-01','9999-12-31',NULL,NULL,'4',NULL,NULL);
+
+INSERT INTO Person (IpPerson,LastName,FirstName,MiddleInitial,Gender,DateOfBirth,Soundex,SalutationCode,FullName,PreferredName,PreferredLanguageCode,ExposureLevelCode,PrivacyLevelCode,PreferredContactMethodCode,PrivateKeyId,PrivateURL,ResumeLastUpdate,LocalTimeZoneCode,ResumeLastCrunch,ResumeWorkStartDate,ProfileLastUpdate,Status) VALUES
+(5,'Administrator','System','','',NULL,'ATMN SSTM','','System Administrator','System Administrator','EN','PRIVATE','4','EMAIL',NULL,NULL,NULL,'AUSTRALIA/SYDNEY',NULL,NULL,NULL,'ACTIVE');
+
+INSERT INTO StaffMemberRole (IpEmployee,IpEmployer,RoleCode,StartDate,EndDate,IpAccessOrg) VALUES
+(5,1,'ADMIN','2005-05-04','9999-12-31',1);
+
+ANALYZE TABLE IpClass;
+ANALYZE TABLE IpRltshp;
+ANALYZE TABLE Person;
+ANALYZE TABLE StaffMemberRole;
+
+SELECT DISTINCT p.IpPerson, rc.IpParent,
+   rc.RltshpTypeCode, p.FirstName, p.MiddleInitial, p.LastName, r.RoleCode, p.Status,
+   c.EmailLeft, c.EmailRight
+FROM Person p, IpRltshp rp, IpRltshp rc, StaffMemberRole r, IpClass c
+WHERE rp.IpParent = 1
+AND (
+   (
+      rp.IpParent = rp.IpChild
+      AND rp.RltshpTypeCode = 'ORGHIRCHY'
+   ) OR (
+      rp.IpParent != rp.IpChild
+      AND rp.RltshpTypeCode = 'CUSTOMER'
+   )
+)
+AND rp.StartDate <= '2018-03-22'
+AND rp.EndDate > '2018-03-22'
+AND rp.IpChild = rc.IpParent
+AND rc.IpParent = 1
+AND rc.IpChild = p.IpPerson
+AND rc.RltshpTypeCode = 'STAFFMEMBER'
+AND rc.StartDate <= '2018-03-22'
+AND rc.EndDate > '2018-03-22'
+AND r.IpAccessOrg = rp.IpParent
+AND r.IpEmployer = rp.IpParent
+AND r.IpEmployee = p.IpPerson
+AND r.StartDate <= '2018-03-22'
+AND r.EndDate > '2018-03-22'
+AND c.IpId = p.IpPerson
+AND c.StartDate <= '2018-03-22'
+AND c.EndDate > '2018-03-22'
+AND p.Status != 'INACTIVE'
+AND p.Status != 'INACTIVEWITHEMAIL'
+ORDER BY 5, 4;

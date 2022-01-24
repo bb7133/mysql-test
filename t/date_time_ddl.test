@@ -1,0 +1,95 @@
+create table t(
+  f_date date,
+  f_time time,
+  f_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  f_datetime datetime
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+show create table t;
+show columns from t;
+show full columns from t;
+drop table t;
+create table t1(
+  f_date date NOT NULL,
+  f_time time NOT NULL,
+  f_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  f_datetime datetime NOT NULL
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+show create table t1;
+show columns from t1;
+show full columns from t1;
+drop table t1;
+create table t2(
+  y year NOT NULL DEFAULT '0001',
+  d date NOT NULL DEFAULT '0000-01-01',
+  t time NOT NULL DEFAULT '00:00:00',
+  ts timestamp NOT NULL DEFAULT '2038-01-19 03:14:07.999999',
+  dt datetime NOT NULL DEFAULT '2038-01-19 03:14:07.0000000'
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+show create table t2;
+show columns from t2;
+show full columns from t2;
+insert into t2 values();
+INSERT INTO t2 VALUES ('2011', '2011-11-21', '22:22:22','2011-11-21 22:22:22','2011-11-21 22:22:22');
+ALTER TABLE t2 ADD COLUMN y_1 year DEFAULT '1901';
+ALTER TABLE t2 ADD COLUMN d_1 date DEFAULT '1000-01-01';
+ALTER TABLE t2 ADD COLUMN t_1 time DEFAULT '-838:59:59';
+ALTER TABLE t2 ADD COLUMN ts_1 timestamp DEFAULT '1970-01-01 18:00:01';
+ALTER TABLE t2 ADD COLUMN dt_1 datetime DEFAULT '1000-01-01 00:00:00';
+show create table t2;
+insert into t2 values();
+select * from t2;
+ALTER TABLE t2 ADD COLUMN y_2 year DEFAULT '2155' FIRST;
+show create table t2;
+insert into t2 values();
+select * from t2;
+ALTER TABLE t2 ADD COLUMN d_2 date DEFAULT '9999-12-31' FIRST;
+show create table t2;
+insert into t2 values();
+select * from t2;
+ALTER TABLE t2 ADD COLUMN t_2 time DEFAULT '838:59:59' FIRST;
+show create table t2;
+insert into t2 values();
+select * from t2;
+ALTER TABLE t2 ADD COLUMN ts_2 timestamp DEFAULT '2038-01-19 11:14:07' FIRST;
+insert into t2 values();
+select * from t2;
+ALTER TABLE t2 ADD COLUMN dt_2 datetime DEFAULT '9999-12-31 23:59:59.499999' FIRST;
+insert into t2 values();
+select * from t2;
+# ALTER TABLE t2 ADD COLUMN y_3 year as (y_2 - y_1 + y) AFTER y_2;
+# show create table t2;
+# insert into t2 values();
+ALTER TABLE t2 ADD COLUMN y_3 year as (y_1 + 1) AFTER y_2;
+show create table t2;
+insert into t2 values();
+select * from t2;
+ALTER TABLE t2 ADD COLUMN d_3 date as (DATE_SUB(d_2, INTERVAL 31 DAY)) AFTER d_2;
+show create table t2;
+insert into t2 values();
+select * from t2;
+ALTER TABLE t2 ADD COLUMN t_3 time as (SUBTIME(t_2, '1 1:1:1.000002')) AFTER t_2;
+show create table t2;
+insert into t2 values();
+select * from t2;
+# ALTER TABLE t2 ADD COLUMN ts_3 timestamp as (TIMESTAMPADD(MINUTE,1,'2003-01-02')) AFTER ts_2;
+ALTER TABLE t2 ADD COLUMN ts_3 timestamp DEFAULT '2019-01-19 11:11:11' AFTER ts_2;
+show create table t2;
+insert into t2 values();
+select * from t2;
+ALTER TABLE t2 ADD COLUMN dt_3 datetime as (DATE_ADD(dt_1,INTERVAL 1 DAY)) AFTER dt_2;
+show create table t2;
+insert into t2 values();
+select * from t2;
+ALTER TABLE t2 ADD INDEX idx_y(y_2, y_3);
+show create table t2;
+ALTER TABLE t2 ADD INDEX idx_d(d_2, d_3);
+show create table t2;
+ALTER TABLE t2 ADD INDEX idx_t(t_2, t_3);
+show create table t2;
+ALTER TABLE t2 ADD INDEX idx_ts(ts_2, ts_3);
+show create table t2;
+ALTER TABLE t2 ADD INDEX idx_dt(dt_2, dt_3);
+show create table t2;
+insert into t2 values();
+select * from t2;
+drop table t2;

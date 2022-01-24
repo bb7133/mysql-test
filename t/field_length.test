@@ -1,0 +1,15 @@
+set @@sql_mode="";
+DROP TABLE IF EXISTS t;
+
+# create table
+CREATE TABLE t (c1 int, c2 CHAR(5));
+
+--disable_warnings
+INSERT INTO t VALUES (1, "1234");
+INSERT INTO t VALUES (2, "12345");
+INSERT INTO t VALUES (3, "123456");
+INSERT INTO t VALUES (4, "123456789");
+
+SELECT * FROM t;
+
+DROP TABLE t;

@@ -1,0 +1,478 @@
+#
+# Section 1. Wrong column definition options
+#            - DEFAULT <value>
+#            - AUTO_INCREMENT
+#            - SERIAL DEFAULT VALUE
+#            - ON UPDATE NOW ...
+# NOT NULL
+create table t1 (a int, b int generated always as (a+1) virtual not null);
+insert into t1(a) values(null);
+Error 1048: Column 'b' cannot be null
+insert into t1(a) values(1);
+select * from t1;
+a	b
+1	2
+drop table t1;
+create table t1 (a int, b int generated always as (a+1) stored not null);
+insert into t1(a) values(null);
+Error 1048: Column 'b' cannot be null
+insert into t1(a) values(1);
+select * from t1;
+a	b
+1	2
+drop table t1;
+create table t1 (a int);
+alter table t1 add column b int generated always as (a+1) virtual not null;
+drop table t1;
+# NULL
+create table t1 (a int, b int generated always as (a+1) virtual null);
+drop table t1;
+create table t1 (a int);
+alter table t1 add column b int generated always as (a+1) virtual null;
+drop table t1;
+# Added columns mixed with virtual GC and other columns
+create table t1 (a int);
+insert into t1 values(1);
+alter table t1 add column b int generated always as (a+1) virtual;
+alter table t1 add column c int;
+alter table t1 add column d int;
+alter table t1 add column e int generated always as (a+1) virtual;
+alter table t1 add column f int generated always as (a+1) virtual;
+alter table t1 add column g int as(5) stored;
+Error 3106: 'Adding generated stored column through ALTER TABLE' is not supported for generated columns.
+alter table t1 add column h int generated always as (a+1) virtual;
+alter table t1 add column i int as(5) virtual;
+drop table t1;
+# [PRIMARY] KEY
+create table t1 (a int, b int generated always as (a+1) virtual key);
+Error 3106: 'Defining a virtual generated column as primary key' is not supported for generated columns.
+create table t1 (a int, b int generated always as (a+1) stored key);
+insert into t1 (a) values (3),(1),(2);
+select * from t1;
+a	b
+1	2
+2	3
+3	4
+drop table t1;
+create table t1 (a int, b int generated always as (a+1) virtual primary key);
+Error 3106: 'Defining a virtual generated column as primary key' is not supported for generated columns.
+create table t1 (a int, b int generated always as (a+1) stored primary key);
+insert into t1 (a) values (3),(1),(2);
+select * from t1 order by b;
+a	b
+1	2
+2	3
+3	4
+drop table t1;
+create table t1 (a int);
+alter table t1 add column b int generated always as (a+1) virtual key;
+Error 8200: unsupported add column 'b' constraint PRIMARY KEY when altering 'gcol_column_def_options.t1'
+alter table t1 add column b int generated always as (a+1) stored key;
+Error 8200: unsupported add column 'b' constraint PRIMARY KEY when altering 'gcol_column_def_options.t1'
+alter table t1 add column c int generated always as (a+2) virtual primary key;
+Error 8200: unsupported add column 'c' constraint PRIMARY KEY when altering 'gcol_column_def_options.t1'
+show create table t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `a` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+alter table t1 add column c int generated always as (a+2) stored primary key;
+Error 8200: unsupported add column 'c' constraint PRIMARY KEY when altering 'gcol_column_def_options.t1'
+drop table t1;
+# Section 2. Other column definition options
+#            - COMMENT
+#            - REFERENCES (only syntax testing here)
+#            - STORED (only systax testing here)
+create table t1 (a int, b int generated always as (a % 2) virtual comment 'my comment');
+show create table t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `a` int(11) DEFAULT NULL,
+  `b` int(11) GENERATED ALWAYS AS (`a` % 2) VIRTUAL COMMENT 'my comment'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+describe t1;
+Field	Type	Null	Key	Default	Extra
+a	int(11)	YES		NULL	
+b	int(11)	YES		NULL	VIRTUAL GENERATED
+drop table t1;
+create table t1 (a int, b int generated always as (a % 2) virtual);
+alter table t1 modify b int generated always as (a % 2) virtual comment 'my comment';
+show create table t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `a` int(11) DEFAULT NULL,
+  `b` int(11) GENERATED ALWAYS AS (`a` % 2) VIRTUAL COMMENT 'my comment'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+describe t1;
+Field	Type	Null	Key	Default	Extra
+a	int(11)	YES		NULL	
+b	int(11)	YES		NULL	VIRTUAL GENERATED
+insert into t1 (a) values (1);
+select * from t1;
+a	b
+1	1
+insert into t1 (a) values (2);
+select a,b from t1 order by a;
+a	b
+1	1
+2	0
+create table t2 like t1;
+show create table t2;
+Table	Create Table
+t2	CREATE TABLE `t2` (
+  `a` int(11) DEFAULT NULL,
+  `b` int(11) GENERATED ALWAYS AS (`a` % 2) VIRTUAL COMMENT 'my comment'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+describe t2;
+Field	Type	Null	Key	Default	Extra
+a	int(11)	YES		NULL	
+b	int(11)	YES		NULL	VIRTUAL GENERATED
+insert into t2 (a) values (1);
+select * from t2;
+a	b
+1	1
+insert into t2 (a) values (2);
+select a,b from t2 order by a;
+a	b
+1	1
+2	0
+drop table t2;
+drop table t1;
+create table t1 (a int, b int generated always as (a % 2) stored);
+show create table t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `a` int(11) DEFAULT NULL,
+  `b` int(11) GENERATED ALWAYS AS (`a` % 2) STORED
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+describe t1;
+Field	Type	Null	Key	Default	Extra
+a	int(11)	YES		NULL	
+b	int(11)	YES		NULL	STORED GENERATED
+insert into t1 (a) values (1);
+select * from t1;
+a	b
+1	1
+insert into t1 (a) values (2);
+select a,b from t1 order by a;
+a	b
+1	1
+2	0
+drop table t1;
+create table t2 (a int);
+create table t1 (a int, b int generated always as (a % 2) stored references t2(a));
+show create table t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `a` int(11) DEFAULT NULL,
+  `b` int(11) GENERATED ALWAYS AS (`a` % 2) STORED
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+drop table t1;
+create table t1 (a int, b int generated always as (a % 2) virtual);
+alter table t1 modify b int generated always as (a % 2) stored references t2(a);
+Error 8200: Unsupported modify column: can't modify with references
+show create table t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `a` int(11) DEFAULT NULL,
+  `b` int(11) GENERATED ALWAYS AS (`a` % 2) VIRTUAL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+drop table t1;
+drop table t2;
+FK options
+create table t1(a int,  b int as (a % 2), c int as (a) stored);
+create table t2 (a int primary key);
+alter table t1 add constraint foreign key fk(d) references t2(a);
+Error 1072: Key column 'd' doesn't exist in table
+alter table t1 add constraint fk foreign key (b) references t2(a);
+Error 1215: Cannot add foreign key constraint
+alter table t1 add constraint foreign key fk(c) references t2(a) on delete set null;
+Error 3104: Cannot define foreign key with ON DELETE SET NULL clause on a generated column.
+alter table t1 add constraint foreign key fk(c) references t2(a) on update set null;
+Error 3104: Cannot define foreign key with ON UPDATE SET NULL clause on a generated column.
+alter table t1 add constraint foreign key fk(c) references t2(a) on update cascade;
+Error 3104: Cannot define foreign key with ON UPDATE CASCADE clause on a generated column.
+drop table t1;
+drop table t2;
+Generated alwasy is optional
+create table t1 (a int, b int as (a % 2) virtual);
+show create table t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `a` int(11) DEFAULT NULL,
+  `b` int(11) GENERATED ALWAYS AS (`a` % 2) VIRTUAL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+describe t1;
+Field	Type	Null	Key	Default	Extra
+a	int(11)	YES		NULL	
+b	int(11)	YES		NULL	VIRTUAL GENERATED
+drop table t1;
+create table t1 (a int, b int as (a % 2) stored);
+show create table t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `a` int(11) DEFAULT NULL,
+  `b` int(11) GENERATED ALWAYS AS (`a` % 2) STORED
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+describe t1;
+Field	Type	Null	Key	Default	Extra
+a	int(11)	YES		NULL	
+b	int(11)	YES		NULL	STORED GENERATED
+drop table t1;
+Default should be non-stored column
+create table t1 (a int, b int as (a % 2));
+show create table t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `a` int(11) DEFAULT NULL,
+  `b` int(11) GENERATED ALWAYS AS (`a` % 2) VIRTUAL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+describe t1;
+Field	Type	Null	Key	Default	Extra
+a	int(11)	YES		NULL	
+b	int(11)	YES		NULL	VIRTUAL GENERATED
+drop table t1;
+Expression can be constant
+create table t1 (a int, b int as (5 * 2));
+show create table t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `a` int(11) DEFAULT NULL,
+  `b` int(11) GENERATED ALWAYS AS (5 * 2) VIRTUAL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+describe t1;
+Field	Type	Null	Key	Default	Extra
+a	int(11)	YES		NULL	
+b	int(11)	YES		NULL	VIRTUAL GENERATED
+drop table t1;
+Test generated columns referencing other generated columns
+create table t1 (a int unique, b int generated always as(-a) virtual, c int generated always as (b + 1) virtual);
+insert into t1 (a) values (1), (2);
+select * from t1;
+a	b	c
+1	-1	0
+2	-2	-1
+insert into t1(a) values (1) on duplicate key update a=3;
+select * from t1;
+a	b	c
+2	-2	-1
+3	-3	-2
+update t1 set a=4 where a=2;
+select * from t1;
+a	b	c
+3	-3	-2
+4	-4	-3
+drop table t1;
+create table t1 (a int, b int generated always as(-b) virtual, c int generated always as (b + 1) virtual);
+Error 3107: Generated column can refer only to generated columns defined prior to it.
+create table t1 (a int, b int generated always as(-c) virtual, c int generated always as (b + 1) virtual);
+Error 3107: Generated column can refer only to generated columns defined prior to it.
+CREATE TABLE t1 (pk INTEGER AUTO_INCREMENT, col_int_nokey INTEGER GENERATED ALWAYS AS (pk + col_int_key) STORED, col_int_key INTEGER, PRIMARY KEY (pk));
+Error 3109: Generated column 'col_int_nokey' cannot refer to auto-increment column.
+# Bug#20745142: GENERATED COLUMNS: ASSERTION FAILED:
+#   THD->CHANGE_LIST.IS_EMPTY()
+#
+CREATE TABLE t1(a bigint AS (a between 1 and 1));
+Error 3107: Generated column can refer only to generated columns defined prior to it.
+# Bug#20757211: GENERATED COLUMNS: ALTER TABLE CRASHES
+#  IN FIND_FIELD_IN_TABLE
+#
+CREATE TABLE t1(a int);
+ALTER TABLE t1 ADD COLUMN z int GENERATED ALWAYS AS
+( 1 NOT IN (SELECT 1 FROM t1 WHERE c0006) ) virtual;
+Error 3102: Expression of generated column 'z' contains a disallowed function.
+DROP TABLE t1;
+# Bug#21025003:WL8149:ASSERTION `CTX->NUM_TO_DROP_FK
+#  == HA_ALTER_INFO->ALTER_INFO-> FAILED
+#
+CREATE TABLE t1 (
+col1 int(11) DEFAULT NULL,
+col2 int(11) DEFAULT NULL,
+col3 int(11) DEFAULT NULL,
+col4 int(11) DEFAULT NULL,
+col5 int(11) GENERATED ALWAYS AS (col4 / col2) VIRTUAL,
+col6 text
+);
+INSERT INTO t1(col1,col2,col3,col4,col6) VALUES(NULL,1,4,0,REPEAT(2,1000));
+ALTER TABLE t1 ADD KEY idx ( col5, col2 );
+DROP TABLE t1;
+# Bug#21074624:i WL8149:SIG 11 INNOBASE_GET_COMPUTED_VALUE |
+#  INNOBASE/HANDLER/HA_INNODB.CC:19082
+CREATE TABLE t1 (
+col1 int(11) NOT NULL,
+col2 int(11) DEFAULT NULL,
+col3 int(11) NOT NULL,
+col4 int(11) DEFAULT NULL,
+col5 int(11) GENERATED ALWAYS AS (col2 % col4) VIRTUAL,
+col6 int(11) GENERATED ALWAYS AS (col3 + col3) VIRTUAL,
+col7 int(11) GENERATED ALWAYS AS (col5 / col5) VIRTUAL,
+col8 int(11) GENERATED ALWAYS AS (col6 / col5) VIRTUAL,
+col9 text,
+extra int(11) DEFAULT NULL,
+KEY idx (col5)
+);
+INSERT INTO t1(col1,col2,col3,col4,col9,extra)
+VALUES(0,6,3,4,REPEAT(4,1000),0);
+ALTER TABLE t1 DROP COLUMN col1;
+DROP TABLE t1;
+# Bug#21390605:VALGRIND ERROR ON DELETE FROM TABLE CONTAINING
+#  AN INDEXED VIRTUAL COLUMN
+CREATE TABLE t1 (
+a INTEGER,
+b INTEGER GENERATED ALWAYS AS (a) VIRTUAL,
+c INTEGER GENERATED ALWAYS AS (b) VIRTUAL,
+INDEX idx (b,c)
+);
+INSERT INTO t1 (a) VALUES (42);
+DELETE FROM t1 WHERE c = 42;
+DROP TABLE t1;
+# Bug#20757211: GENERATED COLUMNS: ALTER TABLE CRASHES
+#  IN FIND_FIELD_IN_TABLE
+#
+CREATE TABLE t1(a int);
+ALTER TABLE t1 ADD COLUMN z int GENERATED ALWAYS AS
+( 1 NOT IN (SELECT 1 FROM t1 WHERE c0006) ) virtual;
+Error 3102: Expression of generated column 'z' contains a disallowed function.
+CREATE TABLE t2(a int, b int as (1 NOT IN (SELECT 1 FROM t1 WHERE not_exist_col)));
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+CREATE TABLE t2(a int, b int as (1 NOT IN (SELECT 1 FROM dual)));
+Error 3102: Expression of generated column 'b' contains a disallowed function.
+DROP TABLE t1;
+# Bug#21142905: PARTITIONED GENERATED COLS -
+#  !TABLE || (!TABLE->WRITE_SET || BITMAP_IS_SET
+#
+CREATE TABLE t1 (
+a int,
+b int generated always as (a) virtual,
+c int generated always as (b+a) virtual,
+d int generated always as (b+a) virtual
+) PARTITION BY LINEAR HASH (b);
+INSERT INTO t1(a) VALUES(0);
+DELETE FROM t1 WHERE c=1;
+DROP TABLE t1;
+# Bug #20709487: COLLATE OPTION NOT ACCEPTED IN GENERATED COLUMN
+#                DEFINITION
+#
+# Check for a valid syntax:
+CREATE TABLE t1 (c CHAR(10) CHARACTER SET utf8 COLLATE utf8_bin GENERATED ALWAYS AS ("foo bar"));
+SHOW CREATE TABLE t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `c` char(10) CHARACTER SET utf8 COLLATE utf8_bin GENERATED ALWAYS AS (_utf8mb4'foo bar') VIRTUAL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+DROP TABLE t1;
+CREATE TABLE t1 (i INT);
+ALTER TABLE t1 ADD COLUMN c CHAR(10) CHARACTER SET utf8 COLLATE utf8_bin GENERATED ALWAYS AS ("foo bar");
+SHOW CREATE TABLE t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `i` int(11) DEFAULT NULL,
+  `c` char(10) CHARACTER SET utf8 COLLATE utf8_bin GENERATED ALWAYS AS (_utf8mb4'foo bar') VIRTUAL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+DROP TABLE t1;
+# Check for a charset mismatch processing:
+CREATE TABLE t1 (t CHAR(10) CHARACTER SET utf8 COLLATE ascii_bin GENERATED ALWAYS AS ("foo bar"));
+Error 1253: COLLATION 'ascii_bin' is not valid for CHARACTER SET 'utf8'
+# Check for a sorting order support:
+CREATE TABLE t1 (c CHAR(10) CHARSET latin1 COLLATE latin1_bin,
+c_ci CHAR(10) CHARSET latin1 COLLATE latin1_general_ci GENERATED ALWAYS AS (c),
+c_cs CHAR(10) CHARSET latin1 COLLATE latin1_general_cs GENERATED ALWAYS AS (c));
+INSERT INTO t1 (c) VALUES ('a'), ('A'), ('b');
+SELECT * FROM t1 ORDER BY c;
+c	c_ci	c_cs
+A	A	A
+a	a	a
+b	b	b
+SELECT * FROM t1 ORDER BY c_ci, c;
+c	c_ci	c_cs
+A	A	A
+a	a	a
+b	b	b
+SELECT * FROM t1 ORDER BY c_cs;
+c	c_ci	c_cs
+A	A	A
+a	a	a
+b	b	b
+SELECT c, c_ci REGEXP 'A', c_cs REGEXP 'A' FROM t1;
+c	c_ci REGEXP 'A'	c_cs REGEXP 'A'
+A	1	1
+a	0	0
+b	0	0
+DROP TABLE t1;
+# Bug #21469535: VALGRIND ERROR (CONDITIONAL JUMP) WHEN INSERT
+#                ROWS INTO A PARTITIONED TABLE
+#
+CREATE TABLE t1 (
+id INT NOT NULL,
+store_id INT NOT NULL,
+x INT GENERATED ALWAYS AS (id + store_id)
+) PARTITION BY RANGE (store_id) (
+PARTITION p0 VALUES LESS THAN (6),
+PARTITION p1 VALUES LESS THAN (11),
+PARTITION p2 VALUES LESS THAN (16),
+PARTITION p3 VALUES LESS THAN (21)
+);
+INSERT INTO t1(id, store_id) VALUES(1, 2);
+DROP TABLE t1;
+#
+# Bug#21900170: CAN'T CREATE TABLE WITH NULLABLE GENERATED COLUMNS
+#
+CREATE TABLE t1 (
+a INT,
+b INT GENERATED ALWAYS AS (-a) VIRTUAL NULL,
+c INT GENERATED ALWAYS AS (a + b) STORED NULL);
+SHOW FULL COLUMNS FROM t1;
+Field	Type	Collation	Null	Key	Default	Extra	Privileges	Comment
+a	int(11)	NULL	YES		NULL		#	
+b	int(11)	NULL	YES		NULL	VIRTUAL GENERATED	#	
+c	int(11)	NULL	YES		NULL	STORED GENERATED	#	
+INSERT INTO t1 (a) VALUES (NULL), (1);
+SELECT * FROM t1;
+a	b	c
+NULL	NULL	NULL
+1	-1	0
+DROP TABLE t1;
+#
+# bug#22018979: RECORD NOT FOUND ON UPDATE,
+#                VIRTUAL COLUMN, ASSERTION 0
+SET @sql_mode_save= @@sql_mode;
+SET sql_mode= 'ANSI';
+CREATE TABLE t1 (
+a INT,
+b VARCHAR(10),
+c CHAR(3) GENERATED ALWAYS AS (substr(b,1,3)) VIRTUAL,
+PRIMARY KEY (a),
+KEY c(c)
+);
+INSERT INTO t1(a, b) values(1, 'bbbb'), (2, 'cc');
+SHOW CREATE TABLE t1;
+Table	Create Table
+t1	CREATE TABLE "t1" (
+  "a" int(11) NOT NULL,
+  "b" varchar(10) DEFAULT NULL,
+  "c" char(3) GENERATED ALWAYS AS (substr(`b`, 1, 3)) VIRTUAL,
+  PRIMARY KEY ("a") /*T![clustered_index] CLUSTERED */,
+  KEY "c" ("c")
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+SELECT * FROM t1 order by a;
+a	b	c
+1	bbbb	bbb
+2	cc	cc
+SET sql_mode= '';
+FLUSH TABLE t1;
+SHOW CREATE TABLE t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `a` int(11) NOT NULL,
+  `b` varchar(10) DEFAULT NULL,
+  `c` char(3) GENERATED ALWAYS AS (substr(`b`, 1, 3)) VIRTUAL,
+  PRIMARY KEY (`a`) /*T![clustered_index] CLUSTERED */,
+  KEY `c` (`c`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+SELECT * FROM t1 order by a;
+a	b	c
+1	bbbb	bbb
+2	cc	cc
+DELETE FROM t1 where a= 2;
+SET sql_mode= @sql_mode_save;
+DROP TABLE t1;

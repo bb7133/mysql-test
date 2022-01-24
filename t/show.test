@@ -1,0 +1,165 @@
+show databases;
+show DATABASES;
+set session sql_mode='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
+DROP TABLE  IF EXISTS  t;
+CREATE TABLE t (
+    c1 int, 
+    c2 int, 
+    c3 int, 
+    c4 int, 
+    primary key(c1));
+CREATE INDEX c2_index ON t (c2);
+CREATE UNIQUE INDEX c3_index ON t (c3);
+
+show columns from t;
+show full columns from t;
+
+
+DROP TABLE  IF EXISTS  t1;
+CREATE TABLE t1 (
+    c1 bigint NOT NULL AUTO_INCREMENT,
+    c2 bigint, c3 bigint,
+    c4 bigint NOT NULL DEFAULT 10,
+    PRIMARY KEY (c1),
+    UNIQUE INDEX c2_index (c2), 
+    INDEX c3_index (c3));
+
+show tables;
+show TABLES;
+show columns from t1;
+show full columns from t1;
+
+create database d2;
+use d2;
+
+show databases;
+drop database d2;
+show tables from `show`;
+show columns from t1 from `show`;
+
+show warnings;
+use test;
+DROP TABLE  IF EXISTS  t2;
+CREATE TABLE t2 (
+    c1 bigint NOT NULL AUTO_INCREMENT,
+    c2 bigint,
+    c3 bigint,
+    c4 bigint NOT NULL DEFAULT 10,
+    c5 bigint,
+    c6 bigint,
+    PRIMARY KEY (c1),
+    UNIQUE KEY c2_index (c2), 
+    KEY c3_index (c3),
+    UNIQUE c4_index (c4),
+    UNIQUE c5_c6_index (c5, c6));
+
+show columns from t2;
+show full columns from t2;
+
+# test timestamp
+drop table if exists t;
+create table t (id int, c1 timestamp);
+show columns from t;
+show full columns from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp default 20150608);
+show columns from t;
+show full columns from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp default current_timestamp);
+show columns from t;
+show full columns from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp null);
+show columns from t;
+show full columns from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp null default null);
+show columns from t;
+show full columns from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp null default 0);
+show columns from t;
+show full columns from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp not null default 0);
+show columns from t;
+show full columns from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp on update current_timestamp);
+show columns from t;
+show full columns from t;
+
+drop table if exists t;
+create table t (id int, c1 timestamp default current_timestamp on update current_timestamp);
+show columns from t;
+show full columns from t;
+
+# test datetime
+drop table if exists t;
+create table t (id int, c1 datetime);
+show columns from t;
+show full columns from t;
+
+drop table if exists t;
+create table t (id int, c1 datetime default 20150608);
+show columns from t;
+show full columns from t;
+
+drop table if exists t;
+create table t (id int, c1 datetime default current_timestamp);
+show columns from t;
+show full columns from t;
+
+drop table if exists t;
+create table t (id int, c1 datetime null);
+show columns from t;
+show full columns from t;
+
+drop table if exists t;
+create table t (id int, c1 datetime null default null);
+show columns from t;
+show full columns from t;
+
+drop table if exists t;
+create table t (id int, c1 datetime null default 0);
+show columns from t;
+show full columns from t;
+
+drop table if exists t;
+create table t (id int, c1 datetime not null default 0);
+show columns from t;
+show full columns from t;
+
+drop table if exists t;
+create table t (id int, c1 datetime on update current_timestamp);
+show columns from t;
+show full columns from t;
+
+drop table if exists t;
+create table t (id int, c1 datetime default current_timestamp on update current_timestamp);
+show columns from t;
+show full columns from t;
+
+drop table if exists t;
+create table t (a date, b datetime, c timestamp);
+show columns from t;
+show full columns from t;
+
+drop table if exists t;
+create table t( a date , b datetime , c year(4), d timestamp,e time ,f year, h datetime(2) );
+show columns from t;
+show full columns from t;
+show engines;
+
+# For charset
+show character set;
+
+set session sql_mode='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';

@@ -1,0 +1,52 @@
+DROP TABLE IF EXISTS tab0;
+DROP TABLE IF EXISTS tab1;
+
+CREATE TABLE tab0(pk INTEGER PRIMARY KEY, col0 INTEGER, col1 FLOAT, col2 TEXT, col3 INTEGER, col4 FLOAT, col5 TEXT);
+
+CREATE TABLE tab1(pk INTEGER PRIMARY KEY, col0 INTEGER, col1 FLOAT, col2 TEXT, col3 INTEGER, col4 FLOAT, col5 TEXT);
+
+INSERT INTO tab0 VALUES(0,6,5.6,'jtqxx',9,5.19,'qvgba');
+
+CREATE INDEX idx_tab1_0 on tab1 (col0);
+CREATE INDEX idx_tab1_1 on tab1 (col1);
+CREATE INDEX idx_tab1_3 on tab1 (col3);
+CREATE INDEX idx_tab1_4 on tab1 (col4);
+
+INSERT INTO tab1 SELECT * FROM tab0;
+
+SELECT pk FROM tab1 WHERE ((col4 IN (1.88,2.42))) AND ((col0 >= 5 AND col0 IS NULL AND col4 BETWEEN 3.30 AND 1.10) OR (((((((col0 >= 1 AND col1 > 9.60 OR col0 >= 3) AND (col1 > 9.63 OR col0 < 0 AND col3 > 5 AND (col0 = 9))) AND (((col1 > 3.24))) AND col0 < 9 OR ((col3 <= 6))) OR ((col0 <= 7) AND col3 < 7) OR col4 IN (8.58,1.26,7.68,3.76,3.20,5.80))))) AND (col0 BETWEEN 7 AND 4) AND col1 >= 0.49) AND ((((col1 >= 8.95 AND col3 <= 7))) AND col1 > 1.97 AND (col4 < 2.86) AND col1 = 5.46) AND col1 <= 3.19 AND col0 <= 9;
+
+--echo null index for comparison operation test, must empty output
+select * from tab1 where col1 > null;
+select * from tab1 where col1 >= null;
+select * from tab1 where col1 < null;
+select * from tab1 where col1 <= null;
+select * from tab1 where col1 != null;
+select * from tab1 where col1 = null;
+
+--echo null index for between test
+select * from tab1 where col1 between 0 and null;
+select * from tab1 where col1 between null and 100000;
+select * from tab1 where col1 not between 0 and null;
+select * from tab1 where col1 not between null and 0;
+
+--echo null index for comparison operation with is null test
+select * from tab1 where (col1 = null) is null;
+select * from tab1 where (col1 = null) is not null;
+
+DROP TABLE IF EXISTS tab0;
+CREATE TABLE tab0(col0 INTEGER, col1 INTEGER, col2 INTEGER, col3 INTEGER, col4 INTEGER, col5 INTEGER);
+INSERT INTO tab0 VALUES(1,2,3,4,5,6),(2,3,4,5,6,1),(3,4,5,6,1,2),(4,5,6,1,2,3),(5,6,1,2,3,4),(6,1,2,3,4,5);
+SELECT DISTINCT COUNT( + + 8 ) col2, - 55 AS col4 FROM tab0 AS cor0 WHERE ( NOT ( NULL IS NULL ) );
+SELECT DISTINCT 77 col0, - SUM( ALL col4 ) AS col5 FROM tab0 AS cor0 WHERE ( NULL ) >= 80 * - - ( - col4 ) + col3;
+SELECT ( 92 ) AS col5, COUNT( * ) FROM tab0 AS cor0 WHERE NOT ( - col3 ) > ( NULL );
+SELECT ALL 8 AS col3, COUNT( + + col3 ) AS col1 FROM tab0 AS cor0 WHERE NOT NULL IS NULL;
+SELECT + 73, COUNT( * ) FROM tab0 WHERE NOT col2 IS NOT NULL;
+SELECT AVG ( col1 ) * - + COUNT( * ), + 53 FROM tab0 AS cor0 WHERE NOT NULL IS NULL;
+SELECT DISTINCT - 77, COUNT( * ) FROM tab0 AS cor0 WHERE + col4 IS NULL;
+SELECT - MIN( - + col0 ), - 73 FROM tab0 WHERE ( + col3 + + 48 + - 65 ) = 57 * + 77 + + 11;
+SELECT DISTINCT + ( - - 40 ) AS col4, MIN( + col1 ) AS col1 FROM tab0 AS cor0 WHERE NULL IS NOT NULL;
+SELECT + + COUNT( * ), + 31 FROM tab0 WHERE NULL < col4;
+SELECT DISTINCT - 16, + COUNT( * ) + - 57 AS col4 FROM tab0 WHERE - - col1 BETWEEN + + 95 AND - + col3;
+SELECT DISTINCT - 20 AS col2, MIN( col0 ) FROM tab0 AS cor0 WHERE NOT + CAST( - CAST( NULL AS SIGNED ) AS SIGNED ) / - col0 NOT BETWEEN NULL AND - 36;
+SELECT DISTINCT COUNT( * ) + - CAST( NULL AS SIGNED ), + 66 AS col4 FROM tab0 cor0 WHERE ( 34 ) IS NULL;

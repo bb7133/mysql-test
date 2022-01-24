@@ -1,0 +1,26 @@
+drop table if exists t;
+create table t (c1 int);
+insert into t values (1), (null), (2);
+select * from t where c1 in (1, null);
+c1
+1
+select * from t where c1 not in (1, null);
+c1
+select * from t where c1 in (select c1 from t);
+c1
+1
+2
+select * from t where c1 in (select c1 from t where c1 = 1 || c1 is null);
+c1
+1
+select * from t where c1 not in (select c1 from t);
+c1
+select * from t where c1 not in (select c1 from t where c1 = 1 || c1 is null);
+c1
+select * from t where c1 not in (select c1 from t where c1 = 1);
+c1
+2
+select * from t where null in (1, null);
+c1
+select * from t where null not in (1, null);
+c1

@@ -1,0 +1,13 @@
+CREATE DATABASE create_database2;
+
+--error EXISTS
+CREATE DATABASE create_database2;
+
+CREATE DATABASE IF NOT EXISTS create_database2;
+
+DROP DATABASE create_database2;
+
+--error NOT_EXISTS
+DROP DATABASE create_database2;
+
+DROP DATABASE IF EXISTS create_database2;

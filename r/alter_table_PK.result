@@ -1,0 +1,247 @@
+drop table if exists t1,t2;
+SET sql_mode = 'NO_ENGINE_SUBSTITUTION,NO_AUTO_CREATE_USER';
+create table t1 (i int unsigned not null auto_increment primary key);
+insert into t1 values (null),(null),(null),(null);
+alter table t1 drop i;
+Error 1090: can't drop only column i in table t1
+select * from t1;
+i
+1
+2
+3
+4
+drop table t1;
+CREATE TABLE t1 (
+Host varchar(16) binary NOT NULL default '',
+User varchar(16) binary NOT NULL default '',
+PRIMARY KEY  (Host,User)
+) ENGINE=MyISAM;
+ALTER TABLE t1 DISABLE KEYS;
+LOCK TABLES t1 WRITE;
+INSERT INTO t1 VALUES ('localhost','root'),('localhost',''),('games','monty');
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	0	PRIMARY	1	Host	A	0	NULL	NULL		BTREE			YES	NULL	NO
+t1	0	PRIMARY	2	User	A	0	NULL	NULL		BTREE			YES	NULL	NO
+ALTER TABLE t1 ENABLE KEYS;
+UNLOCK TABLES;
+DROP TABLE t1;
+CREATE TABLE t1 (
+Host varchar(16) binary NOT NULL default '',
+User varchar(16) binary NOT NULL default '',
+PRIMARY KEY  (Host,User),
+KEY  (Host)
+) ENGINE=MyISAM;
+ALTER TABLE t1 DISABLE KEYS;
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	0	PRIMARY	1	Host	A	0	NULL	NULL		BTREE			YES	NULL	NO
+t1	0	PRIMARY	2	User	A	0	NULL	NULL		BTREE			YES	NULL	NO
+t1	1	host_2	1	Host	A	0	NULL	NULL		BTREE			YES	NULL	NO
+LOCK TABLES t1 WRITE;
+INSERT INTO t1 VALUES ('localhost','root'),('localhost','');
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	0	PRIMARY	1	Host	A	0	NULL	NULL		BTREE			YES	NULL	NO
+t1	0	PRIMARY	2	User	A	0	NULL	NULL		BTREE			YES	NULL	NO
+t1	1	host_2	1	Host	A	0	NULL	NULL		BTREE			YES	NULL	NO
+ALTER TABLE t1 ENABLE KEYS;
+SHOW INDEX FROM t1;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression	Clustered
+t1	0	PRIMARY	1	Host	A	0	NULL	NULL		BTREE			YES	NULL	NO
+t1	0	PRIMARY	2	User	A	0	NULL	NULL		BTREE			YES	NULL	NO
+t1	1	host_2	1	Host	A	0	NULL	NULL		BTREE			YES	NULL	NO
+UNLOCK TABLES;
+drop table if exists t1, t2;
+create table t1 ( a varchar(10) not null primary key ) ;
+create table t2 ( a varchar(10) not null primary key ) ;
+flush tables;
+alter table t1 modify a varchar(10);
+show create table t2;
+Table	Create Table
+t2	CREATE TABLE `t2` (
+  `a` varchar(10) NOT NULL,
+  PRIMARY KEY (`a`) /*T![clustered_index] NONCLUSTERED */
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+flush tables;
+alter table t1 modify a varchar(10) not null;
+show create table t2;
+Table	Create Table
+t2	CREATE TABLE `t2` (
+  `a` varchar(10) NOT NULL,
+  PRIMARY KEY (`a`) /*T![clustered_index] NONCLUSTERED */
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+drop table if exists t1, t2;
+CREATE TABLE t1 (a int PRIMARY KEY, b INT UNIQUE);
+ALTER TABLE t1 DROP PRIMARY KEY;
+Error 8200: Unsupported drop primary key when the table's pkIsHandle is true
+SHOW CREATE TABLE t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `a` int(11) NOT NULL,
+  `b` int(11) DEFAULT NULL,
+  PRIMARY KEY (`a`) /*T![clustered_index] CLUSTERED */,
+  UNIQUE KEY `b` (`b`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+DROP TABLE t1;
+create table t1 (v varchar(32));
+insert into t1 values ('def'),('abc'),('hij'),('3r4f');
+select * from t1;
+v
+def
+abc
+hij
+3r4f
+alter table t1 change v v2 varchar(32);
+select * from t1;
+v2
+def
+abc
+hij
+3r4f
+alter table t1 change v2 v varchar(64);
+select * from t1;
+v
+def
+abc
+hij
+3r4f
+update t1 set v = 'lmn' where v = 'hij';
+select * from t1;
+v
+def
+abc
+lmn
+3r4f
+alter table t1 add i int auto_increment not null primary key first;
+Error 8200: unsupported add column 'i' constraint AUTO_INCREMENT when altering 'alter_table_PK.t1'
+select * from t1;
+v
+def
+abc
+lmn
+3r4f
+update t1 set i=5 where i=3;
+Error 1054: Unknown column 'i' in 'where clause'
+select * from t1;
+v
+def
+abc
+lmn
+3r4f
+alter table t1 change i i bigint;
+Error 1054: Unknown column 'i' in 't1'
+select * from t1;
+v
+def
+abc
+lmn
+3r4f
+drop table t1;
+CREATE TABLE t1(a INT AUTO_INCREMENT PRIMARY KEY,
+b ENUM('a', 'b', 'c') NOT NULL);
+INSERT INTO t1 (b) VALUES ('a'), ('c'), ('b'), ('b'), ('a');
+ALTER TABLE t1 MODIFY b ENUM('a', 'z', 'b', 'c') NOT NULL;
+SELECT * FROM t1;
+a	b
+1	a
+2	c
+3	b
+4	b
+5	a
+DROP TABLE t1;
+End of 5.1 tests
+CREATE TABLE t1(c CHAR(10),
+i INT UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY);
+INSERT INTO t1 VALUES('a',2),('b',4),('c',6);
+ALTER TABLE t1 DROP i;
+Error 8200: Unsupported drop integer primary key
+DROP TABLE t1;
+CREATE TABLE t1 (a CHAR(1), PRIMARY KEY (a(255)));
+Error 1089: Incorrect prefix key; the used key part isn't a string, the used length is longer than the key part, or the storage engine doesn't support unique prefix keys
+CREATE TABLE t1 (a CHAR(1));
+ALTER TABLE t1 ADD KEY (a(20));
+Error 1089: Incorrect prefix key; the used key part isn't a string, the used length is longer than the key part, or the storage engine doesn't support unique prefix keys
+CREATE UNIQUE INDEX i1 ON t1 (a(20));
+Error 1089: Incorrect prefix key; the used key part isn't a string, the used length is longer than the key part, or the storage engine doesn't support unique prefix keys
+CREATE INDEX i2 ON t1 (a(20));
+Error 1089: Incorrect prefix key; the used key part isn't a string, the used length is longer than the key part, or the storage engine doesn't support unique prefix keys
+DROP TABLE t1;
+#
+# Tests for WL#6555 "Online rename index".
+#
+#
+# 1) Tests for syntax and semantics of ALTER TABLE RENAME
+#    KEY/INDEX result.
+#
+# 1.a) Both RENAME KEY and RENAME INDEX variants should be
+#      allowed and produce expected results.
+create table t1 (pk int primary key, i int, j int, key a(i));
+alter table t1 rename key a to b;
+show create table t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `pk` int(11) NOT NULL,
+  `i` int(11) DEFAULT NULL,
+  `j` int(11) DEFAULT NULL,
+  PRIMARY KEY (`pk`) /*T![clustered_index] CLUSTERED */,
+  KEY `b` (`i`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+alter table t1 rename index b to c;
+show create table t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `pk` int(11) NOT NULL,
+  `i` int(11) DEFAULT NULL,
+  `j` int(11) DEFAULT NULL,
+  PRIMARY KEY (`pk`) /*T![clustered_index] CLUSTERED */,
+  KEY `c` (`i`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+# 1.e) We disallow renaming from/to PRIMARY as it might
+#      lead to some other key becoming "primary" internally,
+#      which will be interpreted as dropping/addition of
+#      primary key.
+alter table t1 rename key primary to d;
+[parser:1064]You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 33 near "primary to d;" 
+show create table t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `pk` int(11) NOT NULL,
+  `i` int(11) DEFAULT NULL,
+  `j` int(11) DEFAULT NULL,
+  PRIMARY KEY (`pk`) /*T![clustered_index] CLUSTERED */,
+  KEY `c` (`i`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+# Even using 'funny' syntax.
+alter table t1 rename key `primary` to d;
+Error 1176: Key 'primary' doesn't exist in table 't1'
+show create table t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `pk` int(11) NOT NULL,
+  `i` int(11) DEFAULT NULL,
+  `j` int(11) DEFAULT NULL,
+  PRIMARY KEY (`pk`) /*T![clustered_index] CLUSTERED */,
+  KEY `c` (`i`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+alter table t1 rename key c to primary;
+[parser:1064]You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 38 near "primary;" 
+show create table t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `pk` int(11) NOT NULL,
+  `i` int(11) DEFAULT NULL,
+  `j` int(11) DEFAULT NULL,
+  PRIMARY KEY (`pk`) /*T![clustered_index] CLUSTERED */,
+  KEY `c` (`i`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+show create table t1;
+Table	Create Table
+t1	CREATE TABLE `t1` (
+  `pk` int(11) NOT NULL,
+  `i` int(11) DEFAULT NULL,
+  `j` int(11) DEFAULT NULL,
+  PRIMARY KEY (`pk`) /*T![clustered_index] CLUSTERED */,
+  KEY `c` (`i`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+drop table t1;

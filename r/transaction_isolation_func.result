@@ -1,0 +1,217 @@
+#
+# WL#9636: Rename tx_{isolation,isolation} variables to transaction_*
+#
+# Creating connections
+SET SESSION AUTOCOMMIT = OFF;
+SET SESSION TIDB_TXN_MODE = 'PESSIMISTIC';
+SET SESSION INNODB_LOCK_WAIT_TIMEOUT = 3;
+SET SESSION AUTOCOMMIT = OFF;
+SET SESSION TIDB_TXN_MODE = 'PESSIMISTIC';
+SET SESSION INNODB_LOCK_WAIT_TIMEOUT = 3;
+# Creating tables
+CREATE TABLE t1 (a int PRIMARY KEY, b int) ENGINE=INNODB;
+INSERT INTO t1 VALUES(2, 2);
+INSERT INTO t1 VALUES(4, 4);
+INSERT INTO t1 VALUES(6, 6);
+INSERT INTO t1 VALUES(8, 8);
+INSERT INTO t1 VALUES(16, 16);
+INSERT INTO t1 VALUES(18, 18);
+INSERT INTO t1 VALUES(20, 20);
+INSERT INTO t1 VALUES(22, 22);
+INSERT INTO t1 VALUES(24, 24);
+# Testing for value READ-COMMITTED
+SET SESSION transaction_isolation = 'READ-COMMITTED';
+SET SESSION transaction_isolation = 'READ-COMMITTED';
+# Testing WHERE on keys using % on even rows
+START TRANSACTION;
+SELECT * FROM t1 WHERE a % 2 = 0 FOR UPDATE;
+a	b
+2	2
+4	4
+6	6
+8	8
+16	16
+18	18
+20	20
+22	22
+24	24
+UPDATE t1 SET b = 11 WHERE a % 2 = 0;
+START TRANSACTION;
+SELECT * FROM t1;
+a	b
+2	2
+4	4
+6	6
+8	8
+16	16
+18	18
+20	20
+22	22
+24	24
+INSERT INTO t1 VALUES(5, 5);
+INSERT INTO t1 VALUES(7, 7);
+SELECT * FROM t1;
+a	b
+2	2
+4	4
+5	5
+6	6
+7	7
+8	8
+16	16
+18	18
+20	20
+22	22
+24	24
+COMMIT;
+COMMIT;
+# Testing for value REPEATABLE-READ
+SET SESSION transaction_isolation = 'REPEATABLE-READ';
+SET SESSION transaction_isolation = 'REPEATABLE-READ';
+# Testing WHERE on keys using % on even rows
+START TRANSACTION;
+SELECT * FROM t1 WHERE a % 2 = 0 FOR UPDATE;
+a	b
+2	11
+4	11
+6	11
+8	11
+16	11
+18	11
+20	11
+22	11
+24	11
+UPDATE t1 SET b = 12 WHERE a % 2 = 0;
+START TRANSACTION;
+SELECT * FROM t1;
+a	b
+2	11
+4	11
+5	5
+6	11
+7	7
+8	11
+16	11
+18	11
+20	11
+22	11
+24	11
+INSERT INTO t1 VALUES(9, 9);
+INSERT INTO t1 VALUES(13, 13);
+SELECT * FROM t1;
+a	b
+2	11
+4	11
+5	5
+6	11
+7	7
+8	11
+9	9
+13	13
+16	11
+18	11
+20	11
+22	11
+24	11
+COMMIT;
+** Connection con0 **
+COMMIT;
+# Testing WHERE on keys using IN clause
+START TRANSACTION;
+SELECT * FROM t1 WHERE a IN (2,4,6,8,10,12,14,16,18,20,22,24,26) = 0 FOR UPDATE;
+a	b
+5	5
+7	7
+9	9
+13	13
+UPDATE t1 SET b = 13 WHERE a IN (2,4,6,8,10,12,14,16,18,20,22,24,26) = 0;
+START TRANSACTION;
+SELECT * FROM t1;
+a	b
+2	12
+4	12
+5	5
+6	12
+7	7
+8	12
+9	9
+13	13
+16	12
+18	12
+20	12
+22	12
+24	12
+INSERT INTO t1 VALUES(9, 9);
+Error 1205: Lock wait timeout exceeded; try restarting transaction
+INSERT INTO t1 VALUES(13, 13);
+Error 1205: Lock wait timeout exceeded; try restarting transaction
+SELECT * FROM t1;
+a	b
+2	12
+4	12
+5	5
+6	12
+7	7
+8	12
+9	9
+13	13
+16	12
+18	12
+20	12
+22	12
+24	12
+COMMIT;
+COMMIT;
+# Testing WHERE on keys using IN clause
+START TRANSACTION;
+SELECT * FROM t1 WHERE a IN (2,4,6,8) = 0 FOR UPDATE;
+a	b
+5	13
+7	13
+9	13
+13	13
+16	12
+18	12
+20	12
+22	12
+24	12
+UPDATE t1 SET b = 14 WHERE a IN (2,4,6,8) = 0;
+START TRANSACTION;
+SELECT * FROM t1;
+a	b
+2	12
+4	12
+5	13
+6	12
+7	13
+8	12
+9	13
+13	13
+16	12
+18	12
+20	12
+22	12
+24	12
+INSERT INTO t1 VALUES(9, 9);
+Error 1205: Lock wait timeout exceeded; try restarting transaction
+INSERT INTO t1 VALUES(13, 13);
+Error 1205: Lock wait timeout exceeded; try restarting transaction
+SELECT * FROM t1;
+a	b
+2	12
+4	12
+5	13
+6	12
+7	13
+8	12
+9	13
+13	13
+16	12
+18	12
+20	12
+22	12
+24	12
+COMMIT;
+COMMIT;
+Disconnecting Connections con0, con1
+DROP TABLE t1;

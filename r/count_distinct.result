@@ -1,0 +1,72 @@
+create table t1 (f1 int);
+insert into t1 values (1);
+create table t2 (f1 int,f2 int);
+select t1.f1,count(distinct t2.f2),count(distinct 1,NULL) from t1 left join t2 on t1.f1=t2.f1 group by t1.f1;
+f1	count(distinct t2.f2)	count(distinct 1,NULL)
+1	0	0
+drop table t1,t2;
+create table t1 (f int);
+select count(distinct f) from t1;
+count(distinct f)
+0
+drop table t1;
+create table t1 (a char(3), b char(20), primary key (a, b));
+insert into t1 values ('ABW', 'Dutch'), ('ABW', 'English');
+select count(distinct a) from t1 group by b;
+count(distinct a)
+1
+1
+drop table t1;
+create table t1 (f1 int, f2 int);
+insert into t1 values (0,1),(1,2);
+select count(distinct if(f1,3,f2)) from t1;
+count(distinct if(f1,3,f2))
+2
+drop table t1;
+#
+# Bug #18853696 WRONG RESULT FOR COUNT DISTINCT OF RESULT
+#               OF JOINED DERIVED TABLE
+#
+CREATE TABLE t1 (
+pk INT NOT NULL,
+col_varchar_key VARCHAR(1),
+col_varchar_nokey VARCHAR(1),
+PRIMARY KEY (pk),
+KEY col_varchar_key (col_varchar_key)
+);
+INSERT INTO t1 VALUES (10,'x','x');
+INSERT INTO t1 VALUES (11,'d','d');
+INSERT INTO t1 VALUES (12,'r','r');
+INSERT INTO t1 VALUES (13,'f','f');
+INSERT INTO t1 VALUES (14,'y','y');
+CREATE TABLE t2 (
+pk INT NOT NULL,
+col_int_nokey INT,
+col_varchar_key VARCHAR(1),
+PRIMARY KEY (pk),
+KEY col_varchar_key (col_varchar_key)
+);
+INSERT INTO t2 VALUES (1,7,'x');
+SELECT COUNT( DISTINCT table1.col_varchar_key )
+FROM t2 AS table1
+JOIN (SELECT * FROM t1) AS table2
+ON ( table2.pk = table1.col_int_nokey )
+WHERE table1.pk = 1;
+COUNT( DISTINCT table1.col_varchar_key )
+0
+SELECT COUNT( DISTINCT table1.col_varchar_key )
+FROM t2 AS table1
+JOIN t1 AS table2
+ON ( table2.pk = table1.col_int_nokey )
+WHERE table1.pk = 1;
+COUNT( DISTINCT table1.col_varchar_key )
+0
+SELECT COUNT( table1.col_varchar_key )
+FROM t2 AS table1
+JOIN (SELECT * FROM t1) AS table2
+ON ( table2.pk = table1.col_int_nokey )
+WHERE table1.pk = 1;
+COUNT( table1.col_varchar_key )
+0
+DROP TABLE t1,t2;
+# End of test for Bug#18853696

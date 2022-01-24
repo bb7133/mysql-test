@@ -1,0 +1,154 @@
+create table t1 (a int not null,
+b int generated always as (-a) virtual,
+c int generated always as (-a) stored);
+insert into t1 (a) values (1), (1), (2), (2), (3);
+create view v1 (d,e) as select abs(b), abs(c) from t1;
+select d,e from v1;
+d	e
+1	1
+1	1
+2	2
+2	2
+3	3
+select is_updatable from information_schema.views where table_name='v1' and table_schema='gcol_view';
+is_updatable
+NO
+create algorithm=temptable view v2 (d,e) as select abs(b), abs(c) from t1;
+show create view v2;
+View	Create View	character_set_client	collation_connection
+v2	CREATE ALGORITHM=TEMPTABLE DEFINER=`root`@`%` SQL SECURITY DEFINER VIEW `v2` (`d`, `e`) AS SELECT ABS(`b`) AS `abs(b)`,ABS(`c`) AS `abs(c)` FROM `gcol_view`.`t1`	utf8mb4	utf8mb4_general_ci
+select d,e from v2;
+d	e
+1	1
+1	1
+2	2
+2	2
+3	3
+create view v3 (d,e) as select d*2, e*2 from v1;
+select * from v3;
+d	e
+2	2
+2	2
+4	4
+4	4
+6	6
+drop view v1,v2,v3;
+drop table t1;
+create table t1 (a int not null,
+b int generated always as (-a) virtual,
+c int generated always as (-a) stored);
+insert into t1 (a) values (1), (2), (3), (1), (2), (3);
+create view v1 as select distinct b from t1;
+select * from v1;
+b
+-1
+-2
+-3
+select * from t1;
+a	b	c
+1	-1	-1
+1	-1	-1
+2	-2	-2
+2	-2	-2
+3	-3	-3
+3	-3	-3
+drop view v1;
+create view v1 as select distinct c from t1;
+select * from v1;
+c
+-1
+-2
+-3
+select * from t1;
+a	b	c
+1	-1	-1
+1	-1	-1
+2	-2	-2
+2	-2	-2
+3	-3	-3
+3	-3	-3
+drop view v1;
+drop table t1;
+create table t1 (a int not null,
+b int generated always as (-a) virtual,
+c int generated always as (-a) stored);
+insert into t1 (a) values (1), (2), (3), (4);
+create view v1 as select b+1 from t1 order by 1 desc limit 2;
+select * from v1;
+b+1
+0
+-1
+drop view v1;
+create view v1 as select c+1 from t1 order by 1 desc limit 2;
+select * from v1;
+c+1
+-1
+0
+drop view v1;
+drop table t1;
+create table t1 (a int,
+b int generated always as (-a) virtual,
+c int generated always as (-a) stored);
+create table t2 like t1;
+create view v1 as select a,b,c from t1;
+create view v2 as select a,b,c from t2 where b in (select b from v1);
+show create view v2;
+View	Create View	character_set_client	collation_connection
+v2	CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`%` SQL SECURITY DEFINER VIEW `v2` (`a`, `b`, `c`) AS SELECT `a` AS `a`,`b` AS `b`,`c` AS `c` FROM `gcol_view`.`t2` WHERE `b` IN (SELECT `b` AS `b` FROM `gcol_view`.`v1`)	utf8mb4	utf8mb4_general_ci
+drop view v2, v1;
+drop table t1, t2;
+create table t1 (a int,
+b int generated always as (-a) virtual,
+c int generated always as (-a) stored);
+insert into t1 (a) values (1),(1),(2),(2),(3),(3);
+create view v1 as select b from t1;
+select distinct b from v1;
+b
+-1
+-2
+-3
+select distinct b from v1 order by b limit 2;
+b
+-3
+-2
+select distinct b from t1 order by b limit 2;
+b
+-3
+-2
+prepare stmt1 from "select distinct b from v1 order by b limit 2";
+execute stmt1;
+b
+-3
+-2
+execute stmt1;
+b
+-3
+-2
+deallocate prepare stmt1;
+drop view v1;
+create view v1 as select c from t1;
+select distinct c from v1;
+c
+-1
+-2
+-3
+select distinct c from v1 order by c limit 2;
+c
+-3
+-2
+select distinct c from t1 order by c limit 2;
+c
+-3
+-2
+prepare stmt1 from "select distinct c from v1 order by c limit 2";
+execute stmt1;
+c
+-3
+-2
+execute stmt1;
+c
+-3
+-2
+deallocate prepare stmt1;
+drop view v1;
+drop table t1;

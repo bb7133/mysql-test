@@ -1,0 +1,18 @@
+DROP TABLE IF EXISTS t;
+CREATE TABLE t (c1 int, c2 TEXT);
+INSERT INTO t VALUES(11, '22');
+INSERT INTO t VALUES(12, '2\'2');
+SELECT * from t;
+c1	c2
+11	22
+12	2'2
+SELECT * from `t`;
+c1	c2
+11	22
+12	2'2
+INSERT INTO t VALUES(12, '2\'\\2');
+SELECT * from t;
+c1	c2
+11	22
+12	2'2
+12	2'\2
